@@ -35,11 +35,10 @@ LLM: calls whats_next() again
 ```mermaid
 graph TB
     subgraph "Vibe Feature MCP Server"
-        SM[State Manager]
+        CM[Conversation Manager]
         TM[Transition Engine]
         IM[Instruction Generator]
         PM[Plan Manager]
-        CM[Conversation Manager]
         DB[(SQLite Database)]
     end
     
@@ -66,10 +65,9 @@ graph TB
     end
     
     USER --> LLM
-    LLM --> SM
-    SM --> CM
+    LLM --> CM
     CM --> DB
-    SM --> TM
+    CM --> TM
     TM --> IM
     IM --> PM
     
@@ -91,51 +89,42 @@ graph TB
 ### Core Building Blocks
 
 #### 1. **Conversation Manager**
-The Conversation Manager is responsible for identifying and tracking unique development conversations across different projects and git branches.
+The Conversation Manager handles conversation identification, state persistence, and coordination between components.
 
 **Responsibilities:**
 - Generate unique conversation identifiers from project path + git branch
-- Maintain conversation context and history
+- Load and persist conversation state from/to database
+- Coordinate state updates across components
 - Handle conversation lifecycle (creation, updates, cleanup)
 - Provide conversation-scoped state isolation
+- Manage project-specific development context
 
 **Key Features:**
 - **Project-Aware Identification**: Uses absolute project path + current git branch as conversation identifier
 - **Git Integration**: Automatically detects git branch changes and creates separate conversation contexts
-- **Persistent Storage**: Stores conversation metadata in SQLite database
-- **Context Isolation**: Each project/branch combination maintains independent state
-
-#### 2. **State Manager**
-The State Manager orchestrates the overall conversation state and coordinates between different components.
-
-**Responsibilities:**
-- Load and persist conversation state from/to database
-- Coordinate state updates across components
-- Handle state transitions and validation
-- Manage project-specific development context
-
-**Key Features:**
 - **Stateless Operation**: Does not store conversation history, relies on LLM-provided context
 - **Multi-Project Support**: Handles multiple concurrent project conversations
 - **State Validation**: Ensures state consistency and handles corrupted state recovery
 - **Context Processing**: Analyzes LLM-provided conversation summary and recent messages
 
-#### 3. **Transition Engine**
-The Transition Engine analyzes conversation context and determines appropriate stage transitions.
+#### 2. **Transition Engine**
+The Transition Engine manages the development state machine and determines appropriate stage transitions.
 
 **Responsibilities:**
 - Analyze user input and conversation context
 - Determine current development stage
 - Evaluate stage completion criteria
 - Trigger stage transitions based on conversation analysis
+- Implement development state machine logic
 
 **Key Features:**
 - **Context Analysis**: Processes LLM-provided conversation summary and recent messages
 - **Stage Detection**: Intelligently determines appropriate development stage
 - **Transition Logic**: Implements rules for stage progression and regression
 - **Completion Assessment**: Evaluates when stages are sufficiently complete
+- **State Machine Management**: Handles the core development workflow logic
 
-#### 4. **Instruction Generator**
+#### 3. **Instruction Generator**
 The Instruction Generator creates stage-specific guidance for the LLM based on current conversation state.
 
 **Responsibilities:**
@@ -150,7 +139,7 @@ The Instruction Generator creates stage-specific guidance for the LLM based on c
 - **Task Management**: Provides clear guidance on task completion and progress tracking
 - **Plan File Integration**: Ensures consistent plan file updates and maintenance
 
-#### 5. **Plan Manager**
+#### 4. **Plan Manager**
 The Plan Manager handles the creation, updating, and maintenance of project development plan files.
 
 **Responsibilities:**
@@ -165,7 +154,7 @@ The Plan Manager handles the creation, updating, and maintenance of project deve
 - **Branch-Aware Plans**: Separate plan files for different git branches when needed
 - **Template Management**: Consistent plan file structure across projects
 
-#### 6. **SQLite Database**
+#### 5. **SQLite Database**
 The database provides persistent storage for conversation state and metadata.
 
 **Schema Design:**
@@ -193,33 +182,31 @@ sequenceDiagram
     participant FS as File System
     
     User->>LLM: "implement auth"
-    LLM->>SM: whats_next(context, user_input, conversation_summary, recent_messages)
-    SM->>CM: identify conversation
+    LLM->>CM: whats_next(context, user_input, conversation_summary, recent_messages)
     CM->>FS: detect project path + git branch
     CM->>DB: lookup/create conversation state
     DB-->>CM: conversation state (stage, plan path only)
-    CM-->>SM: conversation context
     
-    SM->>TM: analyze stage transition
+    CM->>TM: analyze stage transition
     TM->>TM: analyze LLM-provided context
     TM->>TM: evaluate current stage
-    TM-->>SM: stage decision
+    TM-->>CM: stage decision
     
-    SM->>IM: generate instructions
+    CM->>IM: generate instructions
     IM->>DB: get project context
-    IM-->>SM: stage-specific instructions
+    IM-->>CM: stage-specific instructions
     
-    SM->>PM: update plan file path
-    PM-->>SM: plan file location
+    CM->>PM: update plan file path
+    PM-->>CM: plan file location
     
-    SM->>DB: update conversation state (stage only)
-    SM-->>LLM: instructions + metadata
+    CM->>DB: update conversation state (stage only)
+    CM-->>LLM: instructions + metadata
     
     LLM->>User: follow instructions
     LLM->>FS: update plan file
     
     Note over User,FS: Cycle continues with each user interaction
-    Note over LLM,SM: Server stores NO message history - LLM provides context
+    Note over LLM,CM: Server stores NO message history - LLM provides context
 ```
 
 ### Data Flow Architecture
