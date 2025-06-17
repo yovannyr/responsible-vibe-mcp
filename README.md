@@ -183,6 +183,7 @@ sequenceDiagram
     
     User->>LLM: "implement auth"
     LLM->>CM: whats_next(context, user_input, conversation_summary, recent_messages)
+    Note over LLM,CM: Server stores NO message history - LLM provides context
     CM->>FS: detect project path + git branch
     CM->>DB: lookup/create conversation state
     DB-->>CM: conversation state (stage, plan path only)
@@ -206,7 +207,6 @@ sequenceDiagram
     LLM->>FS: update plan file
     
     Note over User,FS: Cycle continues with each user interaction
-    Note over LLM,CM: Server stores NO message history - LLM provides context
 ```
 
 ### Data Flow Architecture
@@ -329,7 +329,7 @@ sequenceDiagram
 
 ## State Machine
 
-The server operates as a state machine that transitions between development stages based on conversation analysis:
+The server operates as a state machine that transitions between development stages. While the diagram shows the typical linear progression, **users can transition directly to any stage at any time** using the `proceed_to_stage` tool:
 
 ```mermaid
 stateDiagram-v2
@@ -364,6 +364,21 @@ stateDiagram-v2
     Complete --> Idle : feature_delivered
     Complete --> Requirements : new_feature_request
 ```
+
+### Stage Transition Flexibility
+
+**All stage transitions are possible** - users can move from any stage to any other stage using `proceed_to_stage`. The transitions shown in the diagram represent the **typical development flow** and have **dedicated transition prompts** that provide specific guidance for common scenarios:
+
+- **Forward progression**: Requirements → Design → Implementation → QA → Testing → Complete
+- **Backward refinement**: When issues are discovered, return to earlier stages
+- **Refinement loops**: Stay in current stage to add more work or improve quality
+
+**Direct transitions** (not shown in diagram) are also supported for scenarios like:
+- **"I have existing code, let's review it"** → Direct to QA stage
+- **"I just need help with testing"** → Direct to Testing stage  
+- **"Let's go back to requirements"** → Return to Requirements from any stage
+
+For modeled transitions, vibe-feature-mcp provides **contextual guidance** about why the transition makes sense and what to focus on next. For direct transitions, it provides **general stage instructions** appropriate for the target stage.
 
 ## Features
 
@@ -422,32 +437,6 @@ The server ensures the LLM maintains a living development plan document:
 npm install @modelcontextprotocol/sdk zod
 ```
 
-## Configuration
-
-Create a configuration file `vibe-config.json`:
-
-```json
-{
-  "projectName": "My Project",
-  "planFilePath": "./feature-plan.md",
-  "stateFilePath": "./conversation-state.json",
-  "stageInstructions": {
-    "requirements": "Analyze the user's request about the feature they want to implement. Ask clarifying questions about WHAT they need. Explore alternative approaches. Break down their needs into specific tasks and add them to the plan file. Mark completed requirements tasks as you progress.",
-    "design": "Help the user design the technical solution. Ask about quality goals, technologies, architecture decisions. Document the HOW of implementation. Update the plan file with design decisions. Mark completed requirements tasks and add design tasks.",
-    "implementation": "Guide the user through implementing the feature. Follow coding best practices, ensure proper error handling and testing. Update the plan file with implementation progress. Mark completed design tasks and track implementation tasks.",
-    "qa": "Guide the user through quality assurance. Review code quality, validate requirements are met, ensure proper testing. Update the plan file with QA results. Mark completed implementation tasks.",
-    "testing": "Guide the user through comprehensive testing. Create test plans, execute tests, validate feature completeness. Update the plan file with test results. Mark completed QA tasks."
-  },
-  "transitionCriteria": {
-    "requirements_to_design": ["requirements_documented", "user_confirmed_scope"],
-    "design_to_implementation": ["architecture_defined", "tech_stack_chosen"],
-    "implementation_to_qa": ["core_functionality_complete", "basic_testing_done"],
-    "qa_to_testing": ["code_reviewed", "requirements_validated"],
-    "testing_to_complete": ["tests_passing", "feature_validated"]
-  }
-}
-```
-
 ## API Reference
 
 ### Resources
@@ -480,6 +469,19 @@ The primary tool that analyzes conversation state and provides LLM instructions.
 - `transition_reason` (string): Why this stage was chosen
 - `completed_tasks` (array): Tasks that should be marked as complete
 
+#### `proceed_to_stage`
+Tool for explicitly transitioning to a new development stage when current stage is complete.
+
+**Parameters:**
+- `target_stage` (string): The stage to transition to (requirements, design, implementation, qa, testing, complete)
+- `reason` (string, optional): Reason for transitioning now
+
+**Returns:**
+- `stage` (string): New development stage
+- `instructions` (string): Instructions for the new stage
+- `plan_file_path` (string): Path to the plan file to update
+- `transition_reason` (string): Confirmation of stage transition
+
 ### Prompts
 
 #### `stage-guidance`
@@ -489,9 +491,93 @@ Provides detailed guidance prompts for specific development stages.
 - `stage` (string): Development stage name
 - `context` (string): Additional context or specific questions
 
-## Comprehensive Sample Interaction Flow
+## Stage Progression Flow
 
-### Scenario: User wants to implement authentication
+### How Users Advance Through Development Stages
+
+The vibe-feature-mcp server guides users through a structured development process using a two-tool approach that gives users full control over stage transitions:
+
+#### 1. **Continuous Guidance with `whats_next`**
+- LLM calls `whats_next()` after each user interaction
+- Server analyzes current stage progress and plan file status
+- Returns stage-specific instructions for what to do next
+
+#### 2. **Explicit Stage Transitions with `proceed_to_stage`**
+- When all tasks in a stage are complete, `whats_next()` suggests moving forward
+- LLM uses `proceed_to_stage()` to explicitly transition to the next stage
+- User maintains full control over pacing and can choose to refine current stage
+
+### Stage Progression Pattern
+
+```mermaid
+flowchart TD
+    A[User Request] --> B[LLM calls whats_next]
+    B --> C{Stage Complete?}
+    
+    C -->|No| D[Continue Current Stage]
+    D --> E[Follow Stage Instructions]
+    E --> F[Update Plan File]
+    F --> G[User Interaction]
+    G --> B
+    
+    C -->|Yes| H[Suggest Stage Transition]
+    H --> I{User Ready?}
+    I -->|No| D
+    I -->|Yes| J[LLM calls proceed_to_stage]
+    J --> K[Transition to Next Stage]
+    K --> B
+```
+
+### Example Stage Progression
+
+#### Starting a New Feature
+```
+User: "I want to implement user authentication"
+LLM: *calls whats_next()*
+vibe-feature-mcp: "New feature detected. Starting requirements analysis. Ask the user clarifying questions about WHAT they need for authentication..."
+```
+
+#### Working Within a Stage
+```
+LLM: *asks clarifying questions, updates plan file*
+LLM: *calls whats_next()*
+vibe-feature-mcp: "Continue requirements gathering. You still need to clarify password policies and session management..."
+```
+
+#### Completing a Stage
+```
+LLM: *completes all requirements tasks*
+LLM: *calls whats_next()*
+vibe-feature-mcp: "All requirements tasks are complete! ✅ You can proceed to design stage using 'proceed_to_stage' tool, or continue refining requirements if needed."
+```
+
+#### Transitioning to Next Stage
+```
+LLM: "Great! We've covered all authentication requirements. Let's move to design."
+LLM: *calls proceed_to_stage(target_stage: "design", reason: "requirements complete")*
+vibe-feature-mcp: "Transitioning to design stage. Help the user design the technical solution. Ask about architecture, technologies, and quality goals..."
+```
+
+### Stage Completion Indicators
+
+Each stage is considered complete when:
+
+- **Requirements**: All user needs documented, scope confirmed, tasks broken down
+- **Design**: Technical approach defined, architecture decided, technology choices made
+- **Implementation**: Core functionality built, code structured, basic testing done
+- **Quality Assurance**: Code reviewed, requirements validated, documentation complete
+- **Testing**: Test plans executed, coverage verified, feature validated
+
+### Refinement and Flexibility
+
+Users can always choose to:
+- **Stay in current stage**: Even when "complete," users can add more tasks or refine existing work
+- **Go back**: Use `proceed_to_stage` to return to earlier stages if issues are discovered
+- **Skip ahead**: In rare cases, jump to later stages if earlier work is already done
+
+This approach ensures users maintain full control over the development process while receiving structured guidance from vibe-feature-mcp.
+
+## Comprehensive Sample Interaction Flow
 
 ```
 User: "I need to implement user authentication for my web app"
@@ -545,11 +631,24 @@ LLM: *calls whats_next(context: "requirements seem complete", user_input: "passw
 
 Vibe-Feature-MCP Response:
 {
+  "stage": "requirements",
+  "instructions": "All requirements tasks are complete! ✅ You have documented: authentication type, user data, security requirements, tech stack, password policies, session management, user roles, and forgot password flow. You can proceed to design stage using 'proceed_to_stage' tool, or continue refining requirements if needed.",
+  "plan_file_path": "./auth-feature-plan.md", 
+  "transition_reason": "All requirements tasks completed",
+  "completed_tasks": ["requirements_documented", "user_confirmed_scope", "security_requirements_defined", "technical_constraints_identified"]
+}
+
+LLM: "Perfect! We've covered all the authentication requirements comprehensively. Let's move to the design phase."
+
+LLM: *calls proceed_to_stage(target_stage: "design", reason: "requirements complete")*
+
+Vibe-Feature-MCP Response:
+{
   "stage": "design",
   "instructions": "Help the user design the technical solution. Ask about database schema, API endpoints, security measures (JWT, bcrypt), third-party services for Google auth, error handling strategies. Ask about quality goals and specific technologies they prefer. Update the plan file with design decisions and mark completed requirements tasks as done.",
-  "plan_file_path": "./auth-feature-plan.md", 
-  "transition_reason": "Requirements complete, transitioning to design phase",
-  "completed_tasks": ["requirements_documented", "user_confirmed_scope", "security_requirements_defined"]
+  "plan_file_path": "./auth-feature-plan.md",
+  "transition_reason": "Explicit transition to design phase",
+  "completed_tasks": []
 }
 
 LLM: "Perfect! Now let's design the technical solution:
@@ -582,11 +681,24 @@ LLM: *calls whats_next(context: "design approved by user", user_input: "approved
 
 Vibe-Feature-MCP Response:
 {
+  "stage": "design",
+  "instructions": "All design tasks are complete! ✅ You have defined the architecture, database schema, API endpoints, and security measures. You can proceed to implementation stage using 'proceed_to_stage' tool, or continue refining the design if needed.",
+  "plan_file_path": "./auth-feature-plan.md",
+  "transition_reason": "All design tasks completed",
+  "completed_tasks": ["architecture_defined", "database_schema_designed", "api_endpoints_planned", "security_measures_defined"]
+}
+
+LLM: "Excellent! The design is solid and approved. Let's move to implementation."
+
+LLM: *calls proceed_to_stage(target_stage: "implementation", reason: "design complete and approved")*
+
+Vibe-Feature-MCP Response:
+{
   "stage": "implementation",
   "instructions": "Guide the user through implementing the authentication system. Start with backend setup (user model, middleware, API endpoints), then frontend components. Follow coding best practices, include proper error handling, and write basic tests. Update the plan file with implementation progress and mark completed design tasks.",
   "plan_file_path": "./auth-feature-plan.md",
-  "transition_reason": "Design approved, moving to implementation",
-  "completed_tasks": ["architecture_defined", "database_schema_designed", "api_endpoints_planned"]
+  "transition_reason": "Explicit transition to implementation phase",
+  "completed_tasks": []
 }
 
 LLM: "Let's implement this step by step:
