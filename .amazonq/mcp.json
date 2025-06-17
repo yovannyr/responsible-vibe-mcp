@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "modelcontextprotocol Docs": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://gitmcp.io/modelcontextprotocol/modelcontextprotocol"
+      ]
+    },
+    "typescript-sdk Docs": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://gitmcp.io/modelcontextprotocol/typescript-sdk"
+      ]
+    }
+  }
+}
