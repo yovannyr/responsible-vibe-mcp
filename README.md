@@ -292,93 +292,11 @@ Project Path → Branch Detection → Plan File Path → Content Generation → 
 - Non-intrusive plan file placement
 - Standard markdown format for universal compatibility
 
-### Dynamic Behavior
-
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant LLM as LLM
-    participant Server as Vibe Feature MCP
-    participant FS as File System
-    
-    User->>LLM: "implement auth"
-    LLM->>Server: whats_next(context: "user wants auth")
-    Server->>FS: Check conversation state
-    FS-->>Server: No existing state
-    Server->>Server: Transition to "requirements"
-    Server-->>LLM: "Analyze user's auth request. Ask clarifying questions about WHAT they need. Break down into tasks in plan file. Mark completed tasks."
-    
-    LLM->>User: Ask clarifying questions about auth
-    User->>LLM: Provides requirements details
-    LLM->>FS: Update plan file with tasks
-    LLM->>Server: whats_next(context: "gathered requirements")
-    
-    Server->>FS: Check progress & conversation
-    Server->>Server: Requirements complete? → Transition to "design"
-    Server-->>LLM: "Help user design technical solution. Ask about quality goals & technologies. Update plan file. Mark completed requirements tasks."
-    
-    loop Development Flow
-        LLM->>User: Follow stage instructions
-        User->>LLM: Respond with information
-        LLM->>FS: Update plan file & mark completed tasks
-        LLM->>Server: whats_next(context: "current progress")
-        Server->>Server: Evaluate progress & determine next stage
-        Server-->>LLM: Stage-specific instructions + "Update completed tasks"
-    end
-```
-
 ## State Machine
 
-The server operates as a state machine that transitions between development stages. While the diagram shows the typical linear progression, **users can transition directly to any stage at any time** using the `proceed_to_stage` tool:
+The server operates as a state machine that transitions between development stages. While the diagram shows the typical linear progression, **users can transition directly to any stage at any time** using the `proceed_to_stage` tool
 
-```mermaid
-stateDiagram-v2
-    [*] --> Idle
-    
-    Idle --> Requirements : new_feature_request
-    
-    Requirements --> Requirements : refine_requirements
-    Requirements --> Design : requirements_complete
-    Requirements --> Idle : abandon_feature
-    
-    Design --> Design : refine_design
-    Design --> Requirements : requirements_unclear
-    Design --> Implementation : design_complete
-    Design --> Idle : abandon_feature
-    
-    Implementation --> Implementation : refine_implementation
-    Implementation --> Design : design_issues
-    Implementation --> QualityAssurance : implementation_complete
-    Implementation --> Idle : abandon_feature
-    
-    QualityAssurance --> QualityAssurance : refine_qa
-    QualityAssurance --> Implementation : implementation_issues
-    QualityAssurance --> Testing : qa_complete
-    QualityAssurance --> Idle : abandon_feature
-    
-    Testing --> Testing : refine_testing
-    Testing --> QualityAssurance : qa_issues
-    Testing --> Complete : testing_complete
-    Testing --> Idle : abandon_feature
-    
-    Complete --> Idle : feature_delivered
-    Complete --> Requirements : new_feature_request
-```
-
-### Stage Transition Flexibility
-
-**All stage transitions are possible** - users can move from any stage to any other stage using `proceed_to_stage`. The transitions shown in the diagram represent the **typical development flow** and have **dedicated transition prompts** that provide specific guidance for common scenarios:
-
-- **Forward progression**: Requirements → Design → Implementation → QA → Testing → Complete
-- **Backward refinement**: When issues are discovered, return to earlier stages
-- **Refinement loops**: Stay in current stage to add more work or improve quality
-
-**Direct transitions** (not shown in diagram) are also supported for scenarios like:
-- **"I have existing code, let's review it"** → Direct to QA stage
-- **"I just need help with testing"** → Direct to Testing stage  
-- **"Let's go back to requirements"** → Return to Requirements from any stage
-
-For modeled transitions, vibe-feature-mcp provides **contextual guidance** about why the transition makes sense and what to focus on next. For direct transitions, it provides **general stage instructions** appropriate for the target stage.
+For a comprehensive reference of all state transitions, including detailed instructions and transition reasons, see [TRANSITIONS.md](./TRANSITIONS.md).
 
 ## Features
 
@@ -430,66 +348,6 @@ The server ensures the LLM maintains a living development plan document:
 - **Stage Progress**: Tasks, deliverables, and completion status
 - **Decision Log**: Important technical and design decisions
 - **Timeline**: Progress tracking and milestone completion
-
-## Installation
-
-```bash
-npm install @modelcontextprotocol/sdk zod
-```
-
-## API Reference
-
-### Resources
-
-#### `development-plan`
-- **URI**: `plan://current`
-- **Description**: Current development plan document (markdown)
-- **Updates**: Continuously updated by LLM based on server instructions
-
-#### `conversation-state`
-- **URI**: `state://current`
-- **Description**: Current conversation state and stage information
-- **Format**: JSON with stage, progress, and transition history
-
-### Tools
-
-#### `whats_next`
-The primary tool that analyzes conversation state and provides LLM instructions.
-
-**Parameters:**
-- `context` (string, optional): Additional context about current conversation
-- `user_input` (string, optional): Latest user input for analysis
-- `conversation_summary` (string, optional): LLM-provided summary of the conversation so far
-- `recent_messages` (array, optional): Array of recent conversation messages that LLM considers relevant
-
-**Returns:**
-- `stage` (string): Current development stage
-- `instructions` (string): Detailed instructions for the LLM
-- `plan_file_path` (string): Path to the plan file to update
-- `transition_reason` (string): Why this stage was chosen
-- `completed_tasks` (array): Tasks that should be marked as complete
-
-#### `proceed_to_stage`
-Tool for explicitly transitioning to a new development stage when current stage is complete.
-
-**Parameters:**
-- `target_stage` (string): The stage to transition to (requirements, design, implementation, qa, testing, complete)
-- `reason` (string, optional): Reason for transitioning now
-
-**Returns:**
-- `stage` (string): New development stage
-- `instructions` (string): Instructions for the new stage
-- `plan_file_path` (string): Path to the plan file to update
-- `transition_reason` (string): Confirmation of stage transition
-
-### Prompts
-
-#### `stage-guidance`
-Provides detailed guidance prompts for specific development stages.
-
-**Arguments:**
-- `stage` (string): Development stage name
-- `context` (string): Additional context or specific questions
 
 ## Stage Progression Flow
 
@@ -577,7 +435,98 @@ Users can always choose to:
 
 This approach ensures users maintain full control over the development process while receiving structured guidance from vibe-feature-mcp.
 
+## API Reference
+
+### Resources
+
+#### `development-plan`
+- **URI**: `plan://current`
+- **Description**: Current development plan document (markdown)
+- **Updates**: Continuously updated by LLM based on server instructions
+
+#### `conversation-state`
+- **URI**: `state://current`
+- **Description**: Current conversation state and stage information
+- **Format**: JSON with stage, progress, and transition history
+
+### Tools
+
+#### `whats_next`
+The primary tool that analyzes conversation state and provides LLM instructions.
+
+**Parameters:**
+- `context` (string, optional): Additional context about current conversation
+- `user_input` (string, optional): Latest user input for analysis
+- `conversation_summary` (string, optional): LLM-provided summary of the conversation so far
+- `recent_messages` (array, optional): Array of recent conversation messages that LLM considers relevant
+
+**Returns:**
+- `stage` (string): Current development stage
+- `instructions` (string): Detailed instructions for the LLM
+- `plan_file_path` (string): Path to the plan file to update
+- `transition_reason` (string): Why this stage was chosen
+- `completed_tasks` (array): Tasks that should be marked as complete
+
+#### `proceed_to_stage`
+Tool for explicitly transitioning to a new development stage when current stage is complete.
+
+**Parameters:**
+- `target_stage` (string): The stage to transition to (requirements, design, implementation, qa, testing, complete)
+- `reason` (string, optional): Reason for transitioning now
+
+**Returns:**
+- `stage` (string): New development stage
+- `instructions` (string): Instructions for the new stage
+- `plan_file_path` (string): Path to the plan file to update
+- `transition_reason` (string): Confirmation of stage transition
+
+### Prompts
+
+#### `stage-guidance`
+Provides detailed guidance prompts for specific development stages.
+
+**Arguments:**
+- `stage` (string): Development stage name
+- `context` (string): Additional context or specific questions
+
 ## Comprehensive Sample Interaction Flow
+
+### Overview
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant LLM as LLM
+    participant Server as Vibe Feature MCP
+    participant FS as File System
+    
+    User->>LLM: "implement auth"
+    LLM->>Server: whats_next(context: "user wants auth")
+    Server->>FS: Check conversation state
+    FS-->>Server: No existing state
+    Server->>Server: Transition to "requirements"
+    Server-->>LLM: "Analyze user's auth request. Ask clarifying questions about WHAT they need. Break down into tasks in plan file. Mark completed tasks."
+    
+    LLM->>User: Ask clarifying questions about auth
+    User->>LLM: Provides requirements details
+    LLM->>FS: Update plan file with tasks
+    LLM->>Server: whats_next(context: "gathered requirements")
+    
+    Server->>FS: Check progress & conversation
+    Server->>Server: Requirements complete? → Transition to "design"
+    Server-->>LLM: "Help user design technical solution. Ask about quality goals & technologies. Update plan file. Mark completed requirements tasks."
+    
+    loop Development Flow
+        LLM->>User: Follow stage instructions
+        User->>LLM: Respond with information
+        LLM->>FS: Update plan file & mark completed tasks
+        LLM->>Server: whats_next(context: "current progress")
+        Server->>Server: Evaluate progress & determine next stage
+        Server-->>LLM: Stage-specific instructions + "Update completed tasks"
+    end
+```
+
+### Dialogue in Detail
 
 ```
 User: "I need to implement user authentication for my web app"

@@ -2,6 +2,42 @@
 
 This document provides a comprehensive reference for all state transitions in the Vibe Feature MCP Server. Each transition defines the instructions returned to the LLM for guiding the user through the development process.
 
+## Overview
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    
+    Idle --> Requirements : new_feature_request
+    
+    Requirements --> Requirements : refine_requirements
+    Requirements --> Design : requirements_complete
+    Requirements --> Idle : abandon_feature
+    
+    Design --> Design : refine_design
+    Design --> Requirements : requirements_unclear
+    Design --> Implementation : design_complete
+    Design --> Idle : abandon_feature
+    
+    Implementation --> Implementation : refine_implementation
+    Implementation --> Design : design_issues
+    Implementation --> QualityAssurance : implementation_complete
+    Implementation --> Idle : abandon_feature
+    
+    QualityAssurance --> QualityAssurance : refine_qa
+    QualityAssurance --> Implementation : implementation_issues
+    QualityAssurance --> Testing : qa_complete
+    QualityAssurance --> Idle : abandon_feature
+    
+    Testing --> Testing : refine_testing
+    Testing --> QualityAssurance : qa_issues
+    Testing --> Complete : testing_complete
+    Testing --> Idle : abandon_feature
+    
+    Complete --> Idle : feature_delivered
+    Complete --> Requirements : new_feature_request
+```
+
 ## Legend
 
 - **Modeled**: Transition is shown in the state diagram and gets contextual guidance
@@ -42,67 +78,19 @@ These instructions are used for direct transitions (not modeled in the state dia
 |--------------|--------------|
 | **idle** | Returned to idle state. Ready to help with new feature development or other tasks. |
 | **requirements** | Starting requirements analysis. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress. |
-| **design** | Starting design phase. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document design decisions in the plan file and ensure the approach is solid before implementation. |
-| **implementation** | Starting implementation phase. Guide the user through building the solution following best practices. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress. |
-| **qa** | Starting quality assurance phase. Review the code for quality, validate that requirements are properly met, check for bugs, ensure documentation is complete, and verify best practices are followed. Focus on code quality, requirement compliance, and overall solution robustness. |
-| **testing** | Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation. |
-| **complete** | Feature development is complete! All stages have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized. |
+| **design** | Starting design phase. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to build what was defined in requirements. Document design decisions in the plan file and update task completion status. |
+| **implementation** | Starting implementation phase. Guide the user through building the solution following best practices. Focus on coding standards, proper structure, error handling, and basic testing. Update the plan file with implementation progress and mark completed tasks. |
+| **qa** | Starting quality assurance phase. Review the code for quality, validate that requirements are properly met, check for bugs, and ensure documentation is complete. Update the plan file with QA findings and mark completed tasks. |
+| **testing** | Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Update the plan file with testing progress and mark completed tasks. |
+| **complete** | Feature development is complete! Summarize what was accomplished and prepare final documentation. The feature is fully implemented, tested, and ready for delivery. |
 
-## Usage Examples
+## Stage Transition Flexibility
 
-### Modeled Transition Example
-```typescript
-// User completes requirements and system detects completion
-const transition = getTransitionInstructions('requirements', 'design', 'requirements_complete');
-// Returns contextual guidance about moving from requirements to design
-```
+The Vibe Feature MCP server supports flexible transitions between any stages using the `proceed_to_stage` tool. While the state diagram shows the typical development flow, users can move directly to any stage based on their specific needs:
 
-### Direct Transition Example
-```typescript
-// User jumps directly to QA stage
-const transition = getTransitionInstructions('implementation', 'qa', 'direct_transition');
-// Returns general QA stage instructions
-```
+- **Forward progression**: Requirements → Design → Implementation → QA → Testing → Complete
+- **Backward refinement**: When issues are discovered, return to earlier stages
+- **Refinement loops**: Stay in current stage to add more work or improve quality
+- **Direct transitions**: Jump to any stage based on specific project needs
 
-### Continue Current Stage Example
-```typescript
-// User wants to continue working in current stage
-const instructions = getContinueStageInstructions('implementation');
-// Returns instructions for continuing implementation work
-```
-
-## Transition Types
-
-### 1. **Forward Progression** (Typical Flow)
-- idle → requirements → design → implementation → qa → testing → complete
-- Each stage builds on the previous one
-- Contextual guidance explains why the transition makes sense
-
-### 2. **Backward Refinement** (Issue Resolution)
-- testing → qa (quality issues found)
-- qa → implementation (bugs need fixing)
-- implementation → design (architectural problems)
-- design → requirements (unclear requirements)
-
-### 3. **Refinement Loops** (Stage Continuation)
-- requirements → requirements (gather more details)
-- design → design (refine architecture)
-- implementation → implementation (add features)
-- qa → qa (improve quality)
-- testing → testing (more test coverage)
-
-### 4. **Abandonment** (Exit Flow)
-- Any stage → idle (user abandons feature)
-- Preserves work done so far in plan file
-
-### 5. **Direct Jumps** (User-Initiated)
-- Any stage → any other stage via `proceed_to_stage`
-- Uses general stage instructions rather than contextual guidance
-
-## Implementation Notes
-
-- **Modeled transitions** provide rich, contextual guidance about why the transition is happening
-- **Direct transitions** provide general instructions appropriate for the target stage
-- **All transitions are always possible** - the state machine is fully flexible
-- **Plan file updates** are consistently emphasized in all instructions
-- **Task completion tracking** is built into every stage's instructions
+For modeled transitions, the server provides contextual guidance about why the transition makes sense and what to focus on next. For direct transitions, it provides general stage instructions appropriate for the target stage.
