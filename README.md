@@ -298,6 +298,36 @@ The server operates as a state machine that transitions between development stag
 
 For a comprehensive reference of all state transitions, including detailed instructions and transition reasons, see [TRANSITIONS.md](./TRANSITIONS.md).
 
+## Logging and Debugging
+
+The server includes comprehensive logging with configurable levels for debugging, monitoring, and troubleshooting:
+
+### Log Levels
+- **DEBUG**: Detailed tracing and execution flow
+- **INFO**: Success operations and important milestones (default)
+- **WARN**: Expected errors and recoverable issues  
+- **ERROR**: Caught but unexpected errors
+
+### Configuration
+Set the log level using the `VIBE_FEATURE_LOG_LEVEL` environment variable:
+
+```bash
+# Debug level (most verbose)
+VIBE_FEATURE_LOG_LEVEL=DEBUG npx tsx src/index.ts
+
+# Production level
+VIBE_FEATURE_LOG_LEVEL=INFO node dist/index.js
+```
+
+### Log Components
+- **Server**: Main server operations and tool handlers
+- **Database**: SQLite operations and state persistence
+- **ConversationManager**: Conversation context management
+- **TransitionEngine**: Stage transition analysis
+- **PlanManager**: Plan file operations
+
+For detailed logging documentation, see [LOGGING.md](./LOGGING.md).
+
 ## Features
 
 ### 1. Intelligent Stage Management

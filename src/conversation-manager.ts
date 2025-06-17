@@ -9,8 +9,11 @@
 import { execSync } from 'child_process';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { createLogger } from './logger.js';
 import { Database, type ConversationState } from './database.js';
 import type { DevelopmentStage } from './state-machine.js';
+
+const logger = createLogger('ConversationManager');
 
 export interface ConversationContext {
   conversationId: string;
@@ -31,15 +34,31 @@ export class ConversationManager {
    * Get or create conversation context for current project
    */
   async getConversationContext(): Promise<ConversationContext> {
+    logger.debug('Getting conversation context');
+    
     const projectPath = this.detectProjectPath();
     const gitBranch = this.detectGitBranch(projectPath);
+    
+    logger.debug('Project context detected', { projectPath, gitBranch });
     
     // Try to find existing conversation
     let state = await this.database.findConversationByProject(projectPath, gitBranch);
     
     if (!state) {
+      logger.debug('No existing conversation found, creating new one');
       // Create new conversation
       state = await this.createNewConversation(projectPath, gitBranch);
+      logger.info('New conversation created', { 
+        conversationId: state.conversationId,
+        projectPath,
+        gitBranch,
+        currentStage: state.currentStage
+      });
+    } else {
+      logger.debug('Existing conversation found', { 
+        conversationId: state.conversationId,
+        currentStage: state.currentStage
+      });
     }
 
     return {
@@ -58,9 +77,12 @@ export class ConversationManager {
     conversationId: string, 
     updates: Partial<Pick<ConversationContext, 'currentStage' | 'planFilePath'>>
   ): Promise<void> {
+    logger.debug('Updating conversation state', { conversationId, updates });
+    
     const existingState = await this.database.getConversationState(conversationId);
     
     if (!existingState) {
+      logger.warn('Attempted to update non-existent conversation', { conversationId });
       throw new Error(`Conversation ${conversationId} not found`);
     }
 
@@ -71,6 +93,13 @@ export class ConversationManager {
     };
 
     await this.database.saveConversationState(updatedState);
+    
+    logger.info('Conversation state updated', { 
+      conversationId,
+      updates,
+      previousStage: existingState.currentStage,
+      newStage: updatedState.currentStage
+    });
   }
 
   /**

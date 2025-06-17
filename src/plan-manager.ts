@@ -8,7 +8,10 @@
 import { writeFile, readFile, access } from 'fs/promises';
 import { dirname } from 'path';
 import { mkdir } from 'fs/promises';
+import { createLogger } from './logger.js';
 import type { DevelopmentStage } from './state-machine.js';
+
+const logger = createLogger('PlanManager');
 
 export interface PlanFileInfo {
   path: string;
@@ -42,10 +45,16 @@ export class PlanManager {
    * Create initial plan file if it doesn't exist
    */
   async ensurePlanFile(planFilePath: string, projectPath: string, gitBranch: string): Promise<void> {
+    logger.debug('Ensuring plan file exists', { planFilePath, projectPath, gitBranch });
+    
     const planInfo = await this.getPlanFileInfo(planFilePath);
     
     if (!planInfo.exists) {
+      logger.info('Plan file not found, creating initial plan', { planFilePath });
       await this.createInitialPlanFile(planFilePath, projectPath, gitBranch);
+      logger.info('Initial plan file created successfully', { planFilePath });
+    } else {
+      logger.debug('Plan file already exists', { planFilePath });
     }
   }
 
@@ -53,15 +62,28 @@ export class PlanManager {
    * Create initial plan file with template content
    */
   private async createInitialPlanFile(planFilePath: string, projectPath: string, gitBranch: string): Promise<void> {
-    // Ensure directory exists
-    await mkdir(dirname(planFilePath), { recursive: true });
+    logger.debug('Creating initial plan file', { planFilePath });
+    
+    try {
+      // Ensure directory exists
+      await mkdir(dirname(planFilePath), { recursive: true });
+      logger.debug('Plan file directory ensured', { directory: dirname(planFilePath) });
 
-    const projectName = projectPath.split('/').pop() || 'Unknown Project';
-    const branchInfo = gitBranch !== 'no-git' ? ` (${gitBranch} branch)` : '';
-    
-    const initialContent = this.generateInitialPlanContent(projectName, branchInfo);
-    
-    await writeFile(planFilePath, initialContent, 'utf-8');
+      const projectName = projectPath.split('/').pop() || 'Unknown Project';
+      const branchInfo = gitBranch !== 'no-git' ? ` (${gitBranch} branch)` : '';
+      
+      const initialContent = this.generateInitialPlanContent(projectName, branchInfo);
+      
+      await writeFile(planFilePath, initialContent, 'utf-8');
+      logger.info('Initial plan file written successfully', { 
+        planFilePath,
+        contentLength: initialContent.length,
+        projectName
+      });
+    } catch (error) {
+      logger.error('Failed to create initial plan file', error as Error, { planFilePath });
+      throw error;
+    }
   }
 
   /**

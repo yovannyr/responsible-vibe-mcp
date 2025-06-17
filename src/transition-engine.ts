@@ -5,12 +5,15 @@
  * Analyzes conversation context and user input to make intelligent stage decisions.
  */
 
+import { createLogger } from './logger.js';
 import { 
   type DevelopmentStage, 
   getTransitionInstructions, 
   getContinueStageInstructions,
   isModeledTransition 
 } from './state-machine.js';
+
+const logger = createLogger('TransitionEngine');
 
 export interface TransitionContext {
   currentStage: DevelopmentStage;
@@ -34,13 +37,33 @@ export class TransitionEngine {
    */
   analyzeStageTransition(context: TransitionContext): TransitionResult {
     const { currentStage, userInput, context: additionalContext, conversationSummary } = context;
+    
+    logger.debug('Analyzing stage transition', { 
+      currentStage,
+      hasUserInput: !!userInput,
+      hasContext: !!additionalContext,
+      hasSummary: !!conversationSummary
+    });
 
     // Analyze if we should transition to a new stage
     const suggestedStage = this.determineSuggestedStage(context);
     
+    logger.debug('Stage analysis completed', { 
+      currentStage,
+      suggestedStage,
+      willTransition: suggestedStage !== currentStage
+    });
+    
     if (suggestedStage !== currentStage) {
       // Stage transition detected
       const transitionInfo = getTransitionInstructions(currentStage, suggestedStage);
+      
+      logger.info('Stage transition determined', {
+        fromStage: currentStage,
+        toStage: suggestedStage,
+        isModeled: transitionInfo.isModeled,
+        reason: transitionInfo.transitionReason
+      });
       
       return {
         newStage: suggestedStage,
@@ -51,6 +74,8 @@ export class TransitionEngine {
     } else {
       // Continue in current stage
       const instructions = getContinueStageInstructions(currentStage);
+      
+      logger.debug('Continuing in current stage', { currentStage });
       
       return {
         newStage: currentStage,
@@ -69,7 +94,20 @@ export class TransitionEngine {
     targetStage: DevelopmentStage, 
     reason?: string
   ): TransitionResult {
+    logger.debug('Handling explicit stage transition', { 
+      currentStage,
+      targetStage,
+      reason 
+    });
+    
     const transitionInfo = getTransitionInstructions(currentStage, targetStage);
+    
+    logger.info('Explicit stage transition processed', {
+      fromStage: currentStage,
+      toStage: targetStage,
+      reason: reason || transitionInfo.transitionReason,
+      isModeled: transitionInfo.isModeled
+    });
     
     return {
       newStage: targetStage,

@@ -10,7 +10,10 @@ import { mkdir } from 'fs/promises';
 import { dirname } from 'path';
 import { homedir } from 'os';
 import { join } from 'path';
+import { createLogger } from './logger.js';
 import type { DevelopmentStage } from './state-machine.js';
+
+const logger = createLogger('Database');
 
 export interface ConversationState {
   conversationId: string;
@@ -30,36 +33,48 @@ export class Database {
     // Store database in user's home directory, or use test directory if specified
     const dbDir = process.env.VIBE_FEATURE_DB_DIR || join(homedir(), '.vibe-feature-mcp');
     this.dbPath = join(dbDir, 'db.sqlite');
+    logger.debug('Database path configured', { dbPath: this.dbPath });
   }
 
   /**
    * Initialize database connection and create tables
    */
   async initialize(): Promise<void> {
-    // Ensure directory exists
-    await mkdir(dirname(this.dbPath), { recursive: true });
-
-    // Create database connection
-    this.db = new sqlite3.Database(this.dbPath);
+    logger.debug('Initializing database', { dbPath: this.dbPath });
     
-    // Create conversation_states table
-    await this.runQuery(`
-      CREATE TABLE IF NOT EXISTS conversation_states (
-        conversation_id TEXT PRIMARY KEY,
-        project_path TEXT NOT NULL,
-        git_branch TEXT NOT NULL,
-        current_stage TEXT NOT NULL,
-        plan_file_path TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `);
+    try {
+      // Ensure directory exists
+      await mkdir(dirname(this.dbPath), { recursive: true });
+      logger.debug('Database directory ensured', { directory: dirname(this.dbPath) });
 
-    // Create index for efficient lookups
-    await this.runQuery(`
-      CREATE INDEX IF NOT EXISTS idx_project_branch 
-      ON conversation_states(project_path, git_branch)
-    `);
+      // Create database connection
+      this.db = new sqlite3.Database(this.dbPath);
+      logger.debug('Database connection established');
+      
+      // Create conversation_states table
+      await this.runQuery(`
+        CREATE TABLE IF NOT EXISTS conversation_states (
+          conversation_id TEXT PRIMARY KEY,
+          project_path TEXT NOT NULL,
+          git_branch TEXT NOT NULL,
+          current_stage TEXT NOT NULL,
+          plan_file_path TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `);
+
+      // Create index for efficient lookups
+      await this.runQuery(`
+        CREATE INDEX IF NOT EXISTS idx_project_branch 
+        ON conversation_states(project_path, git_branch)
+      `);
+      
+      logger.info('Database initialized successfully', { dbPath: this.dbPath });
+    } catch (error) {
+      logger.error('Failed to initialize database', error as Error, { dbPath: this.dbPath });
+      throw error;
+    }
   }
 
   /**
@@ -106,45 +121,79 @@ export class Database {
    * Get conversation state by ID
    */
   async getConversationState(conversationId: string): Promise<ConversationState | null> {
-    const row = await this.getRow(
-      'SELECT * FROM conversation_states WHERE conversation_id = ?',
-      [conversationId]
-    );
+    logger.debug('Retrieving conversation state', { conversationId });
+    
+    try {
+      const row = await this.getRow(
+        'SELECT * FROM conversation_states WHERE conversation_id = ?',
+        [conversationId]
+      );
 
-    if (!row) {
-      return null;
+      if (!row) {
+        logger.debug('Conversation state not found', { conversationId });
+        return null;
+      }
+
+      const state = {
+        conversationId: row.conversation_id,
+        projectPath: row.project_path,
+        gitBranch: row.git_branch,
+        currentStage: row.current_stage as DevelopmentStage,
+        planFilePath: row.plan_file_path,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      };
+      
+      logger.debug('Conversation state retrieved', { 
+        conversationId,
+        currentStage: state.currentStage,
+        projectPath: state.projectPath
+      });
+      
+      return state;
+    } catch (error) {
+      logger.error('Failed to retrieve conversation state', error as Error, { conversationId });
+      throw error;
     }
-
-    return {
-      conversationId: row.conversation_id,
-      projectPath: row.project_path,
-      gitBranch: row.git_branch,
-      currentStage: row.current_stage as DevelopmentStage,
-      planFilePath: row.plan_file_path,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
   }
 
   /**
    * Save or update conversation state
    */
   async saveConversationState(state: ConversationState): Promise<void> {
-    await this.runQuery(
-      `INSERT OR REPLACE INTO conversation_states (
-        conversation_id, project_path, git_branch, current_stage, 
-        plan_file_path, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        state.conversationId,
-        state.projectPath,
-        state.gitBranch,
-        state.currentStage,
-        state.planFilePath,
-        state.createdAt,
-        state.updatedAt
-      ]
-    );
+    logger.debug('Saving conversation state', { 
+      conversationId: state.conversationId,
+      currentStage: state.currentStage,
+      projectPath: state.projectPath
+    });
+    
+    try {
+      await this.runQuery(
+        `INSERT OR REPLACE INTO conversation_states (
+          conversation_id, project_path, git_branch, current_stage, 
+          plan_file_path, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          state.conversationId,
+          state.projectPath,
+          state.gitBranch,
+          state.currentStage,
+          state.planFilePath,
+          state.createdAt,
+          state.updatedAt
+        ]
+      );
+      
+      logger.info('Conversation state saved successfully', { 
+        conversationId: state.conversationId,
+        currentStage: state.currentStage
+      });
+    } catch (error) {
+      logger.error('Failed to save conversation state', error as Error, { 
+        conversationId: state.conversationId 
+      });
+      throw error;
+    }
   }
 
   /**
@@ -185,17 +234,22 @@ export class Database {
    * Close database connection
    */
   async close(): Promise<void> {
+    logger.debug('Closing database connection');
+    
     return new Promise((resolve, reject) => {
       if (this.db) {
         this.db.close((err) => {
           if (err) {
+            logger.error('Failed to close database connection', err);
             reject(err);
           } else {
             this.db = null;
+            logger.info('Database connection closed successfully');
             resolve();
           }
         });
       } else {
+        logger.debug('Database connection already closed');
         resolve();
       }
     });
