@@ -39,6 +39,8 @@ graph TB
         TM[Transition Engine]
         IM[Instruction Generator]
         PM[Plan Manager]
+        CM[Conversation Manager]
+        DB[(SQLite Database)]
     end
     
     subgraph "Development Stages"
@@ -52,24 +54,28 @@ graph TB
     end
     
     subgraph "Persistent Storage"
-        CS[Conversation State]
-        PF[Plan Markdown File]
-        CF[Configuration]
+        DBFILE[~/.vibe-feature-mcp/db.sqlite]
+        PF[Project Plan Files]
+        GIT[Git Repository Context]
     end
     
     subgraph "LLM Client"
         LLM[LLM Application]
         USER[User]
+        CWD[Current Working Directory]
     end
     
     USER --> LLM
     LLM --> SM
+    SM --> CM
+    CM --> DB
     SM --> TM
     TM --> IM
     IM --> PM
     
-    SM <--> CS
-    PM <--> PF
+    DB --> DBFILE
+    PM --> PF
+    CM --> GIT
     
     IDLE --> TM
     REQ --> TM
@@ -81,6 +87,223 @@ graph TB
     
     IM --> LLM
 ```
+
+### Core Building Blocks
+
+#### 1. **Conversation Manager**
+The Conversation Manager is responsible for identifying and tracking unique development conversations across different projects and git branches.
+
+**Responsibilities:**
+- Generate unique conversation identifiers from project path + git branch
+- Maintain conversation context and history
+- Handle conversation lifecycle (creation, updates, cleanup)
+- Provide conversation-scoped state isolation
+
+**Key Features:**
+- **Project-Aware Identification**: Uses absolute project path + current git branch as conversation identifier
+- **Git Integration**: Automatically detects git branch changes and creates separate conversation contexts
+- **Persistent Storage**: Stores conversation metadata in SQLite database
+- **Context Isolation**: Each project/branch combination maintains independent state
+
+#### 2. **State Manager**
+The State Manager orchestrates the overall conversation state and coordinates between different components.
+
+**Responsibilities:**
+- Load and persist conversation state from/to database
+- Coordinate state updates across components
+- Handle state transitions and validation
+- Manage project-specific development context
+
+**Key Features:**
+- **Stateless Operation**: Does not store conversation history, relies on LLM-provided context
+- **Multi-Project Support**: Handles multiple concurrent project conversations
+- **State Validation**: Ensures state consistency and handles corrupted state recovery
+- **Context Processing**: Analyzes LLM-provided conversation summary and recent messages
+
+#### 3. **Transition Engine**
+The Transition Engine analyzes conversation context and determines appropriate stage transitions.
+
+**Responsibilities:**
+- Analyze user input and conversation context
+- Determine current development stage
+- Evaluate stage completion criteria
+- Trigger stage transitions based on conversation analysis
+
+**Key Features:**
+- **Context Analysis**: Processes LLM-provided conversation summary and recent messages
+- **Stage Detection**: Intelligently determines appropriate development stage
+- **Transition Logic**: Implements rules for stage progression and regression
+- **Completion Assessment**: Evaluates when stages are sufficiently complete
+
+#### 4. **Instruction Generator**
+The Instruction Generator creates stage-specific guidance for the LLM based on current conversation state.
+
+**Responsibilities:**
+- Generate contextual instructions for each development stage
+- Customize instructions based on project context and history
+- Provide task completion guidance
+- Generate plan file update instructions
+
+**Key Features:**
+- **Stage-Specific Guidance**: Tailored instructions for each development phase
+- **Context-Aware Customization**: Adapts instructions based on project type and history
+- **Task Management**: Provides clear guidance on task completion and progress tracking
+- **Plan File Integration**: Ensures consistent plan file updates and maintenance
+
+#### 5. **Plan Manager**
+The Plan Manager handles the creation, updating, and maintenance of project development plan files.
+
+**Responsibilities:**
+- Generate and maintain markdown plan files
+- Track task completion and progress
+- Manage plan file structure and content
+- Handle plan file versioning per git branch
+
+**Key Features:**
+- **Markdown Generation**: Creates structured development plans in markdown format
+- **Progress Tracking**: Maintains task completion status and project progress
+- **Branch-Aware Plans**: Separate plan files for different git branches when needed
+- **Template Management**: Consistent plan file structure across projects
+
+#### 6. **SQLite Database**
+The database provides persistent storage for conversation state and metadata.
+
+**Schema Design:**
+- **conversation_states**: Core conversation metadata and current state
+- **Indexes**: Optimized for project path + branch lookups
+
+**Key Features:**
+- **Persistent State**: Survives server restarts and system reboots
+- **Multi-User Support**: Stored in user's home directory (~/.vibe-feature-mcp/)
+- **Lightweight Storage**: Minimal overhead for state management
+- **Atomic Updates**: Ensures data consistency during concurrent operations
+
+### Dynamic Behavior
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant LLM as LLM
+    participant SM as State Manager
+    participant CM as Conversation Manager
+    participant DB as SQLite Database
+    participant TM as Transition Engine
+    participant IM as Instruction Generator
+    participant PM as Plan Manager
+    participant FS as File System
+    
+    User->>LLM: "implement auth"
+    LLM->>SM: whats_next(context, user_input, conversation_summary, recent_messages)
+    SM->>CM: identify conversation
+    CM->>FS: detect project path + git branch
+    CM->>DB: lookup/create conversation state
+    DB-->>CM: conversation state (stage, plan path only)
+    CM-->>SM: conversation context
+    
+    SM->>TM: analyze stage transition
+    TM->>TM: analyze LLM-provided context
+    TM->>TM: evaluate current stage
+    TM-->>SM: stage decision
+    
+    SM->>IM: generate instructions
+    IM->>DB: get project context
+    IM-->>SM: stage-specific instructions
+    
+    SM->>PM: update plan file path
+    PM-->>SM: plan file location
+    
+    SM->>DB: update conversation state (stage only)
+    SM-->>LLM: instructions + metadata
+    
+    LLM->>User: follow instructions
+    LLM->>FS: update plan file
+    
+    Note over User,FS: Cycle continues with each user interaction
+    Note over LLM,SM: Server stores NO message history - LLM provides context
+```
+
+### Data Flow Architecture
+
+#### 1. **Conversation Identification Flow**
+```
+User Input → Project Detection → Git Branch Detection → Conversation ID Generation → Database Lookup
+```
+
+#### 2. **State Management Flow**
+```
+Conversation ID → State Retrieval → Context Analysis → Stage Determination → State Update → Persistence
+```
+
+#### 3. **Instruction Generation Flow**
+```
+Current Stage → Project Context → Conversation History → Instruction Template → Customized Instructions
+```
+
+#### 4. **Plan File Management Flow**
+```
+Project Path → Branch Detection → Plan File Path → Content Generation → File Updates → Progress Tracking
+```
+
+### Key Architectural Principles
+
+#### 1. **Project-Centric Design**
+- Each project maintains independent conversation state
+- Git branch awareness enables feature-specific development tracking
+- Plan files remain within project directories for easy access
+
+#### 2. **Persistent State Management**
+- SQLite database ensures state survives server restarts
+- Conversation history enables context-aware decision making
+- Database stored in user home directory for portability
+
+#### 3. **Stage-Driven Workflow**
+- Clear separation between development stages
+- Stage-specific instructions guide LLM behavior
+- Transition logic ensures appropriate workflow progression
+
+#### 4. **Conversation Continuity**
+- Long-term memory across multiple LLM interactions
+- Context preservation enables complex, multi-session development
+- History tracking supports learning and improvement
+
+#### 5. **Git Integration**
+- Branch-aware conversation management
+- Separate development contexts for different features
+- Integration with existing git workflows
+
+### Scalability Considerations
+
+#### 1. **Multi-Project Support**
+- Concurrent handling of multiple project conversations
+- Isolated state prevents cross-project interference
+- Efficient database indexing for fast project lookups
+
+#### 2. **Performance Optimization**
+- SQLite provides fast local storage with minimal overhead
+- Conversation state caching reduces database queries
+- Efficient git branch detection minimizes system calls
+
+#### 3. **Storage Management**
+- Automatic cleanup of old conversation states
+- Plan file management within project boundaries
+- Database maintenance and optimization capabilities
+
+### Integration Points
+
+#### 1. **LLM Integration**
+- Single `whats_next` tool interface
+- JSON-based instruction delivery
+- Context-aware response generation
+
+#### 2. **File System Integration**
+- Plan file creation and management
+- Project directory detection
+- Git repository integration
+
+#### 3. **Development Tool Integration**
+- Compatible with existing development workflows
+- Non-intrusive plan file placement
+- Standard markdown format for universal compatibility
 
 ### Dynamic Behavior
 
@@ -260,6 +483,8 @@ The primary tool that analyzes conversation state and provides LLM instructions.
 **Parameters:**
 - `context` (string, optional): Additional context about current conversation
 - `user_input` (string, optional): Latest user input for analysis
+- `conversation_summary` (string, optional): LLM-provided summary of the conversation so far
+- `recent_messages` (array, optional): Array of recent conversation messages that LLM considers relevant
 
 **Returns:**
 - `stage` (string): Current development stage
@@ -306,7 +531,7 @@ LLM: "I'll help you implement authentication! Let me understand your requirement
 
 User: "I need email/password auth with optional Google login. Store email, name, and profile picture. Using React frontend with Node.js backend."
 
-LLM: *calls whats_next(context: "user clarified basic auth requirements", user_input: "email/password + Google, React/Node stack")*
+LLM: *calls whats_next(context: "user clarified basic auth requirements", user_input: "email/password + Google, React/Node stack", conversation_summary: "User wants to implement authentication for web app, clarified basic requirements")*
 
 Vibe-Feature-MCP Response:
 {
@@ -403,4 +628,24 @@ Here's the authentication middleware...
 
 ## LLM System Prompt Integration
 
-To properly integrate with vibe-feature-mcp, the LLM should be configured with a system prompt that establishes the interaction pattern. Here's a comprehensive [system prompt sample](./SYSTEM_PROMPT.md)
+To properly integrate with vibe-feature-mcp, the LLM should be configured with a system prompt that establishes the interaction pattern. The key requirement for the stateless approach is that the LLM must provide conversation context when calling `whats_next()`.
+
+### Key Requirements for LLM Integration:
+
+1. **Always call whats_next() after user interactions**
+2. **Provide conversation context**: Include summary and recent messages
+3. **Follow instructions precisely** from vibe-feature-mcp
+4. **Continuously update the plan file** as instructed
+5. **Mark completed tasks** when directed
+
+### Conversation Context Parameters:
+
+When calling `whats_next()`, the LLM should provide:
+- **context**: Brief description of current situation
+- **user_input**: The user's latest message or request  
+- **conversation_summary**: Summary of the conversation so far (optional but recommended)
+- **recent_messages**: Array of recent relevant messages (optional)
+
+This stateless approach ensures that vibe-feature-mcp can make informed decisions about stage transitions without storing potentially inconsistent conversation history.
+
+For a complete system prompt template, see [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md).
