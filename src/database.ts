@@ -27,8 +27,8 @@ export class Database {
   private dbPath: string;
 
   constructor() {
-    // Store database in user's home directory
-    const dbDir = join(homedir(), '.vibe-feature-mcp');
+    // Store database in user's home directory, or use test directory if specified
+    const dbDir = process.env.VIBE_FEATURE_DB_DIR || join(homedir(), '.vibe-feature-mcp');
     this.dbPath = join(dbDir, 'db.sqlite');
   }
 
