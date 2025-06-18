@@ -9,10 +9,10 @@
     "start": "npx @modelcontextprotocol/inspector",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest",
+    "test": "vitest --pool=forks --poolOptions.forks.singleFork=true",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "generate-system-prompt": "npm run build && node dist/scripts/generate-system-prompt.js"
+    "test:run": "vitest run --pool=forks --poolOptions.forks.singleFork=true",
+    "generate-system-prompt": "vite-node src/scripts/generate-system-prompt.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

@@ -69,6 +69,9 @@ Current development plan document in markdown format.
 ### `state://current`
 Current conversation state and phase information in JSON format.
 
+### `prompt://system`
+Dynamically generated system prompt for LLM integration with comprehensive usage instructions.
+
 ## Development Phases
 
 1. **idle**: Ready for new development tasks
@@ -114,24 +117,43 @@ Current conversation state and phase information in JSON format.
    }
    ```
 
-## Plan File Management
+## Project File Organization
 
-The server automatically creates and manages a development plan file in your project directory:
-- Main branch: `development-plan.md`
-- Feature branches: `development-plan-{branch-name}.md`
+The server creates a `.vibe` subdirectory in your project to store all vibe-feature-mcp related files:
 
-The LLM is instructed to continuously update this file with:
+```
+your-project/
+├── .vibe/
+│   ├── conversation-state.db      # SQLite database for conversation state
+│   ├── development-plan.md        # Main development plan (main/master branch)
+│   └── development-plan-{branch}.md  # Branch-specific development plans
+├── src/
+├── package.json
+└── ... (your project files)
+```
+
+### Plan File Management
+
+The server automatically creates and manages development plan files:
+- **Main branch**: `.vibe/development-plan.md`
+- **Feature branches**: `.vibe/development-plan-{branch-name}.md`
+
+The LLM is instructed to continuously update these files with:
 - Task progress and completion status
 - Technical decisions and design choices
 - Implementation notes and progress
 - Testing results and validation
 
-## Database Storage
+### Database Storage
 
-Conversation state is persisted in SQLite database at:
-`~/.vibe-feature-mcp/db.sqlite`
+Conversation state is persisted in a project-local SQLite database:
+`.vibe/conversation-state.db`
 
-This ensures state survives server restarts and provides conversation continuity.
+This ensures:
+- **Project isolation**: Each project has its own conversation state
+- **Branch awareness**: Different branches can have separate development contexts
+- **Persistence**: State survives server restarts and provides conversation continuity
+- **Portability**: Database travels with your project
 
 ## Project Identification
 
@@ -141,17 +163,35 @@ Each conversation is uniquely identified by:
 
 This allows multiple projects and branches to have independent conversation states.
 
-## Testing
+## System Prompt Generation
 
-Run the test script to verify server functionality:
+Generate an up-to-date system prompt for LLM integration:
+
 ```bash
-node test-server.js
+npm run generate-system-prompt
 ```
 
-This will test:
-- Server initialization
-- Tool listing
-- Basic `whats_next` functionality
+This creates `SYSTEM_PROMPT.md` with comprehensive instructions for LLMs, including:
+- Core interaction patterns with `whats_next()` and `proceed_to_phase()`
+- All development phases with specific instructions
+- Phase transition guidance and examples
+- Best practices for plan file management
+
+The system prompt is also available as an MCP resource at `prompt://system`.
+
+## Testing
+
+Run the comprehensive test suite:
+```bash
+npm test -- --run
+```
+
+This includes:
+- Server initialization tests
+- Tool functionality tests
+- Resource availability tests
+- Phase transition tests
+- System prompt generation tests
 
 ## Troubleshooting
 
@@ -161,34 +201,43 @@ This will test:
 - Check for TypeScript errors: `npm run build`
 
 ### Database issues
-- Database is created automatically in `~/.vibe-feature-mcp/`
-- Delete the database directory to reset all conversation state
-- Check file permissions on the home directory
+- Database is created automatically in `.vibe/conversation-state.db`
+- Delete the `.vibe` directory to reset conversation state for the project
+- Check file permissions on the project directory
 
 ### Git detection issues
 - Server works without git (uses 'no-git' as branch name)
 - Ensure you're in the correct project directory
 - Check git repository status with `git status`
 
+### Plan file issues
+- Plan files are created automatically in `.vibe/` directory
+- Ensure the project directory is writable
+- Check that the `.vibe` directory isn't ignored by git (add to .gitignore if needed)
+
 ## Development
 
 ### Project Structure
 ```
 src/
-├── index.ts              # Main server entry point
-├── state-machine.ts      # State machine definitions and transitions
-├── database.ts           # SQLite database management
-├── conversation-manager.ts # Conversation identification and state
-├── transition-engine.ts  # Phase transition logic
-├── instruction-generator.ts # LLM instruction generation
-└── plan-manager.ts       # Plan file management
+├── index.ts                    # Main server entry point
+├── state-machine.ts           # State machine definitions and transitions
+├── database.ts                # SQLite database management
+├── conversation-manager.ts    # Conversation identification and state
+├── transition-engine.ts       # Phase transition logic
+├── instruction-generator.ts   # LLM instruction generation
+├── plan-manager.ts           # Plan file management
+├── system-prompt-generator.ts # Dynamic system prompt generation
+└── scripts/
+    └── generate-system-prompt.ts # System prompt generation script
 ```
 
 ### Building
 ```bash
-npm run build    # Compile TypeScript
-npm run clean    # Clean build directory
-npm run dev      # Build and run
+npm run build                    # Compile TypeScript
+npm run clean                   # Clean build directory
+npm run dev                     # Build and run in watch mode
+npm run generate-system-prompt  # Generate SYSTEM_PROMPT.md
 ```
 
 ### Architecture
@@ -196,5 +245,11 @@ The server follows a modular architecture with clear separation of concerns:
 - **Conversation Manager**: Handles project identification and state persistence
 - **Transition Engine**: Analyzes context and determines phase transitions
 - **Instruction Generator**: Creates contextual LLM guidance
-- **Plan Manager**: Manages development plan files
-- **Database**: Provides persistent state storage
+- **Plan Manager**: Manages development plan files in `.vibe/` directory
+- **Database**: Provides project-local persistent state storage
+- **System Prompt Generator**: Creates dynamic, up-to-date LLM integration instructions
+
+### Git Integration
+- Add `.vibe/` to your `.gitignore` if you don't want to commit conversation state
+- Or commit `.vibe/development-plan.md` to share development plans with your team
+- The database file (`.vibe/conversation-state.db`) should typically be ignored

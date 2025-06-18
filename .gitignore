@@ -1,3 +1,6 @@
+.vibe/*.db
+SYSTEM_PROMPT.md
+
 # Logs
 logs
 *.log

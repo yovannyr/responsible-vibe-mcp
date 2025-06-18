@@ -187,13 +187,16 @@ export class ConversationManager {
    * Generate plan file path for the project
    */
   private generatePlanFilePath(projectPath: string, gitBranch: string): string {
+    // Store plan files in .vibe subdirectory
+    const vibeDir = `${projectPath}/.vibe`;
+    
     // For main/master branches, use simple name
     if (gitBranch === 'main' || gitBranch === 'master' || gitBranch === 'no-git') {
-      return `${projectPath}/development-plan.md`;
+      return `${vibeDir}/development-plan.md`;
     }
     
     // For feature branches, include branch name
     const safeBranchName = gitBranch.replace(/[^a-zA-Z0-9-_]/g, '-');
-    return `${projectPath}/development-plan-${safeBranchName}.md`;
+    return `${vibeDir}/development-plan-${safeBranchName}.md`;
   }
 }

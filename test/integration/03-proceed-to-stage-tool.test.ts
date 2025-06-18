@@ -14,12 +14,12 @@ import { homedir } from 'os';
 describe('proceed_to_phase Tool Integration Tests', () => {
   let client: Client;
   let transport: StdioClientTransport;
-  const testDbDir = join(homedir(), '.vibe-feature-mcp-test-03');
+  const vibeTestDir = join(process.cwd(), '.vibe');
 
   beforeEach(async () => {
-    // Clean up any existing test database
-    if (existsSync(testDbDir)) {
-      rmSync(testDbDir, { recursive: true, force: true });
+    // Clean up any existing test .vibe directory
+    if (existsSync(vibeTestDir)) {
+      rmSync(vibeTestDir, { recursive: true, force: true });
     }
   });
 
@@ -28,9 +28,9 @@ describe('proceed_to_phase Tool Integration Tests', () => {
     if (client) {
       await client.close();
     }
-    // Clean up test database
-    if (existsSync(testDbDir)) {
-      rmSync(testDbDir, { recursive: true, force: true });
+    // Clean up test .vibe directory
+    if (existsSync(vibeTestDir)) {
+      rmSync(vibeTestDir, { recursive: true, force: true });
     }
   });
 
@@ -42,7 +42,7 @@ describe('proceed_to_phase Tool Integration Tests', () => {
       args: ['tsx', serverPath],
       env: {
         ...process.env,
-        VIBE_FEATURE_DB_DIR: testDbDir
+        VIBE_FEATURE_LOG_LEVEL: 'ERROR'
       }
     });
 

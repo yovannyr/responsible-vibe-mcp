@@ -29,11 +29,11 @@ export class Database {
   private db: sqlite3.Database | null = null;
   private dbPath: string;
 
-  constructor() {
-    // Store database in user's home directory, or use test directory if specified
-    const dbDir = process.env.VIBE_FEATURE_DB_DIR || join(homedir(), '.vibe-feature-mcp');
-    this.dbPath = join(dbDir, 'db.sqlite');
-    logger.debug('Database path configured', { dbPath: this.dbPath });
+  constructor(projectPath: string) {
+    // Store database in .vibe subfolder of the project
+    const vibeDir = join(projectPath, '.vibe');
+    this.dbPath = join(vibeDir, 'conversation-state.db');
+    logger.debug('Database path configured', { projectPath, dbPath: this.dbPath });
   }
 
   /**

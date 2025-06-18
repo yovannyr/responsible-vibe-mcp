@@ -17,12 +17,12 @@ describe('Server Initialization Integration Tests', () => {
   let client: Client;
   let transport: StdioClientTransport;
   let serverProcess: ChildProcess;
-  const testDbDir = join(homedir(), '.vibe-feature-mcp-test-01');
+  const vibeTestDir = join(process.cwd(), '.vibe');
 
   beforeEach(async () => {
-    // Clean up any existing test database
-    if (existsSync(testDbDir)) {
-      rmSync(testDbDir, { recursive: true, force: true });
+    // Clean up any existing test .vibe directory
+    if (existsSync(vibeTestDir)) {
+      rmSync(vibeTestDir, { recursive: true, force: true });
     }
   });
 
@@ -34,9 +34,9 @@ describe('Server Initialization Integration Tests', () => {
     if (serverProcess && !serverProcess.killed) {
       serverProcess.kill();
     }
-    // Clean up test database
-    if (existsSync(testDbDir)) {
-      rmSync(testDbDir, { recursive: true, force: true });
+    // Clean up test .vibe directory
+    if (existsSync(vibeTestDir)) {
+      rmSync(vibeTestDir, { recursive: true, force: true });
     }
   });
 
@@ -49,7 +49,7 @@ describe('Server Initialization Integration Tests', () => {
       args: ['tsx', serverPath],
       env: {
         ...process.env,
-        VIBE_FEATURE_DB_DIR: testDbDir
+        VIBE_FEATURE_LOG_LEVEL: 'ERROR' // Reduce log noise in tests
       }
     });
 
@@ -65,8 +65,8 @@ describe('Server Initialization Integration Tests', () => {
 
   describe('Scenario: Server starts successfully with clean state', () => {
     it('should initialize server with all components', async () => {
-      // Given: no existing database or configuration files exist
-      expect(existsSync(testDbDir)).toBe(false);
+      // Given: no existing .vibe directory exists
+      expect(existsSync(vibeTestDir)).toBe(false);
 
       // When: the MCP server is started
       await startServer();
@@ -75,8 +75,13 @@ describe('Server Initialization Integration Tests', () => {
       // (connection success implies successful initialization)
       expect(client).toBeDefined();
 
-      // And: the database should be created
-      expect(existsSync(testDbDir)).toBe(true);
+      // And: the .vibe directory should be created in the project
+      const vibeDir = join(process.cwd(), '.vibe');
+      expect(existsSync(vibeDir)).toBe(true);
+
+      // And: the database should be created in .vibe directory
+      const dbPath = join(vibeDir, 'conversation-state.db');
+      expect(existsSync(dbPath)).toBe(true);
 
       // And: the server should expose the following tools
       const toolsResponse = await client.listTools();
@@ -93,9 +98,9 @@ describe('Server Initialization Integration Tests', () => {
   });
 
   describe('Scenario: Server handles invalid startup conditions', () => {
-    it('should handle startup with invalid database directory', async () => {
-      // Given: an invalid database directory path
-      const invalidDbDir = '/invalid/path/that/does/not/exist';
+    it('should handle startup gracefully even with database issues', async () => {
+      // Given: we're testing error handling capabilities
+      // Note: Since database is now project-local, this test verifies general error handling
       
       // When: the MCP server attempts to initialize
       const serverPath = join(process.cwd(), 'dist', 'index.js');
@@ -105,7 +110,7 @@ describe('Server Initialization Integration Tests', () => {
         args: [serverPath],
         env: {
           ...process.env,
-          VIBE_FEATURE_DB_DIR: invalidDbDir
+          VIBE_FEATURE_LOG_LEVEL: 'ERROR' // Reduce log noise
         }
       });
 
@@ -116,12 +121,15 @@ describe('Server Initialization Integration Tests', () => {
         capabilities: {}
       });
 
-      // Then: the server should handle the error gracefully
-      // (Either connect successfully after creating the directory, or fail gracefully)
+      // Then: the server should start successfully with project-local database
       try {
         await client.connect(transport);
-        // If connection succeeds, the server handled the error by creating the directory
+        // Connection should succeed with project-local database
         expect(true).toBe(true);
+        
+        // And: the .vibe directory should be created
+        const vibeDir = join(process.cwd(), '.vibe');
+        expect(existsSync(vibeDir)).toBe(true);
       } catch (error) {
         // If connection fails, it should be a meaningful error
         expect(error).toBeInstanceOf(Error);
@@ -156,7 +164,12 @@ describe('Server Initialization Integration Tests', () => {
       await startServer();
 
       // Then: the server should connect to the existing database
-      expect(existsSync(testDbDir)).toBe(true);
+      const vibeDir = join(process.cwd(), '.vibe');
+      expect(existsSync(vibeDir)).toBe(true);
+      
+      // And: the database file should still exist
+      const dbPath = join(vibeDir, 'conversation-state.db');
+      expect(existsSync(dbPath)).toBe(true);
 
       // And: preserve all existing conversation states
       const restoredStateResponse = await client.readResource({

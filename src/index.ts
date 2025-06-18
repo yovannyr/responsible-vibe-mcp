@@ -43,7 +43,8 @@ class VibeFeatureMCPServer {
 
     // Initialize components
     logger.debug('Initializing server components');
-    this.database = new Database();
+    const projectPath = process.cwd(); // Get current working directory as project path
+    this.database = new Database(projectPath);
     this.conversationManager = new ConversationManager(this.database);
     this.transitionEngine = new TransitionEngine();
     this.planManager = new PlanManager();
