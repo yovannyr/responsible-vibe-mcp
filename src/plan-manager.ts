@@ -107,65 +107,53 @@ export class PlanManager {
 ### Scope
 - [ ] *To be defined during requirements phase*
 
-## Development Progress
+## Current Status
 
-### 📋 Requirements Analysis
-**Status**: In Progress
+**Phase**: Requirements Analysis  
+**Progress**: Starting development planning
 
-#### Tasks
+## Requirements Analysis
+
+### Tasks
 - [ ] Gather user requirements
 - [ ] Define feature scope
 - [ ] Identify constraints and dependencies
 - [ ] Document acceptance criteria
 
-#### Completed
+### Completed
 - [x] Created development plan file
 
----
+## Design
 
-### 🎨 Design
-**Status**: Not Started
-
-#### Tasks
+### Tasks
 - [ ] *To be added after requirements completion*
 
-#### Completed
+### Completed
 *None yet*
 
----
+## Implementation
 
-### 💻 Implementation
-**Status**: Not Started
-
-#### Tasks
+### Tasks
 - [ ] *To be added after design completion*
 
-#### Completed
+### Completed
 *None yet*
 
----
+## Quality Assurance
 
-### 🔍 Quality Assurance
-**Status**: Not Started
-
-#### Tasks
+### Tasks
 - [ ] *To be added after implementation completion*
 
-#### Completed
+### Completed
 *None yet*
 
----
+## Testing
 
-### 🧪 Testing
-**Status**: Not Started
-
-#### Tasks
+### Tasks
 - [ ] *To be added after QA completion*
 
-#### Completed
+### Completed
 *None yet*
-
----
 
 ## Decision Log
 
@@ -211,7 +199,7 @@ export class PlanManager {
   /**
    * Generate phase-specific plan file guidance
    */
-  generatePlanFileGuidance(phase: DevelopmentPhase): string {
+  generatePlanFileGuidance(phase: string): string {
     switch (phase) {
       case 'requirements':
         return 'Update the Requirements Analysis section with gathered requirements, scope definition, and completed tasks. Mark tasks as complete with [x].';

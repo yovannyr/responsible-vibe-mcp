@@ -6,17 +6,13 @@
  */
 
 import { createLogger } from './logger.js';
-import { 
-  type DevelopmentPhase, 
-  getTransitionInstructions, 
-  getContinuePhaseInstructions,
-  isModeledTransition 
-} from './state-machine.js';
+import { StateMachineLoader } from './state-machine-loader.js';
 
 const logger = createLogger('TransitionEngine');
 
 export interface TransitionContext {
-  currentPhase: DevelopmentPhase;
+  currentPhase: string;
+  projectPath: string;
   userInput?: string;
   context?: string;
   conversationSummary?: string;
@@ -24,25 +20,38 @@ export interface TransitionContext {
 }
 
 export interface TransitionResult {
-  newPhase: DevelopmentPhase;
+  newPhase: string;
   instructions: string;
   transitionReason: string;
   isModeled: boolean;
 }
 
 export class TransitionEngine {
+  private stateMachineLoader: StateMachineLoader;
+  
+  constructor(projectPath: string) {
+    this.stateMachineLoader = new StateMachineLoader();
+    this.stateMachineLoader.loadStateMachine(projectPath);
+    
+    logger.info('TransitionEngine initialized', { projectPath });
+  }
   
   /**
    * Analyze context and determine appropriate phase transition
    */
   analyzePhaseTransition(context: TransitionContext): TransitionResult {
-    const { currentPhase, userInput, context: additionalContext, conversationSummary } = context;
+    const { currentPhase, projectPath, userInput, context: additionalContext, conversationSummary } = context;
+    
+    // Reload state machine for this specific project/conversation
+    this.stateMachineLoader.loadStateMachine(projectPath);
     
     logger.debug('Analyzing phase transition', {
       currentPhase,
+      projectPath,
       hasUserInput: !!userInput,
       hasContext: !!additionalContext,
-      hasSummary: !!conversationSummary
+      hasSummary: !!conversationSummary,
+      userInput: userInput ? userInput.substring(0, 50) + (userInput.length > 50 ? '...' : '') : undefined
     });
 
     // Analyze if we should transition to a new phase
@@ -56,7 +65,10 @@ export class TransitionEngine {
     
     if (suggestedPhase !== currentPhase) {
       // Phase transition detected
-      const transitionInfo = getTransitionInstructions(currentPhase, suggestedPhase);
+      const transitionInfo = this.stateMachineLoader.getTransitionInstructions(
+        currentPhase, 
+        suggestedPhase
+      );
       
       logger.info('Phase transition determined', {
         fromPhase: currentPhase,
@@ -73,7 +85,7 @@ export class TransitionEngine {
       };
     } else {
       // Continue in current phase
-      const instructions = getContinuePhaseInstructions(currentPhase);
+      const instructions = this.stateMachineLoader.getContinuePhaseInstructions(currentPhase);
       
       logger.debug('Continuing in current phase', { currentPhase });
       
@@ -90,17 +102,33 @@ export class TransitionEngine {
    * Handle explicit phase transition request
    */
   handleExplicitTransition(
-    currentPhase: DevelopmentPhase,
-    targetPhase: DevelopmentPhase, 
+    currentPhase: string,
+    targetPhase: string,
+    projectPath: string,
     reason?: string
   ): TransitionResult {
+    // Reload state machine for this specific project/conversation
+    this.stateMachineLoader.loadStateMachine(projectPath);
+    
     logger.debug('Handling explicit phase transition', {
       currentPhase,
       targetPhase,
+      projectPath,
       reason 
     });
     
-    const transitionInfo = getTransitionInstructions(currentPhase, targetPhase);
+    // Validate that the target phase exists in the state machine
+    if (!this.stateMachineLoader.isValidPhase(targetPhase)) {
+      const validPhases = this.stateMachineLoader.getValidPhases();
+      const errorMsg = `Invalid target phase: "${targetPhase}". Valid phases are: ${validPhases.join(', ')}`;
+      logger.error('Invalid target phase', new Error(errorMsg));
+      throw new Error(errorMsg);
+    }
+
+    const transitionInfo = this.stateMachineLoader.getTransitionInstructions(
+      currentPhase, 
+      targetPhase
+    );
     
     logger.info('Explicit phase transition processed', {
       fromPhase: currentPhase,
@@ -120,7 +148,7 @@ export class TransitionEngine {
   /**
    * Determine suggested phase based on conversation context
    */
-  private determineSuggestedPhase(context: TransitionContext): DevelopmentPhase {
+  private determineSuggestedPhase(context: TransitionContext): string {
     const { currentPhase, userInput, context: additionalContext, conversationSummary } = context;
 
     // Combine all available context
@@ -130,35 +158,56 @@ export class TransitionEngine {
       conversationSummary || ''
     ].join(' ').toLowerCase();
 
+    logger.debug('Determining suggested phase', {
+      currentPhase,
+      fullContext: fullContext.substring(0, 100) + (fullContext.length > 100 ? '...' : '')
+    });
+
     // Phase transition logic based on context analysis
+    let suggestedPhase: string;
     switch (currentPhase) {
       case 'idle':
-        return this.analyzeIdlePhase(fullContext);
+        suggestedPhase = this.analyzeIdlePhase(fullContext);
+        break;
       
       case 'requirements':
-        return this.analyzeRequirementsPhase(fullContext);
+        suggestedPhase = this.analyzeRequirementsPhase(fullContext);
+        break;
       
       case 'design':
-        return this.analyzeDesignPhase(fullContext);
+        suggestedPhase = this.analyzeDesignPhase(fullContext);
+        break;
       
       case 'implementation':
-        return this.analyzeImplementationPhase(fullContext);
+        suggestedPhase = this.analyzeImplementationPhase(fullContext);
+        break;
       
       case 'qa':
-        return this.analyzeQAPhase(fullContext);
+        suggestedPhase = this.analyzeQAPhase(fullContext);
+        break;
       
       case 'testing':
-        return this.analyzeTestingPhase(fullContext);
+        suggestedPhase = this.analyzeTestingPhase(fullContext);
+        break;
       
       case 'complete':
-        return this.analyzeCompletePhase(fullContext);
+        suggestedPhase = this.analyzeCompletePhase(fullContext);
+        break;
       
       default:
-        return currentPhase;
+        suggestedPhase = currentPhase;
     }
+
+    logger.debug('Suggested phase determined', {
+      currentPhase,
+      suggestedPhase,
+      willTransition: suggestedPhase !== currentPhase
+    });
+
+    return suggestedPhase;
   }
 
-  private analyzeIdlePhase(context: string): DevelopmentPhase {
+  private analyzeIdlePhase(context: string): string {
     // Look for new feature requests
     const featureKeywords = [
       'implement', 'build', 'create', 'add', 'develop', 'feature', 
@@ -166,13 +215,17 @@ export class TransitionEngine {
     ];
     
     if (featureKeywords.some(keyword => context.includes(keyword))) {
+      logger.debug('Feature keyword detected in idle phase, transitioning to requirements', {
+        context: context.substring(0, 100) + (context.length > 100 ? '...' : ''),
+        matchedKeywords: featureKeywords.filter(keyword => context.includes(keyword))
+      });
       return 'requirements';
     }
     
     return 'idle';
   }
 
-  private analyzeRequirementsPhase(context: string): DevelopmentPhase {
+  private analyzeRequirementsPhase(context: string): string {
     // Check for completion indicators
     const completionKeywords = [
       'requirements complete', 'ready to design', 'move to design',
@@ -191,7 +244,7 @@ export class TransitionEngine {
     return 'requirements';
   }
 
-  private analyzeDesignPhase(context: string): DevelopmentPhase {
+  private analyzeDesignPhase(context: string): string {
     // Check for implementation readiness
     const implementationKeywords = [
       'design complete', 'ready to implement', 'start coding', 
@@ -220,7 +273,7 @@ export class TransitionEngine {
     return 'design';
   }
 
-  private analyzeImplementationPhase(context: string): DevelopmentPhase {
+  private analyzeImplementationPhase(context: string): string {
     // Check for QA readiness
     const qaKeywords = [
       'implementation complete', 'ready for review', 'code review',
@@ -249,7 +302,7 @@ export class TransitionEngine {
     return 'implementation';
   }
 
-  private analyzeQAPhase(context: string): DevelopmentPhase {
+  private analyzeQAPhase(context: string): string {
     // Check for testing readiness
     const testingKeywords = [
       'qa complete', 'ready for testing', 'start testing',
@@ -278,7 +331,7 @@ export class TransitionEngine {
     return 'qa';
   }
 
-  private analyzeTestingPhase(context: string): DevelopmentPhase {
+  private analyzeTestingPhase(context: string): string {
     // Check for completion
     const completionKeywords = [
       'testing complete', 'tests pass', 'all tests passing',
@@ -307,7 +360,7 @@ export class TransitionEngine {
     return 'testing';
   }
 
-  private analyzeCompletePhase(context: string): DevelopmentPhase {
+  private analyzeCompletePhase(context: string): string {
     // Check for new feature requests
     const newFeatureKeywords = [
       'new feature', 'next feature', 'implement', 'build next',
