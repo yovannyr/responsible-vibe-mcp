@@ -727,3 +727,26 @@ When calling `whats_next()`, the LLM should provide:
 This stateless approach ensures that vibe-feature-mcp can make informed decisions about phase transitions without storing potentially inconsistent conversation history.
 
 For a complete system prompt template, see [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md).
+
+## Interaction Logging
+
+Vibe Feature MCP includes a comprehensive interaction logging system that records all tool calls and responses for debugging and analysis purposes:
+
+### Logged Information
+
+- **Tool Calls**: All calls to `whats_next` and `proceed_to_phase` tools
+- **Input Parameters**: Complete request parameters for each tool call
+- **Response Data**: Complete response data returned to the LLM
+- **Current Phase**: Development phase at the time of the interaction
+- **Timestamp**: When the interaction occurred
+- **Conversation ID**: Which conversation the interaction belongs to
+
+### Data Storage
+
+All interaction logs are stored in the local SQLite database in the `.vibe` directory of your project. The data is stored without masking or filtering, as it is kept locally on your system.
+
+### Querying Logs
+
+Logs can be queried by conversation ID for analysis and debugging purposes. No UI is provided in the current implementation, but the database can be accessed directly using SQLite tools.
+
+**Note**: All interaction data is stored locally on your system and is never transmitted to external services.

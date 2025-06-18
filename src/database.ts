@@ -3,6 +3,7 @@
  * 
  * Manages SQLite database for conversation state persistence.
  * Stores minimal state information to survive server restarts.
+ * Also stores interaction logs for auditing and debugging.
  */
 
 import sqlite3 from 'sqlite3';
@@ -12,18 +13,9 @@ import { homedir } from 'os';
 import { join } from 'path';
 import { createLogger } from './logger.js';
 import type { DevelopmentPhase } from './state-machine.js';
+import type { ConversationState, InteractionLog } from './types.js';
 
 const logger = createLogger('Database');
-
-export interface ConversationState {
-  conversationId: string;
-  projectPath: string;
-  gitBranch: string;
-  currentPhase: DevelopmentPhase;
-  planFilePath: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export class Database {
   private db: sqlite3.Database | null = null;
@@ -70,6 +62,26 @@ export class Database {
         ON conversation_states(project_path, git_branch)
       `);
       
+      // Create interaction_logs table
+      await this.runQuery(`
+        CREATE TABLE IF NOT EXISTS interaction_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          conversation_id TEXT NOT NULL,
+          tool_name TEXT NOT NULL,
+          input_params TEXT NOT NULL,
+          response_data TEXT NOT NULL,
+          current_phase TEXT NOT NULL,
+          timestamp TEXT NOT NULL,
+          FOREIGN KEY (conversation_id) REFERENCES conversation_states(conversation_id)
+        )
+      `);
+
+      // Create index for efficient lookups of interaction logs
+      await this.runQuery(`
+        CREATE INDEX IF NOT EXISTS idx_interaction_conversation_id 
+        ON interaction_logs(conversation_id)
+      `);
+      
       logger.info('Database initialized successfully', { dbPath: this.dbPath });
     } catch (error) {
       logger.error('Failed to initialize database', error as Error, { dbPath: this.dbPath });
@@ -112,6 +124,26 @@ export class Database {
           reject(err);
         } else {
           resolve(row);
+        }
+      });
+    });
+  }
+
+  /**
+   * Helper method to get multiple rows with promises
+   */
+  private getAllRows(sql: string, params: any[] = []): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('Database not initialized'));
+        return;
+      }
+      
+      this.db.all(sql, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
         }
       });
     });
@@ -228,6 +260,78 @@ export class Database {
       'DELETE FROM conversation_states WHERE conversation_id = ?',
       [conversationId]
     );
+  }
+
+  /**
+   * Log an interaction to the database
+   */
+  async logInteraction(log: InteractionLog): Promise<void> {
+    logger.debug('Logging interaction to database', { 
+      conversationId: log.conversationId,
+      toolName: log.toolName
+    });
+    
+    try {
+      await this.runQuery(
+        `INSERT INTO interaction_logs (
+          conversation_id, tool_name, input_params, response_data,
+          current_phase, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          log.conversationId,
+          log.toolName,
+          log.inputParams,
+          log.responseData,
+          log.currentPhase,
+          log.timestamp
+        ]
+      );
+      
+      logger.debug('Interaction logged successfully', { 
+        conversationId: log.conversationId,
+        toolName: log.toolName,
+        timestamp: log.timestamp
+      });
+    } catch (error) {
+      logger.error('Failed to log interaction', error as Error, { 
+        conversationId: log.conversationId 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get all interactions for a specific conversation
+   */
+  async getInteractionsByConversationId(conversationId: string): Promise<InteractionLog[]> {
+    logger.debug('Getting interactions by conversation ID', { conversationId });
+    
+    try {
+      const rows = await this.getAllRows(
+        'SELECT * FROM interaction_logs WHERE conversation_id = ? ORDER BY timestamp ASC',
+        [conversationId]
+      );
+
+      const logs: InteractionLog[] = rows.map(row => ({
+        id: row.id,
+        conversationId: row.conversation_id,
+        toolName: row.tool_name,
+        inputParams: row.input_params,
+        responseData: row.response_data,
+        currentPhase: row.current_phase as DevelopmentPhase,
+        timestamp: row.timestamp
+      }));
+      
+      logger.debug('Retrieved interaction logs', { 
+        conversationId,
+        count: logs.length
+      });
+      
+      return logs;
+    } catch (error) {
+      logger.error('Failed to get interaction logs', error as Error, { conversationId });
+      throw error;
+    }
   }
 
   /**

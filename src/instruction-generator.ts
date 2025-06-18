@@ -6,7 +6,7 @@
  */
 
 import type { DevelopmentPhase } from './state-machine.js';
-import type { ConversationContext } from './conversation-manager.js';
+import type { ConversationContext } from './types.js';
 import { PlanManager } from './plan-manager.js';
 
 export interface InstructionContext {

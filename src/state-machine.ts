@@ -146,7 +146,7 @@ export const STATE_TRANSITIONS: StateTransition[] = [
     to: 'qa',
     trigger: 'implementation_complete',
     isModeled: true,
-    instructions: "Implementation is complete! ✅ Now transition to quality assurance. Review the code for quality, validate that requirements are properly met, check for bugs, and ensure documentation is complete. Update the plan file and mark completed implementation tasks.",
+    instructions: "Implementation is complete! ✅ Now transition to quality assurance. Review the code for quality, build the project. If tests exist, run the tests. Lint the project if a linter is configured. Validate that requirements are properly met, check for bugs, and ensure documentation is complete. Update the plan file and mark completed implementation tasks.",
     transitionReason: "Core implementation is complete, ready for quality review"
   },
   {
