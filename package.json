@@ -12,7 +12,9 @@
     "test": "vitest --pool=forks --poolOptions.forks.singleFork=true",
     "test:ui": "vitest --ui",
     "test:run": "vitest run --pool=forks --poolOptions.forks.singleFork=true",
-    "generate-system-prompt": "vite-node src/scripts/generate-system-prompt.ts"
+    "generate-system-prompt": "vite-node src/scripts/generate-system-prompt.ts",
+    "generate-system-prompt:simple": "vite-node src/scripts/generate-system-prompt.ts --type=simple",
+    "generate-system-prompt:verbose": "vite-node src/scripts/generate-system-prompt.ts --type=verbose"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

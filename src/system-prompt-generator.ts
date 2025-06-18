@@ -12,10 +12,21 @@ import { createLogger } from './logger.js';
 const logger = createLogger('SystemPromptGenerator');
 
 /**
- * Generate a comprehensive system prompt for LLM integration
+ * Generate a system prompt for LLM integration
+ * @param simple Whether to generate a simplified version of the prompt
+ * @returns The generated system prompt
  */
-export function generateSystemPrompt(): string {
-  logger.debug('Generating system prompt from state machine definition');
+export function generateSystemPrompt(simple: boolean = false): string {
+  logger.debug('Generating system prompt from state machine definition', { simple });
+  
+  return simple ? generateSimpleSystemPrompt() : generateVerboseSystemPrompt();
+}
+
+/**
+ * Generate a comprehensive (verbose) system prompt for LLM integration
+ */
+function generateVerboseSystemPrompt(): string {
+  logger.debug('Generating verbose system prompt');
   
   const phases = getAllPhases();
   const phaseDescriptions = generatePhaseDescriptions(phases);
@@ -210,6 +221,85 @@ Remember: vibe-feature-mcp is your guide through the development process. It mai
 }
 
 /**
+ * Generate a simple system prompt for LLM integration
+ */
+function generateSimpleSystemPrompt(): string {
+  logger.debug('Generating simple system prompt');
+  
+  const phases = getAllPhases();
+  const phaseDescriptions = generateSimplifiedPhaseDescriptions(phases);
+  
+  const systemPrompt = `# Vibe Feature MCP Integration
+
+IMPORTANT: Always follow these instructions when working with vibe-feature-mcp!
+
+You are an AI assistant that helps users develop software features through a structured development process guided by the vibe-feature-mcp server.
+
+## Core Workflow
+
+1. **Call whats_next() after each user interaction** to get phase-specific instructions
+2. **Follow the instructions** provided by vibe-feature-mcp exactly
+3. **Update the plan file** as directed to maintain project memory
+4. **Mark completed tasks** with [x] when instructed
+5. **Provide conversation context** in each whats_next() call
+
+## Development Phases
+
+${phaseDescriptions}
+
+## Using whats_next()
+
+After each user interaction, call:
+
+\`\`\`
+whats_next({
+  context: "Brief description of current situation",
+  user_input: "User's latest message",
+  conversation_summary: "Summary of conversation progress so far",
+  recent_messages: [
+    { role: "assistant", content: "Your recent message" },
+    { role: "user", content: "User's recent response" }
+  ]
+})
+\`\`\`
+
+## Phase Transitions
+
+When whats_next() indicates a phase is complete, use:
+
+\`\`\`
+proceed_to_phase({
+  target_phase: "next_phase",  // One of: ${phases.map(p => `"${p}"`).join(', ')}
+  reason: "Why you're transitioning"
+})
+\`\`\`
+
+## Plan File Management
+
+- Add new tasks as they are identified
+- Mark tasks complete [x] when finished
+- Document important decisions in the Decisions Log
+- Keep the structure clean and readable
+
+## Conversation Context Guidelines
+
+Since vibe-feature-mcp operates statelessly, provide:
+
+- **conversation_summary**: What the user wants, key decisions, progress
+- **recent_messages**: Last 3-5 relevant exchanges
+- **context**: Current situation and what you're trying to determine
+
+Remember: vibe-feature-mcp guides the development process but relies on you to provide conversation context and follow its instructions precisely.`;
+
+  logger.info('Simple system prompt generated successfully', {
+    phaseCount: phases.length,
+    promptLength: systemPrompt.length
+  });
+
+  return systemPrompt;
+}
+
+/**
  * Get all development phases from the state machine
  */
 function getAllPhases(): DevelopmentPhase[] {
@@ -272,4 +362,24 @@ proceed_to_phase({
   reason: "implementation and QA already completed offline"
 })
 \`\`\``;
+}
+
+/**
+ * Generate simplified descriptions for each development phase
+ */
+function generateSimplifiedPhaseDescriptions(phases: DevelopmentPhase[]): string {
+  const descriptions: Record<DevelopmentPhase, string> = {
+    idle: 'Starting point - waiting for feature requests',
+    requirements: 'Analyze WHAT the user wants, ask clarifying questions',
+    design: 'Design HOW to implement, discuss technologies and architecture',
+    implementation: 'Guide coding and building, following best practices',
+    qa: 'Review code quality, validate requirements are met',
+    testing: 'Create and execute tests, validate feature completeness',
+    complete: 'Feature is finished and ready for delivery'
+  };
+
+  return phases.map(phase => {
+    const directInstructions = DIRECT_PHASE_INSTRUCTIONS[phase].split('.')[0]; // Just take the first sentence
+    return `- **${phase}**: ${descriptions[phase]}\n  - *Instructions*: ${directInstructions}`;
+  }).join('\n');
 }
