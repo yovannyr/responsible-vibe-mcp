@@ -32,7 +32,7 @@ export class Database {
   constructor(projectPath: string) {
     // Store database in .vibe subfolder of the project
     const vibeDir = join(projectPath, '.vibe');
-    this.dbPath = join(vibeDir, 'conversation-state.db');
+    this.dbPath = join(vibeDir, 'conversation-state.sqlite');
     logger.debug('Database path configured', { projectPath, dbPath: this.dbPath });
   }
 

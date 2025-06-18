@@ -1,4 +1,4 @@
-.vibe/*.db
+.vibe/*.sqlite
 SYSTEM_PROMPT.md
 
 # Logs

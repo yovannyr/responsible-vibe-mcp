@@ -124,7 +124,7 @@ The server creates a `.vibe` subdirectory in your project to store all vibe-feat
 ```
 your-project/
 ├── .vibe/
-│   ├── conversation-state.db      # SQLite database for conversation state
+│   ├── conversation-state.sqlite      # SQLite database for conversation state
 │   ├── development-plan.md        # Main development plan (main/master branch)
 │   └── development-plan-{branch}.md  # Branch-specific development plans
 ├── src/
@@ -147,7 +147,7 @@ The LLM is instructed to continuously update these files with:
 ### Database Storage
 
 Conversation state is persisted in a project-local SQLite database:
-`.vibe/conversation-state.db`
+`.vibe/conversation-state.sqlite`
 
 This ensures:
 - **Project isolation**: Each project has its own conversation state
@@ -201,7 +201,7 @@ This includes:
 - Check for TypeScript errors: `npm run build`
 
 ### Database issues
-- Database is created automatically in `.vibe/conversation-state.db`
+- Database is created automatically in `.vibe/conversation-state.sqlite`
 - Delete the `.vibe` directory to reset conversation state for the project
 - Check file permissions on the project directory
 
@@ -252,4 +252,4 @@ The server follows a modular architecture with clear separation of concerns:
 ### Git Integration
 - Add `.vibe/` to your `.gitignore` if you don't want to commit conversation state
 - Or commit `.vibe/development-plan.md` to share development plans with your team
-- The database file (`.vibe/conversation-state.db`) should typically be ignored
+- The database file (`.vibe/conversation-state.sqlite`) should typically be ignored

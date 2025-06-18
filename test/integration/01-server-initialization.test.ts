@@ -80,7 +80,7 @@ describe('Server Initialization Integration Tests', () => {
       expect(existsSync(vibeDir)).toBe(true);
 
       // And: the database should be created in .vibe directory
-      const dbPath = join(vibeDir, 'conversation-state.db');
+      const dbPath = join(vibeDir, 'conversation-state.sqlite');
       expect(existsSync(dbPath)).toBe(true);
 
       // And: the server should expose the following tools
@@ -168,7 +168,7 @@ describe('Server Initialization Integration Tests', () => {
       expect(existsSync(vibeDir)).toBe(true);
       
       // And: the database file should still exist
-      const dbPath = join(vibeDir, 'conversation-state.db');
+      const dbPath = join(vibeDir, 'conversation-state.sqlite');
       expect(existsSync(dbPath)).toBe(true);
 
       // And: preserve all existing conversation states
