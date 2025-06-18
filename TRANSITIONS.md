@@ -41,7 +41,7 @@ stateDiagram-v2
 ## Legend
 
 - **Modeled**: Transition is shown in the state diagram and gets contextual guidance
-- **Direct**: Transition is not in the diagram but supported via `proceed_to_stage` tool
+- **Direct**: Transition is not in the diagram but supported via `proceed_to_phase` tool
 
 ## Complete Transition Matrix
 
@@ -70,11 +70,11 @@ stateDiagram-v2
 | **complete** | idle | feature_delivered | Modeled | Feature has been delivered successfully! Return to idle state, ready for the next development task. The completed plan file serves as documentation of what was accomplished. | Feature delivery complete, returning to idle state |
 | **complete** | requirements | new_feature_request | Modeled | New feature request while previous feature is complete. Start fresh requirements analysis for the new feature. Ask clarifying questions about what they need and create a new development plan. | New feature request received, starting new development cycle |
 
-## Direct Stage Instructions
+## Direct Phase Instructions
 
-These instructions are used for direct transitions (not modeled in the state diagram) when users jump to any stage using `proceed_to_stage`:
+These instructions are used for direct transitions (not modeled in the state diagram) when users jump to any phase using `proceed_to_phase`:
 
-| Target Stage | Instructions |
+| Target Phase | Instructions |
 |--------------|--------------|
 | **idle** | Returned to idle state. Ready to help with new feature development or other tasks. |
 | **requirements** | Starting requirements analysis. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress. |
@@ -84,13 +84,13 @@ These instructions are used for direct transitions (not modeled in the state dia
 | **testing** | Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Update the plan file with testing progress and mark completed tasks. |
 | **complete** | Feature development is complete! Summarize what was accomplished and prepare final documentation. The feature is fully implemented, tested, and ready for delivery. |
 
-## Stage Transition Flexibility
+## Phase Transition Flexibility
 
-The Vibe Feature MCP server supports flexible transitions between any stages using the `proceed_to_stage` tool. While the state diagram shows the typical development flow, users can move directly to any stage based on their specific needs:
+The Vibe Feature MCP server supports flexible transitions between any phases using the `proceed_to_phase` tool. While the state diagram shows the typical development flow, users can move directly to any phase based on their specific needs:
 
 - **Forward progression**: Requirements → Design → Implementation → QA → Testing → Complete
-- **Backward refinement**: When issues are discovered, return to earlier stages
-- **Refinement loops**: Stay in current stage to add more work or improve quality
-- **Direct transitions**: Jump to any stage based on specific project needs
+- **Backward refinement**: When issues are discovered, return to earlier phases
+- **Refinement loops**: Stay in current phase to add more work or improve quality
+- **Direct transitions**: Jump to any phase based on specific project needs
 
-For modeled transitions, the server provides contextual guidance about why the transition makes sense and what to focus on next. For direct transitions, it provides general stage instructions appropriate for the target stage.
+For modeled transitions, the server provides contextual guidance about why the transition makes sense and what to focus on next. For direct transitions, it provides general phase instructions appropriate for the target phase.

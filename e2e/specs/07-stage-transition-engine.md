@@ -1,129 +1,129 @@
-# Stage Transition Engine Integration Tests
+# Phase Transition Engine Integration Tests
 
-## Feature: Intelligent Development Stage Management
+## Feature: Intelligent Development Phase Management
 
 As an LLM using the Vibe Feature MCP server
-I want the transition engine to analyze conversation context and determine appropriate development stages
+I want the transition engine to analyze conversation context and determine appropriate development phases
 So that development workflows progress logically and efficiently
 
 ### Background:
 - Transition engine analyzes conversation context, user input, and plan file status
-- Engine determines when stages are complete and ready for transition
+- Engine determines when phases are complete and ready for transition
 - Both automatic suggestions and explicit transitions are supported
-- Engine provides contextual instructions for each stage
+- Engine provides contextual instructions for each phase
 
 ---
 
-## Scenario: New feature detection and initial stage assignment
+## Scenario: New feature detection and initial phase assignment
 
 **Given** no existing conversation context
 **And** user input indicates a new feature request
 **When** the transition engine analyzes the context
-**Then** the stage should be set to "requirements"
+**Then** the phase should be set to "requirements"
 **And** the transition reason should indicate new feature detection
 **And** instructions should guide requirements gathering
 
 ### Expected Behavior:
 - New feature keywords should be detected in user input
-- Initial stage assignment should be appropriate for feature development
+- Initial phase assignment should be appropriate for feature development
 - Transition reasoning should be clear and logical
 - Instructions should be contextually relevant for starting requirements
 
 ---
 
-## Scenario: Requirements stage completion detection
+## Scenario: Requirements phase completion detection
 
-**Given** an existing conversation in "requirements" stage
+**Given** an existing conversation in "requirements" phase
 **And** the plan file shows all requirements tasks completed
 **And** conversation context indicates requirements gathering is done
 **When** the transition engine analyzes the situation
-**Then** the engine should suggest transition to "design" stage
+**Then** the engine should suggest transition to "design" phase
 **And** provide instructions for proceeding to design
 **And** mark requirements tasks as completed
 
 ### Expected Behavior:
 - Plan file analysis should detect completed requirement tasks
 - Conversation context should be analyzed for completion indicators
-- Stage transition suggestions should be appropriate and timely
+- Phase transition suggestions should be appropriate and timely
 - Task completion should be accurately identified and reported
 
 ---
 
-## Scenario: Mid-stage continuation with incomplete tasks
+## Scenario: Mid-phase continuation with incomplete tasks
 
-**Given** an existing conversation in "design" stage
+**Given** an existing conversation in "design" phase
 **And** the plan file shows some design tasks incomplete
 **And** conversation context indicates ongoing design work
 **When** the transition engine analyzes the context
-**Then** the stage should remain "design"
+**Then** the phase should remain "design"
 **And** instructions should guide continuation of design work
 **And** incomplete tasks should be identified
 
 ### Expected Behavior:
-- Incomplete stages should not trigger premature transitions
-- Instructions should focus on completing current stage work
+- Incomplete phases should not trigger premature transitions
+- Instructions should focus on completing current phase work
 - Task analysis should identify specific incomplete items
-- Stage continuation should be handled appropriately
+- Phase continuation should be handled appropriately
 
 ---
 
-## Scenario: Context-driven stage transition analysis
+## Scenario: Context-driven phase transition analysis
 
 **Given** rich conversation context with summary and recent messages
-**And** user input indicating readiness for next stage
+**And** user input indicating readiness for next phase
 **When** the transition engine processes the context
-**Then** conversation analysis should influence stage decisions
+**Then** conversation analysis should influence phase decisions
 **And** user readiness should be factored into transitions
-**And** context should provide nuanced stage determination
+**And** context should provide nuanced phase determination
 
 ### Expected Behavior:
-- Conversation summary should be analyzed for stage completion indicators
+- Conversation summary should be analyzed for phase completion indicators
 - Recent messages should provide immediate context for decisions
 - User expressions of readiness should influence transition timing
 - Context analysis should be sophisticated and nuanced
 
 ---
 
-## Scenario: Regression to previous stages
+## Scenario: Regression to previous phases
 
-**Given** an existing conversation in "implementation" stage
+**Given** an existing conversation in "implementation" phase
 **And** conversation context indicates design issues discovered
 **When** the transition engine analyzes the situation
-**Then** regression to "design" stage should be suggested
+**Then** regression to "design" phase should be suggested
 **And** instructions should address the design issues
 **And** the transition reason should explain the regression
 
 ### Expected Behavior:
-- Backward stage transitions should be supported when appropriate
-- Issue detection should trigger appropriate stage regression
+- Backward phase transitions should be supported when appropriate
+- Issue detection should trigger appropriate phase regression
 - Instructions should address the specific issues that caused regression
 - Transition reasoning should explain why regression is necessary
 
 ---
 
-## Scenario: Direct stage transitions bypassing intermediate stages
+## Scenario: Direct phase transitions bypassing intermediate phases
 
-**Given** an existing conversation in "requirements" stage
+**Given** an existing conversation in "requirements" phase
 **And** user explicitly requests jumping to "implementation"
 **When** the transition engine processes the explicit request
 **Then** direct transition to "implementation" should be allowed
-**And** instructions should be appropriate for implementation stage
+**And** instructions should be appropriate for implementation phase
 **And** the transition should be recorded with explicit reasoning
 
 ### Expected Behavior:
-- Non-sequential stage transitions should be permitted
+- Non-sequential phase transitions should be permitted
 - Explicit user requests should override normal progression
-- Instructions should adapt to the target stage regardless of progression
+- Instructions should adapt to the target phase regardless of progression
 - Transition reasoning should capture the explicit nature of the jump
 
 ---
 
-## Scenario: Stage transition with insufficient context
+## Scenario: Phase transition with insufficient context
 
 **Given** minimal conversation context
-**And** unclear user input about development stage
+**And** unclear user input about development phase
 **When** the transition engine attempts analysis
-**Then** conservative stage decisions should be made
+**Then** conservative phase decisions should be made
 **And** instructions should request clarification when needed
 **And** default behavior should be safe and reasonable
 
@@ -140,7 +140,7 @@ So that development workflows progress logically and efficiently
 **Given** a large project with multiple features in development
 **And** conversation context spanning multiple development areas
 **When** the transition engine analyzes the complex context
-**Then** stage determination should focus on current conversation thread
+**Then** phase determination should focus on current conversation thread
 **And** instructions should be specific to the current feature
 **And** context analysis should not be confused by project complexity
 
@@ -157,7 +157,7 @@ So that development workflows progress logically and efficiently
 **Given** corrupted or invalid conversation context
 **When** the transition engine attempts analysis
 **Then** errors should be handled gracefully
-**And** fallback stage determination should be provided
+**And** fallback phase determination should be provided
 **And** error recovery should not disrupt conversation flow
 
 ### Expected Behavior:

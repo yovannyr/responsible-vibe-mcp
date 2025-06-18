@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "start": "npx @modelcontextprotocol/inspector",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest",

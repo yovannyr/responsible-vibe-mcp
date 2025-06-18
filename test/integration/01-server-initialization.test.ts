@@ -82,7 +82,7 @@ describe('Server Initialization Integration Tests', () => {
       const toolsResponse = await client.listTools();
       const toolNames = toolsResponse.tools.map(tool => tool.name);
       expect(toolNames).toContain('whats_next');
-      expect(toolNames).toContain('proceed_to_stage');
+      expect(toolNames).toContain('proceed_to_phase');
 
       // And: the server should expose the following resources
       const resourcesResponse = await client.listResources();
@@ -167,7 +167,7 @@ describe('Server Initialization Integration Tests', () => {
       // And: be able to continue previous conversations
       expect(restoredState.conversationId).toBe(initialState.conversationId);
       expect(restoredState.projectPath).toBe(initialState.projectPath);
-      expect(restoredState.currentStage).toBe(initialState.currentStage);
+      expect(restoredState.currentPhase).toBe(initialState.currentPhase);
     });
   });
 
@@ -193,7 +193,7 @@ describe('Server Initialization Integration Tests', () => {
       expect(resultText).toBeDefined();
       
       const parsedResult = JSON.parse(resultText!);
-      expect(parsedResult).toHaveProperty('stage');
+      expect(parsedResult).toHaveProperty('phase');
       expect(parsedResult).toHaveProperty('instructions');
       expect(parsedResult).toHaveProperty('plan_file_path');
       expect(parsedResult).toHaveProperty('transition_reason');
@@ -234,7 +234,7 @@ describe('Server Initialization Integration Tests', () => {
       
       const stateData = JSON.parse(stateResource.contents[0].text!);
       expect(stateData).toHaveProperty('conversationId');
-      expect(stateData).toHaveProperty('currentStage');
+      expect(stateData).toHaveProperty('currentPhase');
       expect(stateData).toHaveProperty('projectPath');
     });
   });

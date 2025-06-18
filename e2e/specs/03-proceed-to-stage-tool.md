@@ -1,83 +1,83 @@
-# proceed_to_stage Tool Integration Tests
+# proceed_to_phase Tool Integration Tests
 
-## Feature: Explicit Stage Transition Tool
+## Feature: Explicit Phase Transition Tool
 
 As an LLM client using the Vibe Feature MCP server
-I want to call the `proceed_to_stage` tool to explicitly transition between development stages
-So that I can control the development workflow progression when stages are complete
+I want to call the `proceed_to_phase` tool to explicitly transition between development phases
+So that I can control the development workflow progression when phases are complete
 
 ### Background:
-- `proceed_to_stage` allows explicit stage transitions
-- It accepts target_stage (required) and reason (optional) parameters
-- It should validate stage transitions and update conversation state
-- It should return new stage instructions and update database
+- `proceed_to_phase` allows explicit phase transitions
+- It accepts target_phase (required) and reason (optional) parameters
+- It should validate phase transitions and update conversation state
+- It should return new phase instructions and update database
 
 ---
 
-## Scenario: Valid stage transition from requirements to design
+## Scenario: Valid phase transition from requirements to design
 
-**Given** an existing conversation in "requirements" stage
-**And** the requirements stage has completed tasks
-**When** I call `proceed_to_stage` with target_stage "design"
-**Then** the conversation stage should be updated to "design"
+**Given** an existing conversation in "requirements" phase
+**And** the requirements phase has completed tasks
+**When** I call `proceed_to_phase` with target_phase "design"
+**Then** the conversation phase should be updated to "design"
 **And** design-specific instructions should be returned
-**And** the database should be updated with the new stage
+**And** the database should be updated with the new phase
 **And** the transition reason should be recorded
 
 ### Expected Behavior:
-- Database should be updated with new stage and timestamp
-- Instructions should be generated for the target stage
+- Database should be updated with new phase and timestamp
+- Instructions should be generated for the target phase
 - Plan file path should remain consistent
 - Transition reason should be captured and returned
-- Stage-specific guidance should be provided
+- Phase-specific guidance should be provided
 
 ---
 
-## Scenario: Direct stage transition skipping intermediate stages
+## Scenario: Direct phase transition skipping intermediate phases
 
-**Given** an existing conversation in "requirements" stage
-**When** I call `proceed_to_stage` with target_stage "implementation"
-**Then** the stage should transition directly to "implementation"
+**Given** an existing conversation in "requirements" phase
+**When** I call `proceed_to_phase` with target_phase "implementation"
+**Then** the phase should transition directly to "implementation"
 **And** implementation-specific instructions should be provided
 **And** the transition should be allowed (no strict sequential enforcement)
 **And** the reason should indicate direct transition
 
 ### Expected Behavior:
 - Non-sequential transitions should be permitted
-- Instructions should be appropriate for target stage regardless of previous stage
+- Instructions should be appropriate for target phase regardless of previous phase
 - Database should record the direct transition
-- No validation errors should occur for stage skipping
+- No validation errors should occur for phase skipping
 
 ---
 
-## Scenario: Transition to completion stage
+## Scenario: Transition to completion phase
 
-**Given** an existing conversation in "testing" stage
+**Given** an existing conversation in "testing" phase
 **And** all testing tasks are complete
-**When** I call `proceed_to_stage` with target_stage "complete"
+**When** I call `proceed_to_phase` with target_phase "complete"
 **Then** the conversation should be marked as complete
 **And** completion instructions should be provided
 **And** the conversation state should reflect project completion
 
 ### Expected Behavior:
-- Conversation should transition to "complete" stage
+- Conversation should transition to "complete" phase
 - Completion-specific instructions should be generated
 - Database should be updated with completion timestamp
 - Instructions should guide project wrap-up activities
 
 ---
 
-## Scenario: Invalid stage transition parameters
+## Scenario: Invalid phase transition parameters
 
 **Given** the MCP server is running
-**When** I call `proceed_to_stage` with an invalid target_stage
+**When** I call `proceed_to_phase` with an invalid target_phase
 **Then** the tool should return an error response
 **And** the current conversation state should remain unchanged
 **And** a meaningful error message should be provided
 
 ### Expected Behavior:
-- Invalid stage names should be rejected
-- Error response should include valid stage options
+- Invalid phase names should be rejected
+- Error response should include valid phase options
 - Database state should not be modified on validation errors
 - Server should remain stable after invalid requests
 
@@ -85,8 +85,8 @@ So that I can control the development workflow progression when stages are compl
 
 ## Scenario: Transition with detailed reason
 
-**Given** an existing conversation in "design" stage
-**When** I call `proceed_to_stage` with target_stage "implementation" and reason "design approved by user, ready to code"
+**Given** an existing conversation in "design" phase
+**When** I call `proceed_to_phase` with target_phase "implementation" and reason "design approved by user, ready to code"
 **Then** the transition should be recorded with the provided reason
 **And** the reason should be included in the response
 **And** the database should store the transition reason
@@ -102,22 +102,22 @@ So that I can control the development workflow progression when stages are compl
 ## Scenario: Transition without existing conversation
 
 **Given** no existing conversation state for the current project
-**When** I call `proceed_to_stage` with target_stage "design"
+**When** I call `proceed_to_phase` with target_phase "design"
 **Then** a new conversation should be created
-**And** the stage should be set to the requested target stage
-**And** appropriate instructions should be generated for the target stage
+**And** the phase should be set to the requested target phase
+**And** appropriate instructions should be generated for the target phase
 
 ### Expected Behavior:
 - New conversations should be created if none exist
-- Target stage should be set as initial stage
+- Target phase should be set as initial phase
 - Project detection should work same as whats_next tool
-- Instructions should be contextually appropriate for starting at target stage
+- Instructions should be contextually appropriate for starting at target phase
 
 ---
 
-## Scenario: Concurrent stage transitions
+## Scenario: Concurrent phase transitions
 
-**Given** multiple rapid calls to `proceed_to_stage`
+**Given** multiple rapid calls to `proceed_to_phase`
 **When** transitions are requested in quick succession
 **Then** each transition should be processed atomically
 **And** the final state should reflect the last successful transition

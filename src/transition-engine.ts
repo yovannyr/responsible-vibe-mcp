@@ -1,22 +1,22 @@
 /**
  * Transition Engine
  * 
- * Manages the development state machine and determines appropriate stage transitions.
- * Analyzes conversation context and user input to make intelligent stage decisions.
+ * Manages the development state machine and determines appropriate phase transitions.
+ * Analyzes conversation context and user input to make intelligent phase decisions.
  */
 
 import { createLogger } from './logger.js';
 import { 
-  type DevelopmentStage, 
+  type DevelopmentPhase, 
   getTransitionInstructions, 
-  getContinueStageInstructions,
+  getContinuePhaseInstructions,
   isModeledTransition 
 } from './state-machine.js';
 
 const logger = createLogger('TransitionEngine');
 
 export interface TransitionContext {
-  currentStage: DevelopmentStage;
+  currentPhase: DevelopmentPhase;
   userInput?: string;
   context?: string;
   conversationSummary?: string;
@@ -24,7 +24,7 @@ export interface TransitionContext {
 }
 
 export interface TransitionResult {
-  newStage: DevelopmentStage;
+  newPhase: DevelopmentPhase;
   instructions: string;
   transitionReason: string;
   isModeled: boolean;
@@ -33,84 +33,84 @@ export interface TransitionResult {
 export class TransitionEngine {
   
   /**
-   * Analyze context and determine appropriate stage transition
+   * Analyze context and determine appropriate phase transition
    */
-  analyzeStageTransition(context: TransitionContext): TransitionResult {
-    const { currentStage, userInput, context: additionalContext, conversationSummary } = context;
+  analyzePhaseTransition(context: TransitionContext): TransitionResult {
+    const { currentPhase, userInput, context: additionalContext, conversationSummary } = context;
     
-    logger.debug('Analyzing stage transition', { 
-      currentStage,
+    logger.debug('Analyzing phase transition', {
+      currentPhase,
       hasUserInput: !!userInput,
       hasContext: !!additionalContext,
       hasSummary: !!conversationSummary
     });
 
-    // Analyze if we should transition to a new stage
-    const suggestedStage = this.determineSuggestedStage(context);
+    // Analyze if we should transition to a new phase
+    const suggestedPhase = this.determineSuggestedPhase(context);
     
-    logger.debug('Stage analysis completed', { 
-      currentStage,
-      suggestedStage,
-      willTransition: suggestedStage !== currentStage
+    logger.debug('Phase analysis completed', {
+      currentPhase,
+      suggestedPhase,
+      willTransition: suggestedPhase !== currentPhase
     });
     
-    if (suggestedStage !== currentStage) {
-      // Stage transition detected
-      const transitionInfo = getTransitionInstructions(currentStage, suggestedStage);
+    if (suggestedPhase !== currentPhase) {
+      // Phase transition detected
+      const transitionInfo = getTransitionInstructions(currentPhase, suggestedPhase);
       
-      logger.info('Stage transition determined', {
-        fromStage: currentStage,
-        toStage: suggestedStage,
+      logger.info('Phase transition determined', {
+        fromPhase: currentPhase,
+        toPhase: suggestedPhase,
         isModeled: transitionInfo.isModeled,
         reason: transitionInfo.transitionReason
       });
       
       return {
-        newStage: suggestedStage,
+        newPhase: suggestedPhase,
         instructions: transitionInfo.instructions,
         transitionReason: transitionInfo.transitionReason,
         isModeled: transitionInfo.isModeled
       };
     } else {
-      // Continue in current stage
-      const instructions = getContinueStageInstructions(currentStage);
+      // Continue in current phase
+      const instructions = getContinuePhaseInstructions(currentPhase);
       
-      logger.debug('Continuing in current stage', { currentStage });
+      logger.debug('Continuing in current phase', { currentPhase });
       
       return {
-        newStage: currentStage,
+        newPhase: currentPhase,
         instructions,
-        transitionReason: `Continuing work in ${currentStage} stage`,
+        transitionReason: `Continuing work in ${currentPhase} phase`,
         isModeled: true
       };
     }
   }
 
   /**
-   * Handle explicit stage transition request
+   * Handle explicit phase transition request
    */
   handleExplicitTransition(
-    currentStage: DevelopmentStage, 
-    targetStage: DevelopmentStage, 
+    currentPhase: DevelopmentPhase,
+    targetPhase: DevelopmentPhase, 
     reason?: string
   ): TransitionResult {
-    logger.debug('Handling explicit stage transition', { 
-      currentStage,
-      targetStage,
+    logger.debug('Handling explicit phase transition', {
+      currentPhase,
+      targetPhase,
       reason 
     });
     
-    const transitionInfo = getTransitionInstructions(currentStage, targetStage);
+    const transitionInfo = getTransitionInstructions(currentPhase, targetPhase);
     
-    logger.info('Explicit stage transition processed', {
-      fromStage: currentStage,
-      toStage: targetStage,
+    logger.info('Explicit phase transition processed', {
+      fromPhase: currentPhase,
+      toPhase: targetPhase,
       reason: reason || transitionInfo.transitionReason,
       isModeled: transitionInfo.isModeled
     });
     
     return {
-      newStage: targetStage,
+      newPhase: targetPhase,
       instructions: transitionInfo.instructions,
       transitionReason: reason || transitionInfo.transitionReason,
       isModeled: transitionInfo.isModeled
@@ -118,10 +118,10 @@ export class TransitionEngine {
   }
 
   /**
-   * Determine suggested stage based on conversation context
+   * Determine suggested phase based on conversation context
    */
-  private determineSuggestedStage(context: TransitionContext): DevelopmentStage {
-    const { currentStage, userInput, context: additionalContext, conversationSummary } = context;
+  private determineSuggestedPhase(context: TransitionContext): DevelopmentPhase {
+    const { currentPhase, userInput, context: additionalContext, conversationSummary } = context;
 
     // Combine all available context
     const fullContext = [
@@ -130,35 +130,35 @@ export class TransitionEngine {
       conversationSummary || ''
     ].join(' ').toLowerCase();
 
-    // Stage transition logic based on context analysis
-    switch (currentStage) {
+    // Phase transition logic based on context analysis
+    switch (currentPhase) {
       case 'idle':
-        return this.analyzeIdleStage(fullContext);
+        return this.analyzeIdlePhase(fullContext);
       
       case 'requirements':
-        return this.analyzeRequirementsStage(fullContext);
+        return this.analyzeRequirementsPhase(fullContext);
       
       case 'design':
-        return this.analyzeDesignStage(fullContext);
+        return this.analyzeDesignPhase(fullContext);
       
       case 'implementation':
-        return this.analyzeImplementationStage(fullContext);
+        return this.analyzeImplementationPhase(fullContext);
       
       case 'qa':
-        return this.analyzeQAStage(fullContext);
+        return this.analyzeQAPhase(fullContext);
       
       case 'testing':
-        return this.analyzeTestingStage(fullContext);
+        return this.analyzeTestingPhase(fullContext);
       
       case 'complete':
-        return this.analyzeCompleteStage(fullContext);
+        return this.analyzeCompletePhase(fullContext);
       
       default:
-        return currentStage;
+        return currentPhase;
     }
   }
 
-  private analyzeIdleStage(context: string): DevelopmentStage {
+  private analyzeIdlePhase(context: string): DevelopmentPhase {
     // Look for new feature requests
     const featureKeywords = [
       'implement', 'build', 'create', 'add', 'develop', 'feature', 
@@ -172,7 +172,7 @@ export class TransitionEngine {
     return 'idle';
   }
 
-  private analyzeRequirementsStage(context: string): DevelopmentStage {
+  private analyzeRequirementsPhase(context: string): DevelopmentPhase {
     // Check for completion indicators
     const completionKeywords = [
       'requirements complete', 'ready to design', 'move to design',
@@ -191,7 +191,7 @@ export class TransitionEngine {
     return 'requirements';
   }
 
-  private analyzeDesignStage(context: string): DevelopmentStage {
+  private analyzeDesignPhase(context: string): DevelopmentPhase {
     // Check for implementation readiness
     const implementationKeywords = [
       'design complete', 'ready to implement', 'start coding', 
@@ -220,7 +220,7 @@ export class TransitionEngine {
     return 'design';
   }
 
-  private analyzeImplementationStage(context: string): DevelopmentStage {
+  private analyzeImplementationPhase(context: string): DevelopmentPhase {
     // Check for QA readiness
     const qaKeywords = [
       'implementation complete', 'ready for review', 'code review',
@@ -249,7 +249,7 @@ export class TransitionEngine {
     return 'implementation';
   }
 
-  private analyzeQAStage(context: string): DevelopmentStage {
+  private analyzeQAPhase(context: string): DevelopmentPhase {
     // Check for testing readiness
     const testingKeywords = [
       'qa complete', 'ready for testing', 'start testing',
@@ -278,7 +278,7 @@ export class TransitionEngine {
     return 'qa';
   }
 
-  private analyzeTestingStage(context: string): DevelopmentStage {
+  private analyzeTestingPhase(context: string): DevelopmentPhase {
     // Check for completion
     const completionKeywords = [
       'testing complete', 'tests pass', 'all tests passing',
@@ -307,7 +307,7 @@ export class TransitionEngine {
     return 'testing';
   }
 
-  private analyzeCompleteStage(context: string): DevelopmentStage {
+  private analyzeCompletePhase(context: string): DevelopmentPhase {
     // Check for new feature requests
     const newFeatureKeywords = [
       'new feature', 'next feature', 'implement', 'build next',

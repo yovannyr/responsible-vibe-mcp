@@ -11,7 +11,7 @@ import { dirname } from 'path';
 import { homedir } from 'os';
 import { join } from 'path';
 import { createLogger } from './logger.js';
-import type { DevelopmentStage } from './state-machine.js';
+import type { DevelopmentPhase } from './state-machine.js';
 
 const logger = createLogger('Database');
 
@@ -19,7 +19,7 @@ export interface ConversationState {
   conversationId: string;
   projectPath: string;
   gitBranch: string;
-  currentStage: DevelopmentStage;
+  currentPhase: DevelopmentPhase;
   planFilePath: string;
   createdAt: string;
   updatedAt: string;
@@ -57,7 +57,7 @@ export class Database {
           conversation_id TEXT PRIMARY KEY,
           project_path TEXT NOT NULL,
           git_branch TEXT NOT NULL,
-          current_stage TEXT NOT NULL,
+          current_phase TEXT NOT NULL,
           plan_file_path TEXT NOT NULL,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
@@ -138,7 +138,7 @@ export class Database {
         conversationId: row.conversation_id,
         projectPath: row.project_path,
         gitBranch: row.git_branch,
-        currentStage: row.current_stage as DevelopmentStage,
+        currentPhase: row.current_phase as DevelopmentPhase,
         planFilePath: row.plan_file_path,
         createdAt: row.created_at,
         updatedAt: row.updated_at
@@ -146,7 +146,7 @@ export class Database {
       
       logger.debug('Conversation state retrieved', { 
         conversationId,
-        currentStage: state.currentStage,
+        currentPhase: state.currentPhase,
         projectPath: state.projectPath
       });
       
@@ -163,21 +163,21 @@ export class Database {
   async saveConversationState(state: ConversationState): Promise<void> {
     logger.debug('Saving conversation state', { 
       conversationId: state.conversationId,
-      currentStage: state.currentStage,
+      currentPhase: state.currentPhase,
       projectPath: state.projectPath
     });
     
     try {
       await this.runQuery(
         `INSERT OR REPLACE INTO conversation_states (
-          conversation_id, project_path, git_branch, current_stage, 
+          conversation_id, project_path, git_branch, current_phase,
           plan_file_path, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           state.conversationId,
           state.projectPath,
           state.gitBranch,
-          state.currentStage,
+          state.currentPhase,
           state.planFilePath,
           state.createdAt,
           state.updatedAt
@@ -186,7 +186,7 @@ export class Database {
       
       logger.info('Conversation state saved successfully', { 
         conversationId: state.conversationId,
-        currentStage: state.currentStage
+        currentPhase: state.currentPhase
       });
     } catch (error) {
       logger.error('Failed to save conversation state', error as Error, { 
@@ -213,7 +213,7 @@ export class Database {
       conversationId: row.conversation_id,
       projectPath: row.project_path,
       gitBranch: row.git_branch,
-      currentStage: row.current_stage as DevelopmentStage,
+      currentPhase: row.current_phase as DevelopmentPhase,
       planFilePath: row.plan_file_path,
       createdAt: row.created_at,
       updatedAt: row.updated_at

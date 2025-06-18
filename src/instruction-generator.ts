@@ -1,16 +1,16 @@
 /**
  * Instruction Generator
  * 
- * Creates stage-specific guidance for the LLM based on current conversation state.
- * Customizes instructions based on project context and development stage.
+ * Creates phase-specific guidance for the LLM based on current conversation state.
+ * Customizes instructions based on project context and development phase.
  */
 
-import type { DevelopmentStage } from './state-machine.js';
+import type { DevelopmentPhase } from './state-machine.js';
 import type { ConversationContext } from './conversation-manager.js';
 import { PlanManager } from './plan-manager.js';
 
 export interface InstructionContext {
-  stage: DevelopmentStage;
+  phase: DevelopmentPhase;
   conversationContext: ConversationContext;
   transitionReason: string;
   isModeled: boolean;
@@ -21,7 +21,7 @@ export interface GeneratedInstructions {
   instructions: string;
   planFileGuidance: string;
   metadata: {
-    stage: DevelopmentStage;
+    phase: DevelopmentPhase;
     planFilePath: string;
     transitionReason: string;
     isModeled: boolean;
@@ -44,7 +44,7 @@ export class InstructionGenerator {
   ): Promise<GeneratedInstructions> {
     
     // Get plan file guidance
-    const planFileGuidance = this.planManager.generatePlanFileGuidance(context.stage);
+    const planFileGuidance = this.planManager.generatePlanFileGuidance(context.phase);
     
     // Enhance base instructions with context-specific guidance
     const enhancedInstructions = await this.enhanceInstructions(
@@ -57,7 +57,7 @@ export class InstructionGenerator {
       instructions: enhancedInstructions,
       planFileGuidance,
       metadata: {
-        stage: context.stage,
+        phase: context.phase,
         planFilePath: context.conversationContext.planFilePath,
         transitionReason: context.transitionReason,
         isModeled: context.isModeled
@@ -74,13 +74,13 @@ export class InstructionGenerator {
     planFileGuidance: string
   ): Promise<string> {
     
-    const { stage, conversationContext, transitionReason, isModeled, planFileExists } = context;
+    const { phase, conversationContext, transitionReason, isModeled, planFileExists } = context;
     
     // Build enhanced instructions
     let enhanced = baseInstructions;
 
-    // Add stage-specific context
-    enhanced += '\n\n' + this.getStageSpecificContext(stage);
+    // Add phase-specific context
+    enhanced += '\n\n' + this.getPhaseSpecificContext(phase);
 
     // Add plan file instructions
     enhanced += '\n\n**Plan File Management:**\n';
@@ -98,7 +98,7 @@ export class InstructionGenerator {
     enhanced += '\n\n**Project Context:**\n';
     enhanced += `- Project: ${conversationContext.projectPath}\n`;
     enhanced += `- Branch: ${conversationContext.gitBranch}\n`;
-    enhanced += `- Current Stage: ${stage}\n`;
+    enhanced += `- Current Phase: ${phase}\n`;
 
     // Add transition context if this is a modeled transition
     if (isModeled && transitionReason) {
@@ -106,17 +106,17 @@ export class InstructionGenerator {
       enhanced += `- ${transitionReason}\n`;
     }
 
-    // Add stage-specific reminders
-    enhanced += '\n\n' + this.getStageReminders(stage);
+    // Add phase-specific reminders
+    enhanced += '\n\n' + this.getPhaseReminders(phase);
 
     return enhanced;
   }
 
   /**
-   * Get stage-specific contextual information
+   * Get phase-specific contextual information
    */
-  private getStageSpecificContext(stage: DevelopmentStage): string {
-    switch (stage) {
+  private getPhaseSpecificContext(phase: DevelopmentPhase): string {
+    switch (phase) {
       case 'idle':
         return '**Context**: Ready to help with new development tasks or feature requests.';
       
@@ -144,10 +144,10 @@ export class InstructionGenerator {
   }
 
   /**
-   * Get stage-specific reminders and best practices
+   * Get phase-specific reminders and best practices
    */
-  private getStageReminders(stage: DevelopmentStage): string {
-    switch (stage) {
+  private getPhaseReminders(phase: DevelopmentPhase): string {
+    switch (phase) {
       case 'requirements':
         return '**Remember**: \n- Ask "what" not "how"\n- Break down complex requests into specific tasks\n- Clarify scope and constraints\n- Document acceptance criteria\n- Update plan file with gathered requirements';
       
@@ -167,7 +167,7 @@ export class InstructionGenerator {
         return '**Remember**: \n- Summarize what was accomplished\n- Finalize all documentation\n- Mark all tasks as complete\n- Prepare handoff documentation\n- Update plan file with completion status';
       
       default:
-        return '**Remember**: \n- Keep the plan file updated\n- Mark completed tasks\n- Stay focused on current stage objectives';
+        return '**Remember**: \n- Keep the plan file updated\n- Mark completed tasks\n- Stay focused on current phase objectives';
     }
   }
 }

@@ -4,7 +4,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import type { DevelopmentStage } from '../../src/state-machine.js';
+import type { DevelopmentPhase } from '../../src/state-machine.js';
 import { ConversationManager } from '../../src/conversation-manager.js';
 import { TransitionEngine } from '../../src/transition-engine.js';
 import { InstructionGenerator } from '../../src/instruction-generator.js';
@@ -78,16 +78,16 @@ export class TestableVibeFeatureMCPServer {
       }
     );
 
-    // proceed_to_stage tool
+    // proceed_to_phase tool
     this.server.tool(
-      'proceed_to_stage',
+      'proceed_to_phase',
       {
-        target_stage: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete']),
+        target_phase: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete']),
         reason: z.string().optional()
       },
       async (params) => {
         try {
-          return await this.handleProceedToStage(params);
+          return await this.handleProceedToPhase(params);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           return {
@@ -141,7 +141,7 @@ export class TestableVibeFeatureMCPServer {
       'conversation-state',
       'state://current',
       {
-        description: 'Current conversation state and stage information',
+        description: 'Current conversation state and phase information',
         mimeType: 'application/json'
       },
       async (uri: any) => {
@@ -172,56 +172,56 @@ export class TestableVibeFeatureMCPServer {
   private async handleWhatsNext(params: any) {
     const context = await this.conversationManager.getConversationContext();
     
-    // Analyze stage transition
-    const stageDecision = await this.transitionEngine.analyzeStageTransition(
-      context.currentStage,
+    // Analyze phase transition
+    const phaseDecision = await this.transitionEngine.analyzePhaseTransition(
+      context.currentPhase,
       params.context || '',
       params.user_input || '',
       params.conversation_summary || '',
       params.recent_messages || []
     );
 
-    // Update conversation stage if changed
-    if (stageDecision.newStage !== context.currentStage) {
-      await this.conversationManager.updateStage(context.conversationId, stageDecision.newStage);
-      context.currentStage = stageDecision.newStage;
+    // Update conversation phase if changed
+    if (phaseDecision.newPhase !== context.currentPhase) {
+      await this.conversationManager.updatePhase(context.conversationId, phaseDecision.newPhase);
+      context.currentPhase = phaseDecision.newPhase;
     }
 
     // Generate instructions
     const instructions = await this.instructionGenerator.generateInstructions(
-      stageDecision.newStage,
+      phaseDecision.newPhase,
       context,
       params.context || ''
     );
 
     return {
-      stage: stageDecision.newStage,
+      phase: phaseDecision.newPhase,
       instructions: instructions.instructions,
       plan_file_path: context.planFilePath,
-      transition_reason: stageDecision.reason,
+      transition_reason: phaseDecision.reason,
       completed_tasks: instructions.completedTasks
     };
   }
 
-  private async handleProceedToStage(params: any) {
+  private async handleProceedToPhase(params: any) {
     const context = await this.conversationManager.getConversationContext();
     
-    // Update conversation stage
-    await this.conversationManager.updateStage(context.conversationId, params.target_stage);
-    context.currentStage = params.target_stage;
+    // Update conversation phase
+    await this.conversationManager.updatePhase(context.conversationId, params.target_phase);
+    context.currentPhase = params.target_phase;
 
-    // Generate instructions for new stage
+    // Generate instructions for new phase
     const instructions = await this.instructionGenerator.generateInstructions(
-      params.target_stage,
+      params.target_phase,
       context,
-      params.reason || 'Explicit stage transition'
+      params.reason || 'Explicit phase transition'
     );
 
     return {
-      stage: params.target_stage,
+      phase: params.target_phase,
       instructions: instructions.instructions,
       plan_file_path: context.planFilePath,
-      transition_reason: params.reason || 'Explicit stage transition',
+      transition_reason: params.reason || 'Explicit phase transition',
       completed_tasks: instructions.completedTasks
     };
   }
@@ -230,8 +230,8 @@ export class TestableVibeFeatureMCPServer {
   async callTool(toolName: string, params: any) {
     if (toolName === 'whats_next') {
       return await this.handleWhatsNext(params);
-    } else if (toolName === 'proceed_to_stage') {
-      return await this.handleProceedToStage(params);
+    } else if (toolName === 'proceed_to_phase') {
+      return await this.handleProceedToPhase(params);
     }
     throw new Error(`Unknown tool: ${toolName}`);
   }
@@ -249,7 +249,7 @@ export class TestableVibeFeatureMCPServer {
   }
 
   listTools() {
-    return ['whats_next', 'proceed_to_stage'];
+    return ['whats_next', 'proceed_to_phase'];
   }
 
   listResources() {
@@ -296,7 +296,7 @@ class TestablePlanManager extends PlanManager {
 ## Project Overview
 
 **Status**: Planning Phase  
-**Current Stage**: Requirements Analysis  
+**Current Phase**: Requirements Analysis
 
 ### Feature Goals
 - [ ] *To be defined based on requirements gathering*

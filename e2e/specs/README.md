@@ -17,12 +17,12 @@ The integration tests are organized into focused specification files that cover 
 - Primary analysis and instruction tool functionality
 - New conversation creation and management
 - Existing conversation continuation
-- Context analysis and stage determination
+- Context analysis and phase determination
 - Error handling and parameter validation
 
-### 03. proceed_to_stage Tool (`03-proceed-to-stage-tool.md`)
-- Explicit stage transition functionality
-- Valid and invalid stage transitions
+### 03. proceed_to_phase Tool (`03-proceed-to-phase-tool.md`)
+- Explicit phase transition functionality
+- Valid and invalid phase transitions
 - Transition reason tracking
 - Concurrent transition handling
 - Error scenarios and validation
@@ -48,10 +48,10 @@ The integration tests are organized into focused specification files that cover 
 - Path resolution and validation
 - External tool integration
 
-### 07. Stage Transition Engine (`07-stage-transition-engine.md`)
-- Intelligent stage determination logic
+### 07. Phase Transition Engine (`07-phase-transition-engine.md`)
+- Intelligent phase determination logic
 - Context analysis and transition decisions
-- Stage completion detection
+- Phase completion detection
 - Regression and non-linear transitions
 - Complex project context handling
 
@@ -115,7 +115,7 @@ The integration tests should use mocks for:
 ## Test Data Management
 
 ### Conversation States
-- Various development stages and transitions
+- Various development phases and transitions
 - Different project contexts and configurations
 - Multiple git branch scenarios
 - Historical conversation data
@@ -155,7 +155,7 @@ These specifications aim to provide comprehensive coverage of:
 - Error handling and recovery mechanisms
 - Multi-project and multi-session scenarios
 - Database and filesystem operations
-- Stage transition logic and context analysis
+- Phase transition logic and context analysis
 - Plan file management and synchronization
 - Real-world usage patterns and edge cases
 

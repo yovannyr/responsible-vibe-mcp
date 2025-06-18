@@ -33,10 +33,10 @@ So that I can read current project status and development plans
 
 ## Scenario: Access conversation state resource
 
-**Given** an existing conversation with stage and metadata
+**Given** an existing conversation with phase and metadata
 **When** I request the `state://current` resource
 **Then** the conversation state should be returned as JSON
-**And** the response should include current stage, project path, and git branch
+**And** the response should include current phase, project path, and git branch
 **And** the MIME type should be `application/json`
 
 ### Expected Behavior:

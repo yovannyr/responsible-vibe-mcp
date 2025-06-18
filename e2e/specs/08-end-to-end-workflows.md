@@ -18,52 +18,52 @@ So that I can build features with structured guidance and persistent progress tr
 
 **Given** a new project directory with git repository
 **When** I start a conversation about implementing user authentication
-**Then** the complete workflow should progress through all stages:
+**Then** the complete workflow should progress through all phases:
 
-### Stage 1: Requirements Analysis
+### Phase 1: Requirements Analysis
 - **Initial Request**: "I want to implement user authentication"
 - **Expected**: `whats_next` creates new conversation, transitions to requirements
 - **Plan File**: Created with authentication requirements template
 - **Instructions**: Guide requirements gathering (auth type, user data, security)
 
-### Stage 2: Requirements Completion
+### Phase 2: Requirements Completion
 - **Context**: Requirements gathered through multiple interactions
 - **Expected**: `whats_next` detects completion, suggests design transition
 - **Plan File**: Updated with completed requirements tasks
-- **Transition**: `proceed_to_stage` called with target "design"
+- **Transition**: `proceed_to_phase` called with target "design"
 
-### Stage 3: Design Phase
+### Phase 3: Design Phase
 - **Context**: Technical solution design discussions
 - **Expected**: Design-specific instructions for architecture and API planning
 - **Plan File**: Updated with design decisions and technical specifications
 - **Progress**: Database schema, API endpoints, security measures defined
 
-### Stage 4: Implementation
+### Phase 4: Implementation
 - **Context**: Code implementation with LLM guidance
 - **Expected**: Implementation instructions and coding best practices
 - **Plan File**: Implementation tasks tracked and marked complete
 - **Progress**: Authentication system built and tested
 
-### Stage 5: Quality Assurance
+### Phase 5: Quality Assurance
 - **Context**: Code review and quality validation
 - **Expected**: QA instructions for testing and validation
 - **Plan File**: QA checklist completed
 - **Progress**: Code reviewed, requirements validated
 
-### Stage 6: Testing
+### Phase 6: Testing
 - **Context**: Comprehensive testing and validation
 - **Expected**: Testing instructions and test plan execution
 - **Plan File**: Testing tasks completed
 - **Progress**: Feature fully tested and validated
 
-### Stage 7: Completion
+### Phase 7: Completion
 - **Context**: Feature complete and ready for deployment
 - **Expected**: Completion instructions and project wrap-up
 - **Plan File**: All tasks marked complete
 - **Final State**: Conversation marked as complete
 
 ### Expected Behavior:
-- Each stage should provide appropriate guidance and instructions
+- Each phase should provide appropriate guidance and instructions
 - Plan file should be continuously updated throughout the workflow
 - State transitions should be logical and context-driven
 - Progress should be preserved across multiple sessions
@@ -74,9 +74,9 @@ So that I can build features with structured guidance and persistent progress tr
 ## Scenario: Multi-session workflow continuation
 
 **Given** a development workflow started in one session
-**And** the workflow is interrupted at the design stage
+**And** the workflow is interrupted at the design phase
 **When** a new session is started later
-**Then** the workflow should continue from the design stage
+**Then** the workflow should continue from the design phase
 **And** all previous context should be preserved
 **And** the plan file should reflect previous progress
 
@@ -108,7 +108,7 @@ So that I can build features with structured guidance and persistent progress tr
 
 ## Scenario: Workflow error recovery and resilience
 
-**Given** a workflow in progress with multiple completed stages
+**Given** a workflow in progress with multiple completed phases
 **When** errors occur (database issues, file system problems, etc.)
 **Then** the workflow should recover gracefully
 **And** completed progress should be preserved
@@ -127,13 +127,13 @@ So that I can build features with structured guidance and persistent progress tr
 
 **Given** a standard development workflow
 **When** users need to customize the workflow for specific needs
-**Then** stage transitions should be flexible
-**And** direct stage jumps should be supported
+**Then** phase transitions should be flexible
+**And** direct phase jumps should be supported
 **And** workflow adaptation should be possible
 
 ### Expected Behavior:
 - Non-linear workflow progression should be supported
-- Users should be able to skip or repeat stages as needed
+- Users should be able to skip or repeat phases as needed
 - Workflow customization should not break state management
 - Instructions should adapt to customized workflow patterns
 - Plan files should reflect actual workflow progression
@@ -179,12 +179,12 @@ So that I can build features with structured guidance and persistent progress tr
 **Given** multiple completed workflows
 **When** analyzing development patterns and efficiency
 **Then** workflow data should provide insights
-**And** stage transition patterns should be analyzable
+**And** phase transition patterns should be analyzable
 **And** workflow optimization opportunities should be identifiable
 
 ### Expected Behavior:
 - Workflow data should be structured for analysis
-- Stage duration and transition patterns should be trackable
+- Phase duration and transition patterns should be trackable
 - Common workflow patterns should be identifiable
 - Performance metrics should be extractable
 - Insights should inform workflow improvements

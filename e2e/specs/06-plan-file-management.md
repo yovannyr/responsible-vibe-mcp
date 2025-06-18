@@ -25,7 +25,7 @@ So that development progress and context are preserved across sessions
 
 ### Expected Behavior:
 - Plan file should be created in project directory
-- Default template should include project overview and stage sections
+- Default template should include project overview and phase sections
 - File name should be descriptive and feature-specific
 - File creation should not overwrite existing files
 - File path should be stored in database for future reference
@@ -37,13 +37,13 @@ So that development progress and context are preserved across sessions
 **Given** a new plan file needs to be created
 **When** the plan file is generated
 **Then** it should contain standard markdown structure
-**And** include sections for each development stage
+**And** include sections for each development phase
 **And** have placeholder content for project overview
 **And** include task tracking format with checkboxes
 
 ### Expected Behavior:
 - Template should follow consistent markdown format
-- Stage sections should match server's development stages
+- Phase sections should match server's development phases
 - Task format should support checkbox-style completion tracking
 - Template should be customizable based on project context
 - Generated content should be immediately usable
@@ -56,13 +56,13 @@ So that development progress and context are preserved across sessions
 **When** the server analyzes the plan file
 **Then** completed tasks should be identified correctly
 **And** incomplete tasks should be detected
-**And** stage completion status should be determined
-**And** task analysis should inform stage transitions
+**And** phase completion status should be determined
+**And** task analysis should inform phase transitions
 
 ### Expected Behavior:
 - Markdown checkbox parsing should work reliably
 - Task completion detection should be accurate
-- Stage-specific task analysis should be performed
+- Phase-specific task analysis should be performed
 - Completion status should influence server instructions
 - Analysis should handle various markdown formats
 

@@ -9,7 +9,7 @@ import { writeFile, readFile, access } from 'fs/promises';
 import { dirname } from 'path';
 import { mkdir } from 'fs/promises';
 import { createLogger } from './logger.js';
-import type { DevelopmentStage } from './state-machine.js';
+import type { DevelopmentPhase } from './state-machine.js';
 
 const logger = createLogger('PlanManager');
 
@@ -99,7 +99,7 @@ export class PlanManager {
 ## Project Overview
 
 **Status**: Planning Phase  
-**Current Stage**: Requirements Analysis  
+**Current Phase**: Requirements Analysis  
 
 ### Feature Goals
 - [ ] *To be defined based on requirements gathering*
@@ -181,7 +181,7 @@ export class PlanManager {
 
 ---
 
-*This plan is continuously updated by the LLM as development progresses. Each stage's tasks and completed items are maintained to track progress and provide context for future development sessions.*
+*This plan is continuously updated by the LLM as development progresses. Each phase's tasks and completed items are maintained to track progress and provide context for future development sessions.*
 `;
   }
 
@@ -209,10 +209,10 @@ export class PlanManager {
   }
 
   /**
-   * Generate stage-specific plan file guidance
+   * Generate phase-specific plan file guidance
    */
-  generatePlanFileGuidance(stage: DevelopmentStage): string {
-    switch (stage) {
+  generatePlanFileGuidance(phase: DevelopmentPhase): string {
+    switch (phase) {
       case 'requirements':
         return 'Update the Requirements Analysis section with gathered requirements, scope definition, and completed tasks. Mark tasks as complete with [x].';
       

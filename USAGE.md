@@ -45,18 +45,18 @@ The primary tool that analyzes conversation state and provides LLM instructions.
 - `recent_messages` (optional): Array of recent conversation messages
 
 **Returns:**
-- `stage`: Current development stage
+- `phase`: Current development phase
 - `instructions`: Detailed instructions for the LLM
 - `plan_file_path`: Path to the plan file to update
-- `transition_reason`: Why this stage was chosen
+- `transition_reason`: Why this phase was chosen
 - `is_modeled_transition`: Whether this is a modeled transition
 - `conversation_id`: Unique conversation identifier
 
-### `proceed_to_stage`
-Explicitly transition to a new development stage.
+### `proceed_to_phase`
+Explicitly transition to a new development phase.
 
 **Parameters:**
-- `target_stage`: The stage to transition to (idle, requirements, design, implementation, qa, testing, complete)
+- `target_phase`: The phase to transition to (idle, requirements, design, implementation, qa, testing, complete)
 - `reason` (optional): Reason for transitioning now
 
 **Returns:** Same format as `whats_next`
@@ -67,9 +67,9 @@ Explicitly transition to a new development stage.
 Current development plan document in markdown format.
 
 ### `state://current`
-Current conversation state and stage information in JSON format.
+Current conversation state and phase information in JSON format.
 
-## Development Stages
+## Development Phases
 
 1. **idle**: Ready for new development tasks
 2. **requirements**: Gathering and analyzing requirements
@@ -92,7 +92,7 @@ Current conversation state and stage information in JSON format.
    }
    ```
 
-2. **Continue in current stage:**
+2. **Continue in current phase:**
    ```json
    {
      "name": "whats_next",
@@ -103,12 +103,12 @@ Current conversation state and stage information in JSON format.
    }
    ```
 
-3. **Explicit stage transition:**
+3. **Explicit phase transition:**
    ```json
    {
-     "name": "proceed_to_stage",
+     "name": "proceed_to_phase",
      "arguments": {
-       "target_stage": "design",
+       "target_phase": "design",
        "reason": "Requirements are complete, ready for design"
      }
    }
@@ -179,7 +179,7 @@ src/
 ├── state-machine.ts      # State machine definitions and transitions
 ├── database.ts           # SQLite database management
 ├── conversation-manager.ts # Conversation identification and state
-├── transition-engine.ts  # Stage transition logic
+├── transition-engine.ts  # Phase transition logic
 ├── instruction-generator.ts # LLM instruction generation
 └── plan-manager.ts       # Plan file management
 ```
@@ -194,7 +194,7 @@ npm run dev      # Build and run
 ### Architecture
 The server follows a modular architecture with clear separation of concerns:
 - **Conversation Manager**: Handles project identification and state persistence
-- **Transition Engine**: Analyzes context and determines stage transitions
+- **Transition Engine**: Analyzes context and determines phase transitions
 - **Instruction Generator**: Creates contextual LLM guidance
 - **Plan Manager**: Manages development plan files
 - **Database**: Provides persistent state storage

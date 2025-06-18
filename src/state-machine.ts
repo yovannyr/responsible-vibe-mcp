@@ -2,13 +2,13 @@
  * State Machine Definition for Vibe Feature MCP Server
  * 
  * This module defines the development workflow state machine, including:
- * - Development stages (states)
+ * - Development phases (states)
  * - Transition triggers and conditions
- * - Stage-specific instructions for LLM guidance
+ * - Phase-specific instructions for LLM guidance
  * - Transition-specific prompts for contextual guidance
  */
 
-export type DevelopmentStage = 
+export type DevelopmentPhase = 
   | 'idle'
   | 'requirements'
   | 'design'
@@ -35,11 +35,11 @@ export type TransitionTrigger =
   | 'qa_issues'
   | 'testing_complete'
   | 'feature_delivered'
-  | 'direct_transition'; // For user-initiated direct stage changes
+  | 'direct_transition'; // For user-initiated direct phase changes
 
 export interface StateTransition {
-  from: DevelopmentStage;
-  to: DevelopmentStage;
+  from: DevelopmentPhase;
+  to: DevelopmentPhase;
   trigger: TransitionTrigger;
   isModeled: boolean; // Whether this transition is shown in the state diagram
   instructions: string;
@@ -49,9 +49,9 @@ export interface StateTransition {
 /**
  * Complete state transition table
  * 
- * This table defines all possible transitions between development stages.
+ * This table defines all possible transitions between development phases.
  * - Modeled transitions: Shown in the state diagram, get contextual guidance
- * - Direct transitions: Not shown in diagram, get general stage instructions
+ * - Direct transitions: Not shown in diagram, get general phase instructions
  */
 export const STATE_TRANSITIONS: StateTransition[] = [
   // FROM IDLE
@@ -247,9 +247,9 @@ export const STATE_TRANSITIONS: StateTransition[] = [
 
 /**
  * Direct transition instructions for non-modeled transitions
- * These are used when users jump directly to any stage using proceed_to_stage
+ * These are used when users jump directly to any phase using proceed_to_phase
  */
-export const DIRECT_STAGE_INSTRUCTIONS: Record<DevelopmentStage, string> = {
+export const DIRECT_PHASE_INSTRUCTIONS: Record<DevelopmentPhase, string> = {
   idle: "Returned to idle state. Ready to help with new feature development or other tasks.",
   
   requirements: "Starting requirements analysis. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress.",
@@ -262,15 +262,15 @@ export const DIRECT_STAGE_INSTRUCTIONS: Record<DevelopmentStage, string> = {
   
   testing: "Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation.",
   
-  complete: "Feature development is complete! All stages have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized."
+  complete: "Feature development is complete! All phases have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized."
 };
 
 /**
  * Get transition instructions for a specific state change
  */
 export function getTransitionInstructions(
-  fromState: DevelopmentStage, 
-  toState: DevelopmentStage, 
+  fromState: DevelopmentPhase,
+  toState: DevelopmentPhase, 
   trigger?: TransitionTrigger
 ): { instructions: string; transitionReason: string; isModeled: boolean } {
   
@@ -287,10 +287,10 @@ export function getTransitionInstructions(
     };
   }
   
-  // Fall back to direct stage instructions
+  // Fall back to direct phase instructions
   return {
-    instructions: DIRECT_STAGE_INSTRUCTIONS[toState],
-    transitionReason: `Direct transition to ${toState} stage`,
+    instructions: DIRECT_PHASE_INSTRUCTIONS[toState],
+    transitionReason: `Direct transition to ${toState} phase`,
     isModeled: false
   };
 }
@@ -298,24 +298,24 @@ export function getTransitionInstructions(
 /**
  * Get all possible transitions from a given state
  */
-export function getPossibleTransitions(fromState: DevelopmentStage): StateTransition[] {
+export function getPossibleTransitions(fromState: DevelopmentPhase): StateTransition[] {
   return STATE_TRANSITIONS.filter(t => t.from === fromState);
 }
 
 /**
  * Check if a transition is modeled (shown in state diagram)
  */
-export function isModeledTransition(fromState: DevelopmentStage, toState: DevelopmentStage): boolean {
+export function isModeledTransition(fromState: DevelopmentPhase, toState: DevelopmentPhase): boolean {
   return STATE_TRANSITIONS.some(t => t.from === fromState && t.to === toState && t.isModeled);
 }
 
 /**
- * Get stage-specific instructions for continuing work in current stage
+ * Get phase-specific instructions for continuing work in current phase
  */
-export function getContinueStageInstructions(stage: DevelopmentStage): string {
+export function getContinuePhaseInstructions(phase: DevelopmentPhase): string {
   const continueTransition = STATE_TRANSITIONS.find(
-    t => t.from === stage && t.to === stage
+    t => t.from === phase && t.to === phase
   );
   
-  return continueTransition?.instructions || DIRECT_STAGE_INSTRUCTIONS[stage];
+  return continueTransition?.instructions || DIRECT_PHASE_INSTRUCTIONS[phase];
 }

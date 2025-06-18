@@ -1,15 +1,15 @@
 # Vibe Feature MCP Server
 
-A Model Context Protocol (MCP) server that acts as an intelligent conversation state manager and development guide for LLMs. This server orchestrates feature development conversations by maintaining state, determining development stages, and providing contextual instructions to guide LLMs through structured development processes.
+A Model Context Protocol (MCP) server that acts as an intelligent conversation state manager and development guide for LLMs. This server orchestrates feature development conversations by maintaining state, determining development phases, and providing contextual instructions to guide LLMs through structured development processes.
 
 ## Overview
 
 **Vibe Feature MCP** serves as a conversation coordinator that:
 
-- **Manages Conversation State**: Tracks development stage and conversation context across sessions
-- **Guides LLM Behavior**: Provides stage-specific instructions telling the LLM what to do next
+- **Manages Conversation State**: Tracks development phase and conversation context across sessions
+- **Guides LLM Behavior**: Provides phase-specific instructions telling the LLM what to do next
 - **Maintains Project Memory**: Keeps a persistent markdown plan file that serves as long-term project memory
-- **Orchestrates Development Flow**: Intelligently determines when to transition between development stages
+- **Orchestrates Development Flow**: Intelligently determines when to transition between development phases
 - **Ensures Progress Tracking**: Continuously instructs the LLM to update completed tasks in the plan file
 
 ## Core Interaction Pattern
@@ -19,7 +19,7 @@ User: "implement auth"
   ↓
 LLM: calls whats_next()
   ↓
-Vibe-Feature-MCP: analyzes context → determines stage → returns instructions
+Vibe-Feature-MCP: analyzes context → determines phase → returns instructions
   ↓
 LLM: follows instructions → interacts with user → updates plan file
   ↓
@@ -42,7 +42,7 @@ graph TB
         DB[(SQLite Database)]
     end
     
-    subgraph "Development Stages"
+    subgraph "Development Phases"
         IDLE[Idle]
         REQ[Requirements]
         DES[Design]
@@ -108,33 +108,33 @@ The Conversation Manager handles conversation identification, state persistence,
 - **Context Processing**: Analyzes LLM-provided conversation summary and recent messages
 
 #### 2. **Transition Engine**
-The Transition Engine manages the development state machine and determines appropriate stage transitions.
+The Transition Engine manages the development state machine and determines appropriate phase transitions.
 
 **Responsibilities:**
 - Analyze user input and conversation context
-- Determine current development stage
-- Evaluate stage completion criteria
-- Trigger stage transitions based on conversation analysis
+- Determine current development phase
+- Evaluate phase completion criteria
+- Trigger phase transitions based on conversation analysis
 - Implement development state machine logic
 
 **Key Features:**
 - **Context Analysis**: Processes LLM-provided conversation summary and recent messages
-- **Stage Detection**: Intelligently determines appropriate development stage
-- **Transition Logic**: Implements rules for stage progression and regression
-- **Completion Assessment**: Evaluates when stages are sufficiently complete
+- **Phase Detection**: Intelligently determines appropriate development phase
+- **Transition Logic**: Implements rules for phase progression and regression
+- **Completion Assessment**: Evaluates when phases are sufficiently complete
 - **State Machine Management**: Handles the core development workflow logic
 
 #### 3. **Instruction Generator**
-The Instruction Generator creates stage-specific guidance for the LLM based on current conversation state.
+The Instruction Generator creates phase-specific guidance for the LLM based on current conversation state.
 
 **Responsibilities:**
-- Generate contextual instructions for each development stage
+- Generate contextual instructions for each development phase
 - Customize instructions based on project context and history
 - Provide task completion guidance
 - Generate plan file update instructions
 
 **Key Features:**
-- **Stage-Specific Guidance**: Tailored instructions for each development phase
+- **Phase-Specific Guidance**: Tailored instructions for each development phase
 - **Context-Aware Customization**: Adapts instructions based on project type and history
 - **Task Management**: Provides clear guidance on task completion and progress tracking
 - **Plan File Integration**: Ensures consistent plan file updates and maintenance
@@ -186,21 +186,21 @@ sequenceDiagram
     Note over LLM,CM: Server stores NO message history - LLM provides context
     CM->>FS: detect project path + git branch
     CM->>DB: lookup/create conversation state
-    DB-->>CM: conversation state (stage, plan path only)
+    DB-->>CM: conversation state (phase, plan path only)
     
-    CM->>TM: analyze stage transition
+    CM->>TM: analyze phase transition
     TM->>TM: analyze LLM-provided context
-    TM->>TM: evaluate current stage
-    TM-->>CM: stage decision
+    TM->>TM: evaluate current phase
+    TM-->>CM: phase decision
     
     CM->>IM: generate instructions
     IM->>DB: get project context
-    IM-->>CM: stage-specific instructions
+    IM-->>CM: phase-specific instructions
     
     CM->>PM: update plan file path
     PM-->>CM: plan file location
     
-    CM->>DB: update conversation state (stage only)
+    CM->>DB: update conversation state (phase only)
     CM-->>LLM: instructions + metadata
     
     LLM->>User: follow instructions
@@ -218,12 +218,12 @@ User Input → Project Detection → Git Branch Detection → Conversation ID Ge
 
 #### 2. **State Management Flow**
 ```
-Conversation ID → State Retrieval → Context Analysis → Stage Determination → State Update → Persistence
+Conversation ID → State Retrieval → Context Analysis → Phase Determination → State Update → Persistence
 ```
 
 #### 3. **Instruction Generation Flow**
 ```
-Current Stage → Project Context → Conversation History → Instruction Template → Customized Instructions
+Current Phase → Project Context → Conversation History → Instruction Template → Customized Instructions
 ```
 
 #### 4. **Plan File Management Flow**
@@ -243,9 +243,9 @@ Project Path → Branch Detection → Plan File Path → Content Generation → 
 - Conversation history enables context-aware decision making
 - Database stored in user home directory for portability
 
-#### 3. **Stage-Driven Workflow**
-- Clear separation between development stages
-- Stage-specific instructions guide LLM behavior
+#### 3. **Phase-Driven Workflow**
+- Clear separation between development phases
+- Phase-specific instructions guide LLM behavior
 - Transition logic ensures appropriate workflow progression
 
 #### 4. **Conversation Continuity**
@@ -294,7 +294,7 @@ Project Path → Branch Detection → Plan File Path → Content Generation → 
 
 ## State Machine
 
-The server operates as a state machine that transitions between development stages. While the diagram shows the typical linear progression, **users can transition directly to any stage at any time** using the `proceed_to_stage` tool
+The server operates as a state machine that transitions between development phases. While the diagram shows the typical linear progression, **users can transition directly to any phase at any time** using the `proceed_to_phase` tool
 
 For a comprehensive reference of all state transitions, including detailed instructions and transition reasons, see [TRANSITIONS.md](./TRANSITIONS.md).
 
@@ -323,16 +323,16 @@ VIBE_FEATURE_LOG_LEVEL=INFO node dist/index.js
 - **Server**: Main server operations and tool handlers
 - **Database**: SQLite operations and state persistence
 - **ConversationManager**: Conversation context management
-- **TransitionEngine**: Stage transition analysis
+- **TransitionEngine**: Phase transition analysis
 - **PlanManager**: Plan file operations
 
 For detailed logging documentation, see [LOGGING.md](./LOGGING.md).
 
 ## Features
 
-### 1. Intelligent Stage Management
+### 1. Intelligent Phase Management
 
-The server manages five core development stages, each with specific guidance:
+The server manages five core development phases, each with specific guidance:
 
 #### Requirements Analysis
 - Instructs LLM to analyze user requests and clarify the WHAT
@@ -366,7 +366,7 @@ The server manages five core development stages, each with specific guidance:
 
 ### 2. Conversation State Persistence
 
-- **Stage Tracking**: Current development stage and transition history
+- **Phase Tracking**: Current development phase and transition history
 - **Context Memory**: Conversation context and progress indicators
 - **Plan Synchronization**: Ensures plan file stays updated with latest progress
 
@@ -375,48 +375,48 @@ The server manages five core development stages, each with specific guidance:
 The server ensures the LLM maintains a living development plan document:
 
 - **Project Overview**: Feature goals, scope, and current status
-- **Stage Progress**: Tasks, deliverables, and completion status
+- **Phase Progress**: Tasks, deliverables, and completion status
 - **Decision Log**: Important technical and design decisions
 - **Timeline**: Progress tracking and milestone completion
 
-## Stage Progression Flow
+## Phase Progression Flow
 
-### How Users Advance Through Development Stages
+### How Users Advance Through Development Phases
 
-The vibe-feature-mcp server guides users through a structured development process using a two-tool approach that gives users full control over stage transitions:
+The vibe-feature-mcp server guides users through a structured development process using a two-tool approach that gives users full control over phase transitions:
 
 #### 1. **Continuous Guidance with `whats_next`**
 - LLM calls `whats_next()` after each user interaction
-- Server analyzes current stage progress and plan file status
-- Returns stage-specific instructions for what to do next
+- Server analyzes current phase progress and plan file status
+- Returns phase-specific instructions for what to do next
 
-#### 2. **Explicit Stage Transitions with `proceed_to_stage`**
-- When all tasks in a stage are complete, `whats_next()` suggests moving forward
-- LLM uses `proceed_to_stage()` to explicitly transition to the next stage
-- User maintains full control over pacing and can choose to refine current stage
+#### 2. **Explicit Phase Transitions with `proceed_to_phase`**
+- When all tasks in a phase are complete, `whats_next()` suggests moving forward
+- LLM uses `proceed_to_phase()` to explicitly transition to the next phase
+- User maintains full control over pacing and can choose to refine current phase
 
-### Stage Progression Pattern
+### Phase Progression Pattern
 
 ```mermaid
 flowchart TD
     A[User Request] --> B[LLM calls whats_next]
-    B --> C{Stage Complete?}
+    B --> C{Phase Complete?}
     
-    C -->|No| D[Continue Current Stage]
-    D --> E[Follow Stage Instructions]
+    C -->|No| D[Continue Current Phase]
+    D --> E[Follow Phase Instructions]
     E --> F[Update Plan File]
     F --> G[User Interaction]
     G --> B
     
-    C -->|Yes| H[Suggest Stage Transition]
+    C -->|Yes| H[Suggest Phase Transition]
     H --> I{User Ready?}
     I -->|No| D
-    I -->|Yes| J[LLM calls proceed_to_stage]
-    J --> K[Transition to Next Stage]
+    I -->|Yes| J[LLM calls proceed_to_phase]
+    J --> K[Transition to Next Phase]
     K --> B
 ```
 
-### Example Stage Progression
+### Example Phase Progression
 
 #### Starting a New Feature
 ```
@@ -425,30 +425,30 @@ LLM: *calls whats_next()*
 vibe-feature-mcp: "New feature detected. Starting requirements analysis. Ask the user clarifying questions about WHAT they need for authentication..."
 ```
 
-#### Working Within a Stage
+#### Working Within a Phase
 ```
 LLM: *asks clarifying questions, updates plan file*
 LLM: *calls whats_next()*
 vibe-feature-mcp: "Continue requirements gathering. You still need to clarify password policies and session management..."
 ```
 
-#### Completing a Stage
+#### Completing a Phase
 ```
 LLM: *completes all requirements tasks*
 LLM: *calls whats_next()*
-vibe-feature-mcp: "All requirements tasks are complete! ✅ You can proceed to design stage using 'proceed_to_stage' tool, or continue refining requirements if needed."
+vibe-feature-mcp: "All requirements tasks are complete! ✅ You can proceed to design phase using 'proceed_to_phase' tool, or continue refining requirements if needed."
 ```
 
-#### Transitioning to Next Stage
+#### Transitioning to Next Phase
 ```
 LLM: "Great! We've covered all authentication requirements. Let's move to design."
-LLM: *calls proceed_to_stage(target_stage: "design", reason: "requirements complete")*
-vibe-feature-mcp: "Transitioning to design stage. Help the user design the technical solution. Ask about architecture, technologies, and quality goals..."
+LLM: *calls proceed_to_phase(target_phase: "design", reason: "requirements complete")*
+vibe-feature-mcp: "Transitioning to design phase. Help the user design the technical solution. Ask about architecture, technologies, and quality goals..."
 ```
 
-### Stage Completion Indicators
+### Phase Completion Indicators
 
-Each stage is considered complete when:
+Each phase is considered complete when:
 
 - **Requirements**: All user needs documented, scope confirmed, tasks broken down
 - **Design**: Technical approach defined, architecture decided, technology choices made
@@ -459,9 +459,9 @@ Each stage is considered complete when:
 ### Refinement and Flexibility
 
 Users can always choose to:
-- **Stay in current stage**: Even when "complete," users can add more tasks or refine existing work
-- **Go back**: Use `proceed_to_stage` to return to earlier stages if issues are discovered
-- **Skip ahead**: In rare cases, jump to later stages if earlier work is already done
+- **Stay in current phase**: Even when "complete," users can add more tasks or refine existing work
+- **Go back**: Use `proceed_to_phase` to return to earlier phases if issues are discovered
+- **Skip ahead**: In rare cases, jump to later phases if earlier work is already done
 
 This approach ensures users maintain full control over the development process while receiving structured guidance from vibe-feature-mcp.
 
@@ -476,8 +476,8 @@ This approach ensures users maintain full control over the development process w
 
 #### `conversation-state`
 - **URI**: `state://current`
-- **Description**: Current conversation state and stage information
-- **Format**: JSON with stage, progress, and transition history
+- **Description**: Current conversation state and phase information
+- **Format**: JSON with phase, progress, and transition history
 
 ### Tools
 
@@ -491,32 +491,32 @@ The primary tool that analyzes conversation state and provides LLM instructions.
 - `recent_messages` (array, optional): Array of recent conversation messages that LLM considers relevant
 
 **Returns:**
-- `stage` (string): Current development stage
+- `phase` (string): Current development phase
 - `instructions` (string): Detailed instructions for the LLM
 - `plan_file_path` (string): Path to the plan file to update
-- `transition_reason` (string): Why this stage was chosen
+- `transition_reason` (string): Why this phase was chosen
 - `completed_tasks` (array): Tasks that should be marked as complete
 
-#### `proceed_to_stage`
-Tool for explicitly transitioning to a new development stage when current stage is complete.
+#### `proceed_to_phase`
+Tool for explicitly transitioning to a new development phase when current phase is complete.
 
 **Parameters:**
-- `target_stage` (string): The stage to transition to (requirements, design, implementation, qa, testing, complete)
+- `target_phase` (string): The phase to transition to (requirements, design, implementation, qa, testing, complete)
 - `reason` (string, optional): Reason for transitioning now
 
 **Returns:**
-- `stage` (string): New development stage
-- `instructions` (string): Instructions for the new stage
+- `phase` (string): New development phase
+- `instructions` (string): Instructions for the new phase
 - `plan_file_path` (string): Path to the plan file to update
-- `transition_reason` (string): Confirmation of stage transition
+- `transition_reason` (string): Confirmation of phase transition
 
 ### Prompts
 
-#### `stage-guidance`
-Provides detailed guidance prompts for specific development stages.
+#### `phase-guidance`
+Provides detailed guidance prompts for specific development phases.
 
 **Arguments:**
-- `stage` (string): Development stage name
+- `phase` (string): Development phase name
 - `context` (string): Additional context or specific questions
 
 ## Comprehensive Sample Interaction Flow
@@ -547,12 +547,12 @@ sequenceDiagram
     Server-->>LLM: "Help user design technical solution. Ask about quality goals & technologies. Update plan file. Mark completed requirements tasks."
     
     loop Development Flow
-        LLM->>User: Follow stage instructions
+        LLM->>User: Follow phase instructions
         User->>LLM: Respond with information
         LLM->>FS: Update plan file & mark completed tasks
         LLM->>Server: whats_next(context: "current progress")
-        Server->>Server: Evaluate progress & determine next stage
-        Server-->>LLM: Stage-specific instructions + "Update completed tasks"
+        Server->>Server: Evaluate progress & determine next phase
+        Server-->>LLM: Phase-specific instructions + "Update completed tasks"
     end
 ```
 
@@ -565,7 +565,7 @@ LLM: *calls whats_next(context: "user wants auth", user_input: "implement user a
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "requirements",
+  "phase": "requirements",
   "instructions": "Analyze the user's authentication request. Ask clarifying questions about WHAT they need: What type of authentication? What user data? What security requirements? Break down their needs into specific tasks and add them to the development plan file at ./auth-feature-plan.md. Mark any completed requirements tasks as you progress.",
   "plan_file_path": "./auth-feature-plan.md",
   "transition_reason": "New feature request detected, starting requirements analysis",
@@ -587,7 +587,7 @@ LLM: *calls whats_next(context: "user clarified basic auth requirements", user_i
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "requirements", 
+  "phase": "requirements", 
   "instructions": "Continue gathering requirements. Ask about password policies, session management, user roles, forgot password flow, data validation. Update the plan file with detailed requirements. Mark basic requirements gathering as complete.",
   "plan_file_path": "./auth-feature-plan.md",
   "transition_reason": "Still in requirements phase, need more details",
@@ -610,8 +610,8 @@ LLM: *calls whats_next(context: "requirements seem complete", user_input: "passw
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "requirements",
-  "instructions": "All requirements tasks are complete! ✅ You have documented: authentication type, user data, security requirements, tech stack, password policies, session management, user roles, and forgot password flow. You can proceed to design stage using 'proceed_to_stage' tool, or continue refining requirements if needed.",
+  "phase": "requirements",
+  "instructions": "All requirements tasks are complete! ✅ You have documented: authentication type, user data, security requirements, tech stack, password policies, session management, user roles, and forgot password flow. You can proceed to design phase using 'proceed_to_phase' tool, or continue refining requirements if needed.",
   "plan_file_path": "./auth-feature-plan.md", 
   "transition_reason": "All requirements tasks completed",
   "completed_tasks": ["requirements_documented", "user_confirmed_scope", "security_requirements_defined", "technical_constraints_identified"]
@@ -619,11 +619,11 @@ Vibe-Feature-MCP Response:
 
 LLM: "Perfect! We've covered all the authentication requirements comprehensively. Let's move to the design phase."
 
-LLM: *calls proceed_to_stage(target_stage: "design", reason: "requirements complete")*
+LLM: *calls proceed_to_phase(target_phase: "design", reason: "requirements complete")*
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "design",
+  "phase": "design",
   "instructions": "Help the user design the technical solution. Ask about database schema, API endpoints, security measures (JWT, bcrypt), third-party services for Google auth, error handling strategies. Ask about quality goals and specific technologies they prefer. Update the plan file with design decisions and mark completed requirements tasks as done.",
   "plan_file_path": "./auth-feature-plan.md",
   "transition_reason": "Explicit transition to design phase",
@@ -660,8 +660,8 @@ LLM: *calls whats_next(context: "design approved by user", user_input: "approved
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "design",
-  "instructions": "All design tasks are complete! ✅ You have defined the architecture, database schema, API endpoints, and security measures. You can proceed to implementation stage using 'proceed_to_stage' tool, or continue refining the design if needed.",
+  "phase": "design",
+  "instructions": "All design tasks are complete! ✅ You have defined the architecture, database schema, API endpoints, and security measures. You can proceed to implementation phase using 'proceed_to_phase' tool, or continue refining the design if needed.",
   "plan_file_path": "./auth-feature-plan.md",
   "transition_reason": "All design tasks completed",
   "completed_tasks": ["architecture_defined", "database_schema_designed", "api_endpoints_planned", "security_measures_defined"]
@@ -669,11 +669,11 @@ Vibe-Feature-MCP Response:
 
 LLM: "Excellent! The design is solid and approved. Let's move to implementation."
 
-LLM: *calls proceed_to_stage(target_stage: "implementation", reason: "design complete and approved")*
+LLM: *calls proceed_to_phase(target_phase: "implementation", reason: "design complete and approved")*
 
 Vibe-Feature-MCP Response:
 {
-  "stage": "implementation",
+  "phase": "implementation",
   "instructions": "Guide the user through implementing the authentication system. Start with backend setup (user model, middleware, API endpoints), then frontend components. Follow coding best practices, include proper error handling, and write basic tests. Update the plan file with implementation progress and mark completed design tasks.",
   "plan_file_path": "./auth-feature-plan.md",
   "transition_reason": "Explicit transition to implementation phase",
@@ -724,6 +724,6 @@ When calling `whats_next()`, the LLM should provide:
 - **conversation_summary**: Summary of the conversation so far (optional but recommended)
 - **recent_messages**: Array of recent relevant messages (optional)
 
-This stateless approach ensures that vibe-feature-mcp can make informed decisions about stage transitions without storing potentially inconsistent conversation history.
+This stateless approach ensures that vibe-feature-mcp can make informed decisions about phase transitions without storing potentially inconsistent conversation history.
 
 For a complete system prompt template, see [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md).

@@ -23,7 +23,7 @@ So that I can interact with it through the MCP protocol
 **And** the conversation_states table should be created
 **And** the server should expose the following tools:
   - `whats_next`
-  - `proceed_to_stage`
+  - `proceed_to_phase`
 **And** the server should expose the following resources:
   - `development-plan` at `plan://current`
   - `conversation-state` at `state://current`

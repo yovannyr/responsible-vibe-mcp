@@ -17,7 +17,7 @@ import { TransitionEngine } from './transition-engine.js';
 import { InstructionGenerator } from './instruction-generator.js';
 import { PlanManager } from './plan-manager.js';
 import { createLogger } from './logger.js';
-import type { DevelopmentStage } from './state-machine.js';
+import type { DevelopmentPhase } from './state-machine.js';
 
 const logger = createLogger('Server');
 
@@ -65,7 +65,7 @@ class VibeFeatureMCPServer {
     this.server.registerTool(
       'whats_next',
       {
-        description: 'Analyze conversation context and determine the next development stage with specific instructions for the LLM. This is the primary tool for orchestrating development workflow and should be called after each user interaction.',
+        description: 'Analyze conversation context and determine the next development phase with specific instructions for the LLM. This is the primary tool for orchestrating development workflow and should be called after each user interaction.',
         inputSchema: {
           context: z.string().optional().describe('Additional context about current conversation or situation'),
           user_input: z.string().optional().describe('Latest user input or request for analysis'),
@@ -76,7 +76,7 @@ class VibeFeatureMCPServer {
           })).optional().describe('Array of recent conversation messages that LLM considers relevant for context')
         },
         annotations: {
-          title: 'Development Stage Analyzer',
+          title: 'Development Phase Analyzer',
           readOnlyHint: false,
           destructiveHint: false,
           idempotentHint: false,
@@ -105,18 +105,18 @@ class VibeFeatureMCPServer {
       }
     );
 
-    // Secondary tool: proceed_to_stage
+    // Secondary tool: proceed_to_phase
     this.server.registerTool(
-      'proceed_to_stage',
+      'proceed_to_phase',
       {
-        description: 'Explicitly transition to a specific development stage when the current stage is complete or when a direct stage change is needed. Use this tool when whats_next suggests a stage transition or when you need to move to a specific stage.',
+        description: 'Explicitly transition to a specific development phase when the current phase is complete or when a direct phase change is needed. Use this tool when whats_next suggests a phase transition or when you need to move to a specific phase.',
         inputSchema: {
-          target_stage: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete'])
-            .describe('The development stage to transition to'),
-          reason: z.string().optional().describe('Optional reason for transitioning to this stage now (e.g., "requirements complete", "user requested", "design approved")')
+          target_phase: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete'])
+            .describe('The development phase to transition to'),
+          reason: z.string().optional().describe('Optional reason for transitioning to this phase now (e.g., "requirements complete", "user requested", "design approved")')
         },
         annotations: {
-          title: 'Stage Transition Controller',
+          title: 'Phase Transition Controller',
           readOnlyHint: false,
           destructiveHint: false,
           idempotentHint: true,
@@ -124,16 +124,16 @@ class VibeFeatureMCPServer {
         }
       },
       async (params) => {
-        const toolLogger = logger.child('proceed_to_stage');
-        toolLogger.debug('Tool called', { target_stage: params.target_stage, reason: params.reason });
+        const toolLogger = logger.child('proceed_to_phase');
+        toolLogger.debug('Tool called', { target_phase: params.target_phase, reason: params.reason });
         
         try {
-          const result = await this.handleProceedToStage(params);
-          toolLogger.info('Stage transition completed', { target_stage: params.target_stage });
+          const result = await this.handleProceedToPhase(params);
+          toolLogger.info('Phase transition completed', { target_phase: params.target_phase });
           return result;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          toolLogger.error('Stage transition failed', error as Error, { target_stage: params.target_stage });
+          toolLogger.error('Phase transition failed', error as Error, { target_phase: params.target_phase });
           return {
             content: [{
               type: 'text' as const,
@@ -203,7 +203,7 @@ class VibeFeatureMCPServer {
       'state://current',
       {
         name: 'Current Conversation State',
-        description: 'Current conversation state and stage information (JSON) including conversation ID, project context, current development stage, and plan file location. Use this to understand the current state of the development workflow.',
+        description: 'Current conversation state and phase information (JSON) including conversation ID, project context, current development phase, and plan file location. Use this to understand the current state of the development workflow.',
         mimeType: 'application/json'
       },
       async (uri: any) => {
@@ -217,7 +217,7 @@ class VibeFeatureMCPServer {
             conversationId: context.conversationId,
             projectPath: context.projectPath,
             gitBranch: context.gitBranch,
-            currentStage: context.currentStage,
+            currentPhase: context.currentPhase,
             planFilePath: context.planFilePath,
             timestamp: new Date().toISOString(),
             description: 'Current state of the development workflow conversation'
@@ -225,7 +225,7 @@ class VibeFeatureMCPServer {
           
           resourceLogger.info('State resource retrieved successfully', { 
             conversationId: context.conversationId,
-            currentStage: context.currentStage 
+            currentPhase: context.currentPhase 
           });
           
           return {
@@ -276,7 +276,7 @@ class VibeFeatureMCPServer {
     const conversationContext = await this.conversationManager.getConversationContext();
     handlerLogger.debug('Retrieved conversation context', {
       conversationId: conversationContext.conversationId,
-      currentStage: conversationContext.currentStage,
+      currentPhase: conversationContext.currentPhase,
       projectPath: conversationContext.projectPath
     });
     
@@ -288,36 +288,36 @@ class VibeFeatureMCPServer {
     );
     handlerLogger.debug('Plan file ensured', { planFilePath: conversationContext.planFilePath });
 
-    // Analyze stage transition
-    const transitionResult = this.transitionEngine.analyzeStageTransition({
-      currentStage: conversationContext.currentStage,
+    // Analyze phase transition
+    const transitionResult = this.transitionEngine.analyzePhaseTransition({
+      currentPhase: conversationContext.currentPhase,
       userInput: params.user_input,
       context: params.context,
       conversationSummary: params.conversation_summary,
       recentMessages: params.recent_messages
     });
     
-    handlerLogger.debug('Stage transition analyzed', {
-      currentStage: conversationContext.currentStage,
-      newStage: transitionResult.newStage,
+    handlerLogger.debug('Phase transition analyzed', {
+      currentPhase: conversationContext.currentPhase,
+      newPhase: transitionResult.newPhase,
       isModeled: transitionResult.isModeled,
       transitionReason: transitionResult.transitionReason
     });
 
-    // Update conversation state if stage changed
-    if (transitionResult.newStage !== conversationContext.currentStage) {
+    // Update conversation state if phase changed
+    if (transitionResult.newPhase !== conversationContext.currentPhase) {
       await this.conversationManager.updateConversationState(
         conversationContext.conversationId,
-        { currentStage: transitionResult.newStage }
+        { currentPhase: transitionResult.newPhase }
       );
-      handlerLogger.info('Stage transition completed', {
+      handlerLogger.info('Phase transition completed', {
         conversationId: conversationContext.conversationId,
-        fromStage: conversationContext.currentStage,
-        toStage: transitionResult.newStage,
+        fromPhase: conversationContext.currentPhase,
+        toPhase: transitionResult.newPhase,
         reason: transitionResult.transitionReason
       });
     } else {
-      handlerLogger.debug('No stage change required', { currentStage: conversationContext.currentStage });
+      handlerLogger.debug('No phase change required', { currentPhase: conversationContext.currentPhase });
     }
 
     // Check if plan file exists
@@ -328,10 +328,10 @@ class VibeFeatureMCPServer {
     const instructions = await this.instructionGenerator.generateInstructions(
       transitionResult.instructions,
       {
-        stage: transitionResult.newStage,
+        phase: transitionResult.newPhase,
         conversationContext: {
           ...conversationContext,
-          currentStage: transitionResult.newStage
+          currentPhase: transitionResult.newPhase
         },
         transitionReason: transitionResult.transitionReason,
         isModeled: transitionResult.isModeled,
@@ -340,7 +340,7 @@ class VibeFeatureMCPServer {
     );
     
     handlerLogger.info('Instructions generated successfully', {
-      stage: transitionResult.newStage,
+      phase: transitionResult.newPhase,
       instructionLength: instructions.instructions.length
     });
 
@@ -348,7 +348,7 @@ class VibeFeatureMCPServer {
       content: [{
         type: 'text' as const,
         text: JSON.stringify({
-          stage: transitionResult.newStage,
+          phase: transitionResult.newPhase,
           instructions: instructions.instructions,
           plan_file_path: conversationContext.planFilePath,
           transition_reason: transitionResult.transitionReason,
@@ -360,15 +360,15 @@ class VibeFeatureMCPServer {
   }
 
   /**
-   * Handle proceed_to_stage tool call
+   * Handle proceed_to_phase tool call
    */
-  private async handleProceedToStage(params: {
-    target_stage: DevelopmentStage;
+  private async handleProceedToPhase(params: {
+    target_phase: DevelopmentPhase;
     reason?: string;
   }) {
-    const handlerLogger = logger.child('handleProceedToStage');
-    handlerLogger.debug('Starting explicit stage transition', { 
-      targetStage: params.target_stage,
+    const handlerLogger = logger.child('handleProceedToPhase');
+    handlerLogger.debug('Starting explicit phase transition', {
+      targetPhase: params.target_phase,
       reason: params.reason 
     });
 
@@ -376,33 +376,33 @@ class VibeFeatureMCPServer {
     const conversationContext = await this.conversationManager.getConversationContext();
     handlerLogger.debug('Retrieved conversation context', {
       conversationId: conversationContext.conversationId,
-      currentStage: conversationContext.currentStage,
-      targetStage: params.target_stage
+      currentPhase: conversationContext.currentPhase,
+      targetPhase: params.target_phase
     });
 
     // Handle explicit transition
     const transitionResult = this.transitionEngine.handleExplicitTransition(
-      conversationContext.currentStage,
-      params.target_stage,
+      conversationContext.currentPhase,
+      params.target_phase,
       params.reason
     );
     
     handlerLogger.debug('Explicit transition processed', {
-      fromStage: conversationContext.currentStage,
-      toStage: transitionResult.newStage,
+      fromPhase: conversationContext.currentPhase,
+      toPhase: transitionResult.newPhase,
       transitionReason: transitionResult.transitionReason
     });
 
     // Update conversation state
     await this.conversationManager.updateConversationState(
       conversationContext.conversationId,
-      { currentStage: transitionResult.newStage }
+      { currentPhase: transitionResult.newPhase }
     );
     
-    handlerLogger.info('Explicit stage transition completed', {
+    handlerLogger.info('Explicit phase transition completed', {
       conversationId: conversationContext.conversationId,
-      fromStage: conversationContext.currentStage,
-      toStage: transitionResult.newStage,
+      fromPhase: conversationContext.currentPhase,
+      toPhase: transitionResult.newPhase,
       reason: transitionResult.transitionReason
     });
 
@@ -421,10 +421,10 @@ class VibeFeatureMCPServer {
     const instructions = await this.instructionGenerator.generateInstructions(
       transitionResult.instructions,
       {
-        stage: transitionResult.newStage,
+        phase: transitionResult.newPhase,
         conversationContext: {
           ...conversationContext,
-          currentStage: transitionResult.newStage
+          currentPhase: transitionResult.newPhase
         },
         transitionReason: transitionResult.transitionReason,
         isModeled: transitionResult.isModeled,
@@ -433,7 +433,7 @@ class VibeFeatureMCPServer {
     );
     
     handlerLogger.info('Instructions generated for explicit transition', {
-      stage: transitionResult.newStage,
+      phase: transitionResult.newPhase,
       instructionLength: instructions.instructions.length
     });
 
@@ -441,7 +441,7 @@ class VibeFeatureMCPServer {
       content: [{
         type: 'text' as const,
         text: JSON.stringify({
-          stage: transitionResult.newStage,
+          phase: transitionResult.newPhase,
           instructions: instructions.instructions,
           plan_file_path: conversationContext.planFilePath,
           transition_reason: transitionResult.transitionReason,

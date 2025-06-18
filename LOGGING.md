@@ -49,7 +49,7 @@ The server logs from these main components:
 - **Server**: Main server operations and tool handlers
 - **Database**: SQLite operations and state persistence
 - **ConversationManager**: Conversation context and state management
-- **TransitionEngine**: Stage transition analysis
+- **TransitionEngine**: Phase transition analysis
 - **InstructionGenerator**: Instruction generation
 - **PlanManager**: Plan file operations
 
@@ -75,7 +75,7 @@ VIBE_FEATURE_LOG_LEVEL=DEBUG npm test
 Logs include contextual information such as:
 
 - **conversationId**: Unique conversation identifier
-- **currentStage**: Development stage (requirements, design, etc.)
+- **currentPhase**: Development phase (requirements, design, etc.)
 - **projectPath**: Absolute path to the project
 - **gitBranch**: Current git branch
 - **operation**: Specific operation being performed
@@ -89,11 +89,11 @@ Look for logs from the `Database` component:
 [timestamp] ERROR [Database] Failed to initialize database
 ```
 
-### Stage Transition Issues  
+### Phase Transition Issues  
 Check logs from `TransitionEngine` and tool handlers:
 ```
-[timestamp] DEBUG [Server:whats_next] Stage transition analyzed
-[timestamp] INFO [Server:whats_next] Stage transition completed
+[timestamp] DEBUG [Server:whats_next] Phase transition analyzed
+[timestamp] INFO [Server:whats_next] Phase transition completed
 ```
 
 ### Plan File Issues
@@ -116,7 +116,7 @@ VIBE_FEATURE_LOG_LEVEL=DEBUG npx @modelcontextprotocol/inspector npx tsx src/ind
 Use INFO level logging in production to monitor:
 - Tool execution success/failure rates
 - Database operation performance
-- Stage transition patterns
+- Phase transition patterns
 - Error frequencies
 
 The logging system provides comprehensive visibility into the server's operation while maintaining performance through configurable log levels.

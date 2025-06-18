@@ -77,8 +77,8 @@ describe('whats_next Tool Integration Tests', () => {
       
       const response = JSON.parse(result.content[0].text!);
       
-      // And: the stage should transition to "requirements" (detected feature request)
-      expect(response.stage).toBe('requirements');
+      // And: the phase should transition to "requirements" (detected feature request)
+      expect(response.phase).toBe('requirements');
       
       // And: instructions should guide requirements gathering
       expect(response.instructions).toContain('requirements');
@@ -93,9 +93,9 @@ describe('whats_next Tool Integration Tests', () => {
     });
   });
 
-  describe('Scenario: Continuing existing conversation in idle stage', () => {
+  describe('Scenario: Continuing existing conversation in idle phase', () => {
     it('should continue in idle or transition when appropriate', async () => {
-      // Given: an existing conversation in "idle" stage
+      // Given: an existing conversation in "idle" phase
       await startServer();
       
       // Create initial conversation
@@ -107,7 +107,7 @@ describe('whats_next Tool Integration Tests', () => {
       });
       
       const initialResponse = JSON.parse(initialResult.content[0].text!);
-      expect(initialResponse.stage).toBe('requirements');
+      expect(initialResponse.phase).toBe('requirements');
 
       // When: I call whats_next with conversation context indicating ongoing work
       const result = await client.callTool({
@@ -119,9 +119,9 @@ describe('whats_next Tool Integration Tests', () => {
         }
       });
 
-      // Then: the stage should remain "requirements" or transition appropriately
+      // Then: the phase should remain "requirements" or transition appropriately
       const response = JSON.parse(result.content[0].text!);
-      expect(['requirements', 'design', 'implementation']).toContain(response.stage);
+      expect(['requirements', 'design', 'implementation']).toContain(response.phase);
       
       // And: instructions should be contextually appropriate
       expect(response.instructions).toBeDefined();
@@ -132,7 +132,7 @@ describe('whats_next Tool Integration Tests', () => {
       // Given: an existing conversation with comprehensive context
       await startServer();
       
-      // When: I provide conversation_summary and recent_messages indicating stage completion
+      // When: I provide conversation_summary and recent_messages indicating phase completion
       const result = await client.callTool({
         name: 'whats_next',
         arguments: {
@@ -150,19 +150,19 @@ describe('whats_next Tool Integration Tests', () => {
       expect(result.content).toBeDefined();
       const response = JSON.parse(result.content[0].text!);
       
-      // And: determine appropriate stage transitions (could be any stage based on context)
-      expect(response.stage).toBeDefined();
-      expect(['idle', 'requirements', 'design', 'implementation']).toContain(response.stage);
+      // And: determine appropriate phase transitions (could be any phase based on context)
+      expect(response.phase).toBeDefined();
+      expect(['idle', 'requirements', 'design', 'implementation']).toContain(response.phase);
       
       // And: provide contextually relevant instructions
       expect(response.instructions).toBeDefined();
-      if (response.stage === 'implementation') {
+      if (response.phase === 'implementation') {
         expect(response.instructions.toLowerCase()).toMatch(/implement|code|build/);
-      } else if (response.stage === 'design') {
+      } else if (response.phase === 'design') {
         expect(response.instructions.toLowerCase()).toMatch(/design|proceed|complete/);
-      } else if (response.stage === 'requirements') {
+      } else if (response.phase === 'requirements') {
         expect(response.instructions.toLowerCase()).toMatch(/requirements|analyze|clarify/);
-      } else if (response.stage === 'idle') {
+      } else if (response.phase === 'idle') {
         expect(response.instructions.toLowerCase()).toMatch(/start|begin|initial/);
       }
     });
@@ -186,7 +186,7 @@ describe('whats_next Tool Integration Tests', () => {
       const response = JSON.parse(result.content[0].text!);
       
       // And: return meaningful response
-      expect(response.stage).toBeDefined();
+      expect(response.phase).toBeDefined();
       expect(response.instructions).toBeDefined();
       expect(response.plan_file_path).toBeDefined();
       expect(response.transition_reason).toBeDefined();
@@ -209,18 +209,18 @@ describe('whats_next Tool Integration Tests', () => {
       expect(result.content.length).toBeGreaterThan(0);
       
       const response = JSON.parse(result.content[0].text!);
-      expect(response.stage).toBeDefined();
+      expect(response.phase).toBeDefined();
       expect(response.instructions).toBeDefined();
       expect(response.plan_file_path).toBeDefined();
     });
   });
 
-  describe('Scenario: Context analysis drives stage transitions', () => {
-    it('should analyze conversation context for stage transitions', async () => {
+  describe('Scenario: Context analysis drives phase transitions', () => {
+    it('should analyze conversation context for phase transitions', async () => {
       // Given: an existing conversation with rich context
       await startServer();
 
-      // When: I provide conversation_summary and recent_messages indicating stage completion
+      // When: I provide conversation_summary and recent_messages indicating phase completion
       const result = await client.callTool({
         name: 'whats_next',
         arguments: {
@@ -238,17 +238,17 @@ describe('whats_next Tool Integration Tests', () => {
       expect(result.content).toBeDefined();
       const response = JSON.parse(result.content[0].text!);
       
-      // And: determine appropriate stage transitions
-      expect(response.stage).toBeDefined();
-      expect(['requirements', 'design', 'implementation']).toContain(response.stage);
+      // And: determine appropriate phase transitions
+      expect(response.phase).toBeDefined();
+      expect(['requirements', 'design', 'implementation']).toContain(response.phase);
       
       // And: provide contextually relevant instructions
       expect(response.instructions).toBeDefined();
-      if (response.stage === 'implementation') {
+      if (response.phase === 'implementation') {
         expect(response.instructions.toLowerCase()).toMatch(/implement|code|build/);
-      } else if (response.stage === 'design') {
+      } else if (response.phase === 'design') {
         expect(response.instructions.toLowerCase()).toMatch(/design|proceed|complete/);
-      } else if (response.stage === 'requirements') {
+      } else if (response.phase === 'requirements') {
         expect(response.instructions.toLowerCase()).toMatch(/requirements|analyze|clarify/);
       }
     });
@@ -268,7 +268,7 @@ describe('whats_next Tool Integration Tests', () => {
 
       // Then: the conversation should be handled appropriately
       const response = JSON.parse(result.content[0].text!);
-      expect(response.stage).toBeDefined();
+      expect(response.phase).toBeDefined();
       expect(response.instructions).toBeDefined();
       expect(response.plan_file_path).toBeDefined();
       

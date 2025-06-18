@@ -9,7 +9,7 @@ So that I can continue development work seamlessly across server restarts and di
 ### Background:
 - Conversation state is persisted in SQLite database
 - Each conversation is identified by project path + git branch combination
-- State includes current stage, plan file path, and metadata
+- State includes current phase, plan file path, and metadata
 - Multiple projects can have independent conversation states
 
 ---
@@ -20,13 +20,13 @@ So that I can continue development work seamlessly across server restarts and di
 **When** I interact with the server for the first time
 **Then** a new conversation should be created with unique ID
 **And** the conversation should be persisted to database
-**And** the state should include project path, git branch, and initial stage
+**And** the state should include project path, git branch, and initial phase
 **And** a plan file path should be generated and stored
 
 ### Expected Behavior:
 - Unique conversation ID should be generated (hash of project + branch)
 - Database record should be created with all required fields
-- Initial stage should be set appropriately based on context
+- Initial phase should be set appropriately based on context
 - Plan file path should be generated based on project context
 - Timestamps should be recorded for creation and updates
 
@@ -38,7 +38,7 @@ So that I can continue development work seamlessly across server restarts and di
 **When** the server is restarted
 **And** I make a request for the same project and branch
 **Then** the existing conversation state should be retrieved
-**And** the current stage should be preserved
+**And** the current phase should be preserved
 **And** the plan file path should remain consistent
 **And** conversation should continue from previous state
 
@@ -85,7 +85,7 @@ So that I can continue development work seamlessly across server restarts and di
 ## Scenario: Conversation state updates and synchronization
 
 **Given** an existing conversation state
-**When** the stage is updated through tool calls
+**When** the phase is updated through tool calls
 **Then** the database should be updated immediately
 **And** subsequent requests should reflect the updated state
 **And** timestamps should be updated appropriately

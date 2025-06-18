@@ -11,7 +11,7 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { createLogger } from './logger.js';
 import { Database, type ConversationState } from './database.js';
-import type { DevelopmentStage } from './state-machine.js';
+import type { DevelopmentPhase } from './state-machine.js';
 
 const logger = createLogger('ConversationManager');
 
@@ -19,7 +19,7 @@ export interface ConversationContext {
   conversationId: string;
   projectPath: string;
   gitBranch: string;
-  currentStage: DevelopmentStage;
+  currentPhase: DevelopmentPhase;
   planFilePath: string;
 }
 
@@ -52,12 +52,12 @@ export class ConversationManager {
         conversationId: state.conversationId,
         projectPath,
         gitBranch,
-        currentStage: state.currentStage
+        currentPhase: state.currentPhase
       });
     } else {
       logger.debug('Existing conversation found', { 
         conversationId: state.conversationId,
-        currentStage: state.currentStage
+        currentPhase: state.currentPhase
       });
     }
 
@@ -65,7 +65,7 @@ export class ConversationManager {
       conversationId: state.conversationId,
       projectPath: state.projectPath,
       gitBranch: state.gitBranch,
-      currentStage: state.currentStage,
+      currentPhase: state.currentPhase,
       planFilePath: state.planFilePath
     };
   }
@@ -75,7 +75,7 @@ export class ConversationManager {
    */
   async updateConversationState(
     conversationId: string, 
-    updates: Partial<Pick<ConversationContext, 'currentStage' | 'planFilePath'>>
+    updates: Partial<Pick<ConversationContext, 'currentPhase' | 'planFilePath'>>
   ): Promise<void> {
     logger.debug('Updating conversation state', { conversationId, updates });
     
@@ -102,8 +102,8 @@ export class ConversationManager {
     logger.info('Conversation state updated', { 
       conversationId,
       updates: filteredUpdates,
-      previousStage: existingState.currentStage,
-      newStage: updatedState.currentStage
+      previousPhase: existingState.currentPhase,
+      newPhase: updatedState.currentPhase
     });
   }
 
@@ -149,7 +149,7 @@ export class ConversationManager {
       conversationId,
       projectPath,
       gitBranch,
-      currentStage: 'idle',
+      currentPhase: 'idle',
       planFilePath,
       createdAt: now,
       updatedAt: now

@@ -18,7 +18,7 @@ export enum LogLevel {
 export interface LogContext {
   component?: string;
   conversationId?: string;
-  stage?: string;
+  phase?: string;
   operation?: string;
   [key: string]: any;
 }

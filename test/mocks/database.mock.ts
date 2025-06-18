@@ -26,10 +26,10 @@ export class MockDatabase {
     return this.conversations.get(conversationId) || null;
   });
   
-  updateConversationStage = vi.fn().mockImplementation(async (conversationId: string, stage: string) => {
+  updateConversationPhase = vi.fn().mockImplementation(async (conversationId: string, phase: string) => {
     const conversation = this.conversations.get(conversationId);
     if (conversation) {
-      conversation.currentStage = stage as any;
+      conversation.currentPhase = phase as any;
       conversation.updatedAt = new Date().toISOString();
       this.conversations.set(conversationId, conversation);
       return conversation;

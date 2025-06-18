@@ -9,7 +9,7 @@ So that I can provide structured assistance to users throughout their developmen
 ### Background:
 - `whats_next` is the primary tool for conversation analysis
 - It accepts optional context, user_input, conversation_summary, and recent_messages
-- It returns stage, instructions, plan_file_path, transition_reason, and completed_tasks
+- It returns phase, instructions, plan_file_path, transition_reason, and completed_tasks
 - The tool should handle both new conversations and existing ones
 
 ---
@@ -20,7 +20,7 @@ So that I can provide structured assistance to users throughout their developmen
 **And** the user provides input about implementing a new feature
 **When** I call `whats_next` with user input "implement user authentication"
 **Then** a new conversation should be created
-**And** the stage should be "requirements"
+**And** the phase should be "requirements"
 **And** instructions should guide requirements gathering
 **And** a plan file path should be provided
 **And** the transition reason should indicate new feature detection
@@ -30,28 +30,28 @@ So that I can provide structured assistance to users throughout their developmen
 - New conversation record should be created with unique ID
 - Project path should be detected from current working directory
 - Git branch should be detected from repository state
-- Stage should be set to "requirements" for new feature requests
+- Phase should be set to "requirements" for new feature requests
 - Plan file path should be generated based on feature context
 - Instructions should contain requirements gathering guidance
 
 ---
 
-## Scenario: Continuing existing conversation in requirements stage
+## Scenario: Continuing existing conversation in requirements phase
 
-**Given** an existing conversation in "requirements" stage
+**Given** an existing conversation in "requirements" phase
 **And** some requirements have been gathered
 **When** I call `whats_next` with conversation context
-**Then** the stage should remain "requirements" if not complete
+**Then** the phase should remain "requirements" if not complete
 **Or** suggest transition to "design" if requirements are complete
 **And** instructions should be contextually appropriate
 
 ### Expected Behavior:
 - Existing conversation state should be retrieved from database
 - Plan file should be read and analyzed for task completion
-- Stage should remain current if tasks are incomplete
-- Instructions should guide continuation of current stage work
+- Phase should remain current if tasks are incomplete
+- Instructions should guide continuation of current phase work
 - Completed tasks should be identified from plan file analysis
-- When all stage tasks are complete, instructions should suggest stage transition
+- When all phase tasks are complete, instructions should suggest phase transition
 
 ---
 
@@ -72,18 +72,18 @@ So that I can provide structured assistance to users throughout their developmen
 
 ---
 
-## Scenario: Context analysis drives stage transitions
+## Scenario: Context analysis drives phase transitions
 
 **Given** an existing conversation with rich context
-**When** I provide conversation_summary and recent_messages indicating stage completion
+**When** I provide conversation_summary and recent_messages indicating phase completion
 **Then** the transition engine should analyze the context
-**And** determine appropriate stage transitions
+**And** determine appropriate phase transitions
 **And** provide contextually relevant instructions
 
 ### Expected Behavior:
 - Conversation summary and recent messages should be analyzed by transition engine
-- Context should influence stage transition decisions
-- Rich conversation history should provide better stage completion detection
+- Context should influence phase transition decisions
+- Rich conversation history should provide better phase completion detection
 - Git branch context should create isolated conversation states
 - Plan file analysis should be combined with conversation context
 - Instructions should be tailored to specific conversation context
