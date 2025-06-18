@@ -251,6 +251,49 @@ class VibeFeatureMCPServer {
         }
       }
     );
+
+    // System prompt resource
+    this.server.resource(
+      'system-prompt',
+      'prompt://system',
+      {
+        name: 'LLM System Prompt',
+        description: 'Dynamically generated system prompt for LLM integration with vibe-feature-mcp. This prompt is generated from the actual state machine definition and includes comprehensive instructions for proper usage.',
+        mimeType: 'text/markdown'
+      },
+      async (uri: any) => {
+        const resourceLogger = logger.child('system-prompt-resource');
+        resourceLogger.debug('System prompt resource accessed');
+        
+        try {
+          // Import the generator function dynamically to avoid circular dependencies
+          const { generateSystemPrompt } = await import('./system-prompt-generator.js');
+          const systemPrompt = generateSystemPrompt();
+          
+          resourceLogger.info('System prompt resource generated successfully', { 
+            promptLength: systemPrompt.length 
+          });
+          
+          return {
+            contents: [{
+              uri: uri.href,
+              text: systemPrompt,
+              mimeType: 'text/markdown'
+            }]
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          resourceLogger.error('Failed to generate system prompt resource', error as Error);
+          return {
+            contents: [{
+              uri: uri.href,
+              text: `Error generating system prompt: ${errorMessage}`,
+              mimeType: 'text/plain'
+            }]
+          };
+        }
+      }
+    );
     
     logger.info('MCP resources setup completed');
   }

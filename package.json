@@ -11,7 +11,8 @@
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "generate-system-prompt": "npm run build && node dist/scripts/generate-system-prompt.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
