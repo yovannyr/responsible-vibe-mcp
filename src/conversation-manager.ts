@@ -86,9 +86,14 @@ export class ConversationManager {
       throw new Error(`Conversation ${conversationId} not found`);
     }
 
+    // Only include defined values in the update
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined)
+    );
+
     const updatedState: ConversationState = {
       ...existingState,
-      ...updates,
+      ...filteredUpdates,
       updatedAt: new Date().toISOString()
     };
 
@@ -96,7 +101,7 @@ export class ConversationManager {
     
     logger.info('Conversation state updated', { 
       conversationId,
-      updates,
+      updates: filteredUpdates,
       previousStage: existingState.currentStage,
       newStage: updatedState.currentStage
     });

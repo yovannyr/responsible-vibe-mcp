@@ -61,7 +61,7 @@ describe('proceed_to_stage Tool Integration Tests', () => {
       // Given: an existing conversation in "requirements" stage
       await startServer();
       
-      // Create initial conversation in requirements stage
+      // Create initial conversation in requirements stage (by providing feature request)
       const initialResult = await client.callTool({
         name: 'whats_next',
         arguments: {
@@ -107,20 +107,23 @@ describe('proceed_to_stage Tool Integration Tests', () => {
       // Given: an existing conversation in "requirements" stage
       await startServer();
       
-      // Create initial conversation
-      await client.callTool({
+      // Create initial conversation (will be in requirements due to feature request)
+      const initialResult = await client.callTool({
         name: 'whats_next',
         arguments: {
-          user_input: 'implement authentication feature'
+          user_input: 'implement authentication'
         }
       });
+      
+      const initialResponse = JSON.parse(initialResult.content[0].text!);
+      expect(initialResponse.stage).toBe('requirements');
 
-      // When: I call proceed_to_stage with target_stage "implementation"
+      // When: I call proceed_to_stage with target_stage "implementation" (skipping design)
       const result = await client.callTool({
         name: 'proceed_to_stage',
         arguments: {
           target_stage: 'implementation',
-          reason: 'skipping design, requirements are clear'
+          reason: 'requirements and design already done offline'
         }
       });
 
@@ -129,13 +132,11 @@ describe('proceed_to_stage Tool Integration Tests', () => {
       expect(response.stage).toBe('implementation');
       
       // And: implementation-specific instructions should be provided
+      expect(response.instructions).toBeDefined();
       expect(response.instructions.toLowerCase()).toMatch(/implement|code|build/);
       
-      // And: the transition should be allowed (no strict sequential enforcement)
-      expect(response.transition_reason).toBe('skipping design, requirements are clear');
-      
-      // And: the reason should indicate direct transition
-      expect(response.transition_reason.toLowerCase()).toMatch(/skip|direct/);
+      // And: the transition reason should be recorded
+      expect(response.transition_reason).toBe('requirements and design already done offline');
     });
   });
 

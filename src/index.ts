@@ -62,16 +62,26 @@ class VibeFeatureMCPServer {
     logger.debug('Setting up MCP tools');
     
     // Primary tool: whats_next
-    this.server.tool(
+    this.server.registerTool(
       'whats_next',
       {
-        context: z.string().optional().describe('Additional context about current conversation'),
-        user_input: z.string().optional().describe('Latest user input for analysis'),
-        conversation_summary: z.string().optional().describe('LLM-provided summary of the conversation so far'),
-        recent_messages: z.array(z.object({
-          role: z.string(),
-          content: z.string()
-        })).optional().describe('Array of recent conversation messages that LLM considers relevant')
+        description: 'Analyze conversation context and determine the next development stage with specific instructions for the LLM. This is the primary tool for orchestrating development workflow and should be called after each user interaction.',
+        inputSchema: {
+          context: z.string().optional().describe('Additional context about current conversation or situation'),
+          user_input: z.string().optional().describe('Latest user input or request for analysis'),
+          conversation_summary: z.string().optional().describe('LLM-provided summary of the conversation so far, including key decisions and progress made'),
+          recent_messages: z.array(z.object({
+            role: z.enum(['user', 'assistant']).describe('The role of the message sender'),
+            content: z.string().describe('The content of the message')
+          })).optional().describe('Array of recent conversation messages that LLM considers relevant for context')
+        },
+        annotations: {
+          title: 'Development Stage Analyzer',
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: false,
+          openWorldHint: false
+        }
       },
       async (params) => {
         const toolLogger = logger.child('whats_next');
@@ -96,12 +106,22 @@ class VibeFeatureMCPServer {
     );
 
     // Secondary tool: proceed_to_stage
-    this.server.tool(
+    this.server.registerTool(
       'proceed_to_stage',
       {
-        target_stage: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete'])
-          .describe('The stage to transition to'),
-        reason: z.string().optional().describe('Reason for transitioning now')
+        description: 'Explicitly transition to a specific development stage when the current stage is complete or when a direct stage change is needed. Use this tool when whats_next suggests a stage transition or when you need to move to a specific stage.',
+        inputSchema: {
+          target_stage: z.enum(['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete'])
+            .describe('The development stage to transition to'),
+          reason: z.string().optional().describe('Optional reason for transitioning to this stage now (e.g., "requirements complete", "user requested", "design approved")')
+        },
+        annotations: {
+          title: 'Stage Transition Controller',
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }
       },
       async (params) => {
         const toolLogger = logger.child('proceed_to_stage');
@@ -139,7 +159,8 @@ class VibeFeatureMCPServer {
       'development-plan',
       'plan://current',
       {
-        description: 'Current development plan document (markdown)',
+        name: 'Current Development Plan',
+        description: 'The active development plan document (markdown) that tracks project progress, tasks, and decisions. This file serves as long-term memory for the development process and should be continuously updated by the LLM.',
         mimeType: 'text/markdown'
       },
       async (uri: any) => {
@@ -181,7 +202,8 @@ class VibeFeatureMCPServer {
       'conversation-state',
       'state://current',
       {
-        description: 'Current conversation state and stage information',
+        name: 'Current Conversation State',
+        description: 'Current conversation state and stage information (JSON) including conversation ID, project context, current development stage, and plan file location. Use this to understand the current state of the development workflow.',
         mimeType: 'application/json'
       },
       async (uri: any) => {
@@ -197,7 +219,8 @@ class VibeFeatureMCPServer {
             gitBranch: context.gitBranch,
             currentStage: context.currentStage,
             planFilePath: context.planFilePath,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            description: 'Current state of the development workflow conversation'
           };
           
           resourceLogger.info('State resource retrieved successfully', { 
@@ -218,7 +241,10 @@ class VibeFeatureMCPServer {
           return {
             contents: [{
               uri: uri.href,
-              text: JSON.stringify({ error: errorMessage }, null, 2),
+              text: JSON.stringify({ 
+                error: errorMessage,
+                timestamp: new Date().toISOString()
+              }, null, 2),
               mimeType: 'application/json'
             }]
           };

@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "tsc --watch && npx @modelcontextprotocol/inspector node dist/index.js",
+    "start": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:ui": "vitest --ui",
