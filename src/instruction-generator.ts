@@ -130,7 +130,7 @@ export class InstructionGenerator {
         return '**Context**: Focus on building the solution. Write code, create files, implement features, and follow best practices. Reference the design decisions made earlier.';
       
       case 'qa':
-        return '**Context**: Focus on quality assurance. Review code quality, validate requirements compliance, check for bugs, and ensure documentation is complete.';
+        return '**Context**: Focus on quality assurance. Take specific actions: syntax check, build project, run linter, execute tests. Then conduct a multi-perspective code review (security, performance, UX, maintainability, requirement compliance).';
       
       case 'testing':
         return '**Context**: Focus on comprehensive testing. Create test plans, write tests, validate functionality, and ensure the feature works as expected.';
@@ -158,7 +158,7 @@ export class InstructionGenerator {
         return '**Remember**: \n- Follow the established design\n- Write clean, well-documented code\n- Include error handling\n- Follow coding best practices\n- Update plan file with implementation progress';
       
       case 'qa':
-        return '**Remember**: \n- Review code quality and standards\n- Validate requirements are met\n- Check for bugs and edge cases\n- Ensure documentation is complete\n- Update plan file with QA progress';
+        return '**Remember**: \n- Run syntax checking tools\n- Build the project to verify compilation\n- Execute linting tools for code style\n- Run tests to verify functionality\n- Review from security perspective\n- Review from performance perspective\n- Review from UX perspective\n- Review from maintainability perspective\n- Verify requirement compliance\n- Update plan file with QA progress';
       
       case 'testing':
         return '**Remember**: \n- Create comprehensive test plans\n- Test normal and edge cases\n- Validate user acceptance criteria\n- Document test results\n- Update plan file with testing progress';

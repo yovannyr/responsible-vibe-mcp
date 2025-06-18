@@ -146,7 +146,7 @@ export const STATE_TRANSITIONS: StateTransition[] = [
     to: 'qa',
     trigger: 'implementation_complete',
     isModeled: true,
-    instructions: "Implementation is complete! ✅ Now transition to quality assurance. Review the code for quality, build the project. If tests exist, run the tests. Lint the project if a linter is configured. Validate that requirements are properly met, check for bugs, and ensure documentation is complete. Update the plan file and mark completed implementation tasks.",
+    instructions: "Implementation is complete! ✅ Now transition to quality assurance. Take these specific actions:\n\n1. **Syntax Check**: Run syntax checking tools or validate syntax manually\n2. **Build Project**: Build the project to verify it compiles without errors\n3. **Run Linter**: Execute linting tools to ensure code style consistency\n4. **Execute Tests**: Run existing tests to verify functionality\n\nThen conduct a multi-perspective code review:\n- **Security Perspective**: Check for vulnerabilities, input validation, authentication issues\n- **Performance Perspective**: Identify bottlenecks, inefficient algorithms, resource usage\n- **UX Perspective**: Evaluate from the end-user's viewpoint\n- **Maintainability Perspective**: Assess code readability, documentation, future maintenance\n- **Requirement Compliance**: Verify all requirements are properly implemented\n\nUpdate the plan file and mark completed implementation tasks.",
     transitionReason: "Core implementation is complete, ready for quality review"
   },
   {
@@ -164,7 +164,7 @@ export const STATE_TRANSITIONS: StateTransition[] = [
     to: 'qa',
     trigger: 'refine_qa',
     isModeled: true,
-    instructions: "Continue quality assurance work. Review code quality, validate requirements compliance, check for bugs, improve documentation, and ensure best practices are followed. Update the plan file with QA progress and mark completed tasks.",
+    instructions: "Continue quality assurance work. Take these specific actions if not already completed:\n\n1. **Syntax Check**: Run syntax checking tools or validate syntax manually\n2. **Build Project**: Build the project to verify it compiles without errors\n3. **Run Linter**: Execute linting tools to ensure code style consistency\n4. **Execute Tests**: Run existing tests to verify functionality\n\nContinue multi-perspective code review:\n- **Security Perspective**: Check for vulnerabilities, input validation, authentication issues\n- **Performance Perspective**: Identify bottlenecks, inefficient algorithms, resource usage\n- **UX Perspective**: Evaluate from the end-user's viewpoint\n- **Maintainability Perspective**: Assess code readability, documentation, future maintenance\n- **Requirement Compliance**: Verify all requirements are properly implemented\n\nUpdate the plan file with QA progress and mark completed tasks.",
     transitionReason: "Quality assurance work continues, improving code quality"
   },
   {
@@ -258,7 +258,7 @@ export const DIRECT_PHASE_INSTRUCTIONS: Record<DevelopmentPhase, string> = {
   
   implementation: "Starting implementation phase. Guide the user through building the solution following best practices. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress.",
   
-  qa: "Starting quality assurance phase. Review the code for quality, validate that requirements are properly met, check for bugs, ensure documentation is complete, and verify best practices are followed. Focus on code quality, requirement compliance, and overall solution robustness.",
+  qa: "Starting quality assurance phase. Take the following specific actions:\n\n1. **Syntax Check**: Run syntax checking tools or validate syntax manually\n2. **Build Project**: Build the project to verify it compiles without errors\n3. **Run Linter**: Execute linting tools to ensure code style consistency\n4. **Execute Tests**: Run existing tests to verify functionality\n\nThen conduct a multi-perspective code review:\n- **Security Perspective**: Check for vulnerabilities, input validation, authentication issues\n- **Performance Perspective**: Identify bottlenecks, inefficient algorithms, resource usage\n- **UX Perspective**: Evaluate from the end-user's viewpoint\n- **Maintainability Perspective**: Assess code readability, documentation, future maintenance\n- **Requirement Compliance**: Verify all requirements are properly implemented\n\nUpdate the plan file with QA progress and mark completed tasks.",
   
   testing: "Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation.",
   
