@@ -107,8 +107,7 @@ export class PlanManager {
     const timestamp = new Date().toISOString().split('T')[0];
     
     if (!this.stateMachine) {
-      // Fallback to default structure if no state machine is set
-      return this.generateDefaultPlanContent(projectName, branchInfo, timestamp);
+      throw new Error('State machine not set. This should not happen as state machine is always loaded.');
     }
     
     const phases = Object.keys(this.stateMachine.states);
@@ -137,22 +136,33 @@ export class PlanManager {
 **Phase**: ${this.capitalizePhase(initialPhase)}  
 **Progress**: Starting development with ${initialPhaseDescription}
 
+### Current Phase Tasks
+- [ ] *Tasks will be added as they are identified*
+
+### Completed
+- [x] Created development plan file
+
 `;
 
-    // Generate sections for each phase
+    // Generate sections for each phase (excluding the initial phase since it's covered in Current Status)
     phases.forEach((phase, index) => {
       const phaseDescription = this.stateMachine!.states[phase].description;
-      const isCurrentPhase = phase === initialPhase;
+      const isInitialPhase = phase === initialPhase;
+      
+      // Skip the initial phase since it's already covered in Current Status
+      if (isInitialPhase) {
+        return;
+      }
       
       content += `## ${this.capitalizePhase(phase)}
 
 *${phaseDescription}*
 
 ### Tasks
-${isCurrentPhase ? '- [ ] *Tasks will be added as they are identified*' : '- [ ] *To be added after previous phases completion*'}
+- [ ] *To be added after previous phases completion*
 
 ### Completed
-${isCurrentPhase ? '- [x] Created development plan file' : '*None yet*'}
+*None yet*
 
 `;
     });
@@ -175,101 +185,6 @@ ${isCurrentPhase ? '- [x] Created development plan file' : '*None yet*'}
 `;
 
     return content;
-  }
-
-  /**
-   * Generate default plan content when no state machine is available
-   */
-  private generateDefaultPlanContent(projectName: string, branchInfo: string, timestamp: string): string {
-    
-    return `# Development Plan: ${projectName}${branchInfo}
-
-*Generated on ${timestamp} by Vibe Feature MCP*
-
-## Project Overview
-
-**Status**: Planning Phase  
-**Current Phase**: Requirements Analysis  
-
-### Feature Goals
-- [ ] *To be defined based on requirements gathering*
-
-### Scope
-- [ ] *To be defined during requirements phase*
-
-## Current Status
-
-**Phase**: Requirements Analysis  
-**Progress**: Starting development planning
-
-## Requirements Analysis
-
-### Tasks
-- [ ] Gather user requirements
-- [ ] Define feature scope
-- [ ] Identify constraints and dependencies
-- [ ] Document acceptance criteria
-
-### Completed
-- [x] Created development plan file
-
-## Design
-
-### Tasks
-- [ ] *To be added after requirements completion*
-
-### Completed
-*None yet*
-
-## Implementation
-
-### Tasks
-- [ ] *To be added after design completion*
-
-### Completed
-*None yet*
-
-## Quality Assurance
-
-### Tasks
-- [ ] *To be added after implementation completion*
-
-### Completed
-*None yet*
-
-## Testing
-
-### Tasks
-- [ ] *To be added after QA completion*
-
-### Completed
-*None yet*
-
-## Decision Log
-
-### Technical Decisions
-*Technical decisions will be documented here as they are made*
-
-### Design Decisions
-*Design decisions will be documented here as they are made*
-
-## Notes
-
-*Additional notes and observations will be added here throughout development*
-
----
-
-*This plan is continuously updated by the LLM as development progresses. Each phase's tasks and completed items are maintained to track progress and provide context for future development sessions.*
-`;
-  }
-
-  /**
-   * Capitalize phase name for display
-   */
-  private capitalizePhase(phase: string): string {
-    return phase.split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
   }
 
   /**
@@ -300,8 +215,7 @@ ${isCurrentPhase ? '- [x] Created development plan file' : '*None yet*'}
    */
   generatePlanFileGuidance(phase: string): string {
     if (!this.stateMachine) {
-      // Fallback to default guidance
-      return this.generateDefaultPlanFileGuidance(phase);
+      throw new Error('State machine not set. This should not happen as state machine is always loaded.');
     }
     
     const phaseDefinition = this.stateMachine.states[phase];
@@ -318,29 +232,12 @@ ${isCurrentPhase ? '- [x] Created development plan file' : '*None yet*'}
 
   /**
    * Generate default plan file guidance for standard phases
+  /**
+   * Capitalize phase name for display
    */
-  private generateDefaultPlanFileGuidance(phase: string): string {
-    switch (phase) {
-      case 'requirements':
-        return 'Update the Requirements Analysis section with gathered requirements, scope definition, and completed tasks. Mark tasks as complete with [x].';
-      
-      case 'design':
-        return 'Update the Design section with technical decisions, architecture choices, and design progress. Add completed requirements tasks to the Completed section.';
-      
-      case 'implementation':
-        return 'Update the Implementation section with coding progress, completed features, and implementation tasks. Mark completed design tasks.';
-      
-      case 'qa':
-        return 'Update the Quality Assurance section with code review progress, quality checks, and QA tasks. Mark completed implementation tasks.';
-      
-      case 'testing':
-        return 'Update the Testing section with test progress, test results, and testing tasks. Mark completed QA tasks.';
-      
-      case 'complete':
-        return 'Update the plan to reflect completion status. Mark all testing tasks as complete and add final notes.';
-      
-      default:
-        return 'Update the plan file with current progress and mark completed tasks.';
-    }
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

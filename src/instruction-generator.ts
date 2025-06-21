@@ -132,17 +132,11 @@ export class InstructionGenerator {
       }
     }
     
-    // Fallback to default context for standard phases
-    return this.getDefaultPhaseContext(phase);
+    throw new Error(`State machine not set or unknown phase: ${phase}. This should not happen as state machine is always loaded.`);
   }
 
   /**
    * Get default phase context for standard phases
-   */
-  private getDefaultPhaseContext(phase: string): string {
-     return '**Context**: Continue with current development activities. If you\'ve been doing this specific activity for a longer period, ask the user for guidance';
-  }
-
   /**
    * Get phase-specific reminders and best practices based on state machine
    */
@@ -155,36 +149,7 @@ export class InstructionGenerator {
       }
     }
     
-    // Fallback to default reminders for standard phases
-    return this.getDefaultPhaseReminders(phase);
-  }
-
-  /**
-   * Get default phase reminders for standard phases
-   */
-  private getDefaultPhaseReminders(phase: string): string {
-    switch (phase) {
-      case 'requirements':
-        return '**Remember**: \n- Ask "what" not "how"\n- Break down complex requests into specific tasks\n- Clarify scope and constraints\n- Document acceptance criteria\n- Update plan file with gathered requirements';
-      
-      case 'design':
-        return '**Remember**: \n- Build on established requirements\n- Consider scalability and maintainability\n- Document architectural decisions\n- Choose appropriate technologies\n- Update plan file with design decisions';
-      
-      case 'implementation':
-        return '**Remember**: \n- Follow the established design\n- Write clean, well-documented code\n- Include error handling\n- Follow coding best practices\n- Update plan file with implementation progress';
-      
-      case 'qa':
-        return '**Remember**: \n- Run syntax checking tools\n- Build the project to verify compilation\n- Execute linting tools for code style\n- Run tests to verify functionality\n- Review from security perspective\n- Review from performance perspective\n- Review from UX perspective\n- Review from maintainability perspective\n- Verify requirement compliance\n- Update plan file with QA progress';
-      
-      case 'testing':
-        return '**Remember**: \n- Create comprehensive test plans\n- Test normal and edge cases\n- Validate user acceptance criteria\n- Document test results\n- Update plan file with testing progress';
-      
-      case 'complete':
-        return '**Remember**: \n- Summarize what was accomplished\n- Finalize all documentation\n- Mark all tasks as complete\n- Prepare handoff documentation\n- Update plan file with completion status';
-      
-      default:
-        return '**Remember**: \n- Keep the plan file updated\n- Mark completed tasks\n- Stay focused on current phase objectives';
-    }
+    throw new Error(`State machine not set or unknown phase: ${phase}. This should not happen as state machine is always loaded.`);
   }
 
   /**

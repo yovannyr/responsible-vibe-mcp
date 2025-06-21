@@ -77,6 +77,15 @@ export class VibeFeatureMCPServer {
   }
 
   /**
+   * Ensure state machine is loaded for the given project path
+   */
+  private ensureStateMachineForProject(projectPath: string): void {
+    const stateMachine = this.transitionEngine.getStateMachine(projectPath);
+    this.planManager.setStateMachine(stateMachine);
+    this.instructionGenerator.setStateMachine(stateMachine);
+  }
+
+  /**
    * Get the underlying MCP server instance
    * This allows for both transport-based and direct testing
    */
@@ -362,10 +371,8 @@ export class VibeFeatureMCPServer {
       
       logger.debug('Current conversation state', { conversationId, currentPhase });
 
-      // Get the state machine for this project and pass it to components
-      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
-      this.planManager.setStateMachine(stateMachine);
-      this.instructionGenerator.setStateMachine(stateMachine);
+      // Ensure state machine is loaded for this project
+      this.ensureStateMachineForProject(conversationContext.projectPath);
 
       // Ensure plan file exists
       await this.planManager.ensurePlanFile(
@@ -459,10 +466,8 @@ export class VibeFeatureMCPServer {
       const conversationId = conversationContext.conversationId;
       const currentPhase = conversationContext.currentPhase;
 
-      // Get the state machine for this project and pass it to components
-      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
-      this.planManager.setStateMachine(stateMachine);
-      this.instructionGenerator.setStateMachine(stateMachine);
+      // Ensure state machine is loaded for this project
+      this.ensureStateMachineForProject(conversationContext.projectPath);
 
       // Perform explicit transition
       const transitionResult = this.transitionEngine.handleExplicitTransition(
@@ -553,11 +558,12 @@ export class VibeFeatureMCPServer {
       // Analyze plan file content for key information
       const planAnalysis = planInfo.exists ? this.analyzePlanFile(planInfo.content!) : null;
       
-      // Generate system prompt if requested
-      const systemPrompt = includeSystemPrompt ? generateSystemPrompt(simplePrompt) : null;
-      
       // Get current state machine information
       const stateMachineInfo = await this.getStateMachineInfo(conversationContext.projectPath);
+      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
+      
+      // Generate system prompt if requested
+      const systemPrompt = includeSystemPrompt ? generateSystemPrompt(stateMachine, simplePrompt) : null;
       
       // Build comprehensive response
       const response = {
@@ -679,7 +685,7 @@ export class VibeFeatureMCPServer {
   }
 
   /**
-   * Generate recommendations for next steps
+   * Generate recommendations for next steps based on state machine transitions
    */
   private generateRecommendations(context: any, planAnalysis: any): any {
     const recommendations = {
@@ -688,47 +694,45 @@ export class VibeFeatureMCPServer {
       potential_issues: [] as string[]
     };
 
-    // Phase-specific recommendations
-    switch (context.currentPhase) {
-      case 'idle':
-        recommendations.immediate_actions.push('Call whats_next() to begin or resume development');
-        recommendations.phase_guidance = 'Ready to start new feature development or resume existing work';
-        break;
-      
-      case 'requirements':
-        recommendations.immediate_actions.push('Continue gathering requirements by asking clarifying questions');
-        recommendations.immediate_actions.push('Update plan file with new requirements as they are identified');
-        recommendations.phase_guidance = 'Focus on understanding WHAT the user needs before moving to design';
-        break;
-      
-      case 'design':
-        recommendations.immediate_actions.push('Help design the technical solution (HOW to implement)');
-        recommendations.immediate_actions.push('Ask about architecture, technologies, and quality goals');
-        recommendations.phase_guidance = 'Focus on technical approach and architectural decisions';
-        break;
-      
-      case 'implementation':
-        recommendations.immediate_actions.push('Guide code implementation following best practices');
-        recommendations.immediate_actions.push('Help with coding standards and project structure');
-        recommendations.phase_guidance = 'Focus on building the solution with proper code quality';
-        break;
-      
-      case 'qa':
-        recommendations.immediate_actions.push('Review code quality and validate requirements are met');
-        recommendations.immediate_actions.push('Ensure documentation is complete');
-        recommendations.phase_guidance = 'Focus on quality validation and requirement verification';
-        break;
-      
-      case 'testing':
-        recommendations.immediate_actions.push('Create and execute comprehensive tests');
-        recommendations.immediate_actions.push('Validate feature completeness');
-        recommendations.phase_guidance = 'Focus on thorough testing and validation';
-        break;
-      
-      case 'complete':
-        recommendations.immediate_actions.push('Feature is complete - ready for new development');
-        recommendations.phase_guidance = 'Current feature is finished, ready to start new work';
-        break;
+    try {
+      // Get the state machine for this project
+      const stateMachine = this.transitionEngine.getStateMachine(context.projectPath);
+      const currentPhase = context.currentPhase;
+      const phaseDefinition = stateMachine.states[currentPhase];
+
+      if (phaseDefinition) {
+        // Set phase guidance from state machine description
+        recommendations.phase_guidance = `Current phase: ${phaseDefinition.description}`;
+
+        // Generate transition-based recommendations
+        if (phaseDefinition.transitions && phaseDefinition.transitions.length > 0) {
+          recommendations.immediate_actions.push('From here, you can transition to:');
+          
+          phaseDefinition.transitions.forEach(transition => {
+            const targetPhase = stateMachine.states[transition.to];
+            const targetDescription = targetPhase ? targetPhase.description : transition.to;
+            recommendations.immediate_actions.push(`• ${this.capitalizePhase(transition.to)}: ${targetDescription}`);
+          });
+
+          // Add instruction on how to transition
+          recommendations.immediate_actions.push('Use proceed_to_phase() tool when ready to transition');
+        } else {
+          recommendations.immediate_actions.push('Continue working in current phase');
+        }
+
+        // Add current phase specific guidance
+        recommendations.immediate_actions.push(`Focus on: ${phaseDefinition.description}`);
+      } else {
+        // Fallback if phase not found in state machine
+        recommendations.phase_guidance = `Current phase: ${currentPhase}`;
+        recommendations.immediate_actions.push('Continue working in current phase');
+      }
+
+    } catch (error) {
+      logger.warn('Could not generate state machine recommendations', error as Error);
+      // Basic fallback
+      recommendations.phase_guidance = `Current phase: ${context.currentPhase}`;
+      recommendations.immediate_actions.push('Continue working in current phase');
     }
 
     // Plan-based recommendations
@@ -748,6 +752,15 @@ export class VibeFeatureMCPServer {
     }
 
     return recommendations;
+  }
+
+  /**
+   * Capitalize phase name for display
+   */
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   /**

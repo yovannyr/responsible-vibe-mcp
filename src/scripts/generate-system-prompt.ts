@@ -51,8 +51,13 @@ async function main() {
     const options = parseArgs();
     logger.info('Starting system prompt generation', options);
     
+    // Load the default state machine for prompt generation
+    const { StateMachineLoader } = await import('../state-machine-loader.js');
+    const loader = new StateMachineLoader();
+    const stateMachine = loader.loadStateMachine(process.cwd()); // Use current directory
+    
     // Generate the system prompt
-    const systemPrompt = generateSystemPrompt(options.type === 'simple');
+    const systemPrompt = generateSystemPrompt(stateMachine, options.type === 'simple');
     
     // Write to output file
     await writeFile(options.output, systemPrompt, 'utf-8');
