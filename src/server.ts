@@ -362,6 +362,11 @@ export class VibeFeatureMCPServer {
       
       logger.debug('Current conversation state', { conversationId, currentPhase });
 
+      // Get the state machine for this project and pass it to components
+      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
+      this.planManager.setStateMachine(stateMachine);
+      this.instructionGenerator.setStateMachine(stateMachine);
+
       // Ensure plan file exists
       await this.planManager.ensurePlanFile(
         conversationContext.planFilePath,
@@ -453,6 +458,11 @@ export class VibeFeatureMCPServer {
       const conversationContext = await this.conversationManager.getConversationContext();
       const conversationId = conversationContext.conversationId;
       const currentPhase = conversationContext.currentPhase;
+
+      // Get the state machine for this project and pass it to components
+      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
+      this.planManager.setStateMachine(stateMachine);
+      this.instructionGenerator.setStateMachine(stateMachine);
 
       // Perform explicit transition
       const transitionResult = this.transitionEngine.handleExplicitTransition(
@@ -640,11 +650,24 @@ export class VibeFeatureMCPServer {
    */
   private async getStateMachineInfo(projectPath: string): Promise<any> {
     try {
-      // This would ideally integrate with the state machine loader
-      // For now, return basic info
+      // Get the actual state machine for this project
+      const stateMachine = this.transitionEngine.getStateMachine(projectPath);
+      
+      // Determine if it's custom or default by checking the name
+      const isCustom = stateMachine.name !== 'Classical waterfall';
+      
       return {
-        type: 'default', // Could be 'custom' if .vibe/state-machine.yaml exists
-        phases: ['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete']
+        type: isCustom ? 'custom' : 'default',
+        name: stateMachine.name,
+        description: stateMachine.description,
+        initial_state: stateMachine.initial_state,
+        phases: Object.keys(stateMachine.states),
+        phase_descriptions: Object.fromEntries(
+          Object.entries(stateMachine.states).map(([phase, definition]) => [
+            phase, 
+            definition.description
+          ])
+        )
       };
     } catch (error) {
       logger.warn('Could not determine state machine info', error as Error);

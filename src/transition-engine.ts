@@ -37,6 +37,14 @@ export class TransitionEngine {
   }
   
   /**
+   * Get the loaded state machine for the current project
+   */
+  getStateMachine(projectPath: string) {
+    // Ensure we have the latest state machine for this project
+    return this.stateMachineLoader.loadStateMachine(projectPath);
+  }
+  
+  /**
    * Analyze context and determine appropriate phase transition
    */
   analyzePhaseTransition(context: TransitionContext): TransitionResult {

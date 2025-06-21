@@ -3,6 +3,7 @@
  * 
  * Handles the creation, updating, and maintenance of project development plan files.
  * Manages markdown plan files that serve as long-term project memory.
+ * Supports custom state machine definitions for dynamic plan file generation.
  */
 
 import { writeFile, readFile, access } from 'fs/promises';
@@ -10,6 +11,7 @@ import { dirname } from 'path';
 import { mkdir } from 'fs/promises';
 import { createLogger } from './logger.js';
 import type { DevelopmentPhase } from './state-machine.js';
+import type { YamlStateMachine } from './state-machine-types.js';
 
 const logger = createLogger('PlanManager');
 
@@ -20,6 +22,18 @@ export interface PlanFileInfo {
 }
 
 export class PlanManager {
+  private stateMachine: YamlStateMachine | null = null;
+  
+  /**
+   * Set the state machine definition for dynamic plan generation
+   */
+  setStateMachine(stateMachine: YamlStateMachine): void {
+    this.stateMachine = stateMachine;
+    logger.debug('State machine set for plan manager', { 
+      name: stateMachine.name,
+      phases: Object.keys(stateMachine.states)
+    });
+  }
   
   /**
    * Get plan file information
@@ -87,10 +101,86 @@ export class PlanManager {
   }
 
   /**
-   * Generate initial plan file content
+   * Generate initial plan file content based on state machine definition
    */
   private generateInitialPlanContent(projectName: string, branchInfo: string): string {
     const timestamp = new Date().toISOString().split('T')[0];
+    
+    if (!this.stateMachine) {
+      // Fallback to default structure if no state machine is set
+      return this.generateDefaultPlanContent(projectName, branchInfo, timestamp);
+    }
+    
+    const phases = Object.keys(this.stateMachine.states);
+    const initialPhase = this.stateMachine.initial_state;
+    const initialPhaseDescription = this.stateMachine.states[initialPhase]?.description || initialPhase;
+    
+    let content = `# Development Plan: ${projectName}${branchInfo}
+
+*Generated on ${timestamp} by Vibe Feature MCP*
+*Workflow: ${this.stateMachine.name}*
+
+## Project Overview
+
+**Status**: ${this.capitalizePhase(initialPhase)} Phase  
+**Current Phase**: ${this.capitalizePhase(initialPhase)}  
+**Workflow**: ${this.stateMachine.description}
+
+### Feature Goals
+- [ ] *To be defined based on ${initialPhase} phase*
+
+### Scope
+- [ ] *To be defined during ${initialPhase} phase*
+
+## Current Status
+
+**Phase**: ${this.capitalizePhase(initialPhase)}  
+**Progress**: Starting development with ${initialPhaseDescription}
+
+`;
+
+    // Generate sections for each phase
+    phases.forEach((phase, index) => {
+      const phaseDescription = this.stateMachine!.states[phase].description;
+      const isCurrentPhase = phase === initialPhase;
+      
+      content += `## ${this.capitalizePhase(phase)}
+
+*${phaseDescription}*
+
+### Tasks
+${isCurrentPhase ? '- [ ] *Tasks will be added as they are identified*' : '- [ ] *To be added after previous phases completion*'}
+
+### Completed
+${isCurrentPhase ? '- [x] Created development plan file' : '*None yet*'}
+
+`;
+    });
+
+    content += `## Decision Log
+
+### Technical Decisions
+*Technical decisions will be documented here as they are made*
+
+### Design Decisions
+*Design decisions will be documented here as they are made*
+
+## Notes
+
+*Additional notes and observations will be added here throughout development*
+
+---
+
+*This plan is continuously updated by the LLM as development progresses. Each phase's tasks and completed items are maintained to track progress and provide context for future development sessions.*
+`;
+
+    return content;
+  }
+
+  /**
+   * Generate default plan content when no state machine is available
+   */
+  private generateDefaultPlanContent(projectName: string, branchInfo: string, timestamp: string): string {
     
     return `# Development Plan: ${projectName}${branchInfo}
 
@@ -174,6 +264,15 @@ export class PlanManager {
   }
 
   /**
+   * Capitalize phase name for display
+   */
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  /**
    * Update plan file with new content (this is typically done by the LLM)
    */
   async updatePlanFile(planFilePath: string, content: string): Promise<void> {
@@ -197,9 +296,30 @@ export class PlanManager {
   }
 
   /**
-   * Generate phase-specific plan file guidance
+   * Generate phase-specific plan file guidance based on state machine
    */
   generatePlanFileGuidance(phase: string): string {
+    if (!this.stateMachine) {
+      // Fallback to default guidance
+      return this.generateDefaultPlanFileGuidance(phase);
+    }
+    
+    const phaseDefinition = this.stateMachine.states[phase];
+    if (!phaseDefinition) {
+      logger.warn('Unknown phase for plan file guidance', { phase });
+      return `Update the ${this.capitalizePhase(phase)} section with current progress and mark completed tasks.`;
+    }
+    
+    const phaseDescription = phaseDefinition.description;
+    const capitalizedPhase = this.capitalizePhase(phase);
+    
+    return `Update the ${capitalizedPhase} section with progress related to: ${phaseDescription}. Mark completed tasks with [x] and add new tasks as they are identified.`;
+  }
+
+  /**
+   * Generate default plan file guidance for standard phases
+   */
+  private generateDefaultPlanFileGuidance(phase: string): string {
     switch (phase) {
       case 'requirements':
         return 'Update the Requirements Analysis section with gathered requirements, scope definition, and completed tasks. Mark tasks as complete with [x].';

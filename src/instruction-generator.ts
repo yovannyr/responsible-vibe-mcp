@@ -3,10 +3,12 @@
  * 
  * Creates phase-specific guidance for the LLM based on current conversation state.
  * Customizes instructions based on project context and development phase.
+ * Supports custom state machine definitions for dynamic instruction generation.
  */
 
 import type { ConversationContext } from './types.js';
 import { PlanManager } from './plan-manager.js';
+import type { YamlStateMachine } from './state-machine-types.js';
 
 export interface InstructionContext {
   phase: string;
@@ -29,9 +31,17 @@ export interface GeneratedInstructions {
 
 export class InstructionGenerator {
   private planManager: PlanManager;
+  private stateMachine: YamlStateMachine | null = null;
 
   constructor(planManager: PlanManager) {
     this.planManager = planManager;
+  }
+
+  /**
+   * Set the state machine definition for dynamic instruction generation
+   */
+  setStateMachine(stateMachine: YamlStateMachine): void {
+    this.stateMachine = stateMachine;
   }
 
   /**
@@ -112,40 +122,47 @@ export class InstructionGenerator {
   }
 
   /**
-   * Get phase-specific contextual information
+   * Get phase-specific contextual information based on state machine
    */
   private getPhaseSpecificContext(phase: string): string {
-    switch (phase) {
-      case 'idle':
-        return '**Context**: Ready to help with new development tasks or feature requests.';
-      
-      case 'requirements':
-        return '**Context**: Focus on understanding WHAT the user needs. Ask clarifying questions about functionality, scope, constraints, and success criteria. Avoid discussing HOW to implement until requirements are clear.';
-      
-      case 'design':
-        return '**Context**: Focus on HOW to implement the requirements. Discuss architecture, technology choices, data models, APIs, and quality considerations. Build on the established requirements.';
-      
-      case 'implementation':
-        return '**Context**: Focus on building the solution. Write code, create files, implement features, and follow best practices. Reference the design decisions made earlier.';
-      
-      case 'qa':
-        return '**Context**: Focus on quality assurance. Take specific actions: syntax check, build project, run linter, execute tests. Then conduct a multi-perspective code review (security, performance, UX, maintainability, requirement compliance).';
-      
-      case 'testing':
-        return '**Context**: Focus on comprehensive testing. Create test plans, write tests, validate functionality, and ensure the feature works as expected.';
-      
-      case 'complete':
-        return '**Context**: Feature development is complete. Summarize accomplishments, finalize documentation, and prepare for delivery or next steps.';
-      
-      default:
-        return '**Context**: Continue with current development activities.';
+    if (this.stateMachine) {
+      const phaseDefinition = this.stateMachine.states[phase];
+      if (phaseDefinition) {
+        return `**Context**: ${phaseDefinition.description}`;
+      }
     }
+    
+    // Fallback to default context for standard phases
+    return this.getDefaultPhaseContext(phase);
   }
 
   /**
-   * Get phase-specific reminders and best practices
+   * Get default phase context for standard phases
+   */
+  private getDefaultPhaseContext(phase: string): string {
+     return '**Context**: Continue with current development activities. If you\'ve been doing this specific activity for a longer period, ask the user for guidance';
+  }
+
+  /**
+   * Get phase-specific reminders and best practices based on state machine
    */
   private getPhaseReminders(phase: string): string {
+    if (this.stateMachine) {
+      const phaseDefinition = this.stateMachine.states[phase];
+      if (phaseDefinition) {
+        const capitalizedPhase = this.capitalizePhase(phase);
+        return `**Remember**: \n- Focus on: ${phaseDefinition.description}\n- Update plan file with ${phase} progress\n- Mark completed tasks with [x]\n- Stay focused on current phase objectives`;
+      }
+    }
+    
+    // Fallback to default reminders for standard phases
+    return this.getDefaultPhaseReminders(phase);
+  }
+
+  /**
+   * Get default phase reminders for standard phases
+   */
+  private getDefaultPhaseReminders(phase: string): string {
     switch (phase) {
       case 'requirements':
         return '**Remember**: \n- Ask "what" not "how"\n- Break down complex requests into specific tasks\n- Clarify scope and constraints\n- Document acceptance criteria\n- Update plan file with gathered requirements';
@@ -168,5 +185,14 @@ export class InstructionGenerator {
       default:
         return '**Remember**: \n- Keep the plan file updated\n- Mark completed tasks\n- Stay focused on current phase objectives';
     }
+  }
+
+  /**
+   * Capitalize phase name for display
+   */
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }
