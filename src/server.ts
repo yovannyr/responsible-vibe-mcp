@@ -14,6 +14,7 @@ import { TransitionEngine } from './transition-engine.js';
 import { InstructionGenerator } from './instruction-generator.js';
 import { PlanManager } from './plan-manager.js';
 import { InteractionLogger } from './interaction-logger.js';
+import { generateSystemPrompt } from './system-prompt-generator.js';
 import { createLogger } from './logger.js';
 
 const logger = createLogger('Server');
@@ -195,6 +196,47 @@ export class VibeFeatureMCPServer {
             content: [{
               type: 'text' as const,
               text: `Error: ${errorMessage}`
+            }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    // resume_workflow tool
+    this.server.registerTool(
+      'resume_workflow',
+      {
+        description: 'Resume development workflow after conversation compression. Returns system prompt instructions plus comprehensive project context, current state, and next steps to seamlessly continue development.',
+        inputSchema: {
+          include_system_prompt: z.boolean().optional().describe('Whether to include system prompt instructions (default: true)'),
+          simple_prompt: z.boolean().optional().describe('Whether to use simplified system prompt when included (default: true)')
+        },
+        annotations: {
+          title: 'Workflow Resumption Assistant',
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }
+      },
+      async (args) => {
+        try {
+          const result = await this.handleResumeWorkflow(args);
+          
+          return {
+            content: [{
+              type: 'text' as const,
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error('resume_workflow tool execution failed', error as Error);
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Error resuming workflow: ${errorMessage}`
             }],
             isError: true
           };
@@ -479,6 +521,210 @@ export class VibeFeatureMCPServer {
       logger.error('proceed_to_phase tool execution failed', error as Error);
       throw error;
     }
+  }
+
+  /**
+   * Handle resume_workflow tool calls
+   * Made public for direct testing access
+   */
+  public async handleResumeWorkflow(args: any): Promise<any> {
+    try {
+      logger.debug('Processing resume_workflow request', args);
+      
+      const includeSystemPrompt = args.include_system_prompt !== false; // Default to true
+      const simplePrompt = args.simple_prompt !== false; // Default to true
+      
+      // Get current conversation context
+      const conversationContext = await this.conversationManager.getConversationContext();
+      
+      // Get plan file information
+      const planInfo = await this.planManager.getPlanFileInfo(conversationContext.planFilePath);
+      
+      // Analyze plan file content for key information
+      const planAnalysis = planInfo.exists ? this.analyzePlanFile(planInfo.content!) : null;
+      
+      // Generate system prompt if requested
+      const systemPrompt = includeSystemPrompt ? generateSystemPrompt(simplePrompt) : null;
+      
+      // Get current state machine information
+      const stateMachineInfo = await this.getStateMachineInfo(conversationContext.projectPath);
+      
+      // Build comprehensive response
+      const response = {
+        // Core workflow resumption info
+        workflow_status: {
+          conversation_id: conversationContext.conversationId,
+          current_phase: conversationContext.currentPhase,
+          project_path: conversationContext.projectPath,
+          git_branch: conversationContext.gitBranch,
+          state_machine: stateMachineInfo
+        },
+        
+        // Plan file analysis
+        plan_status: {
+          exists: planInfo.exists,
+          path: conversationContext.planFilePath,
+          analysis: planAnalysis
+        },
+        
+        // System prompt (if requested)
+        system_prompt: systemPrompt,
+        
+        // Next steps and recommendations
+        recommendations: this.generateRecommendations(conversationContext, planAnalysis),
+        
+        // Metadata
+        generated_at: new Date().toISOString(),
+        tool_version: '1.0.0'
+      };
+      
+      logger.debug('resume_workflow response generated', { 
+        conversationId: conversationContext.conversationId,
+        phase: conversationContext.currentPhase,
+        planExists: planInfo.exists,
+        includeSystemPrompt,
+        simplePrompt
+      });
+      
+      return response;
+    } catch (error) {
+      logger.error('resume_workflow tool execution failed', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Analyze plan file content to extract key information
+   */
+  private analyzePlanFile(content: string): any {
+    const analysis = {
+      active_tasks: [] as string[],
+      completed_tasks: [] as string[],
+      recent_decisions: [] as string[],
+      next_steps: [] as string[]
+    };
+
+    const lines = content.split('\n');
+    let inTaskSection = false;
+    let currentSection = '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Detect sections
+      if (trimmed.startsWith('##')) {
+        currentSection = trimmed.toLowerCase();
+        inTaskSection = currentSection.includes('task') || currentSection.includes('todo');
+      }
+      
+      // Extract tasks
+      if (inTaskSection) {
+        if (trimmed.startsWith('- [x]')) {
+          analysis.completed_tasks.push(trimmed.substring(5).trim());
+        } else if (trimmed.startsWith('- [ ]')) {
+          analysis.active_tasks.push(trimmed.substring(5).trim());
+        }
+      }
+      
+      // Extract decisions (look for decision log sections)
+      if (currentSection.includes('decision') && trimmed.startsWith('- ')) {
+        analysis.recent_decisions.push(trimmed.substring(2).trim());
+      }
+    }
+
+    return analysis;
+  }
+
+  /**
+   * Get state machine information
+   */
+  private async getStateMachineInfo(projectPath: string): Promise<any> {
+    try {
+      // This would ideally integrate with the state machine loader
+      // For now, return basic info
+      return {
+        type: 'default', // Could be 'custom' if .vibe/state-machine.yaml exists
+        phases: ['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete']
+      };
+    } catch (error) {
+      logger.warn('Could not determine state machine info', error as Error);
+      return {
+        type: 'unknown',
+        phases: []
+      };
+    }
+  }
+
+  /**
+   * Generate recommendations for next steps
+   */
+  private generateRecommendations(context: any, planAnalysis: any): any {
+    const recommendations = {
+      immediate_actions: [] as string[],
+      phase_guidance: '',
+      potential_issues: [] as string[]
+    };
+
+    // Phase-specific recommendations
+    switch (context.currentPhase) {
+      case 'idle':
+        recommendations.immediate_actions.push('Call whats_next() to begin or resume development');
+        recommendations.phase_guidance = 'Ready to start new feature development or resume existing work';
+        break;
+      
+      case 'requirements':
+        recommendations.immediate_actions.push('Continue gathering requirements by asking clarifying questions');
+        recommendations.immediate_actions.push('Update plan file with new requirements as they are identified');
+        recommendations.phase_guidance = 'Focus on understanding WHAT the user needs before moving to design';
+        break;
+      
+      case 'design':
+        recommendations.immediate_actions.push('Help design the technical solution (HOW to implement)');
+        recommendations.immediate_actions.push('Ask about architecture, technologies, and quality goals');
+        recommendations.phase_guidance = 'Focus on technical approach and architectural decisions';
+        break;
+      
+      case 'implementation':
+        recommendations.immediate_actions.push('Guide code implementation following best practices');
+        recommendations.immediate_actions.push('Help with coding standards and project structure');
+        recommendations.phase_guidance = 'Focus on building the solution with proper code quality';
+        break;
+      
+      case 'qa':
+        recommendations.immediate_actions.push('Review code quality and validate requirements are met');
+        recommendations.immediate_actions.push('Ensure documentation is complete');
+        recommendations.phase_guidance = 'Focus on quality validation and requirement verification';
+        break;
+      
+      case 'testing':
+        recommendations.immediate_actions.push('Create and execute comprehensive tests');
+        recommendations.immediate_actions.push('Validate feature completeness');
+        recommendations.phase_guidance = 'Focus on thorough testing and validation';
+        break;
+      
+      case 'complete':
+        recommendations.immediate_actions.push('Feature is complete - ready for new development');
+        recommendations.phase_guidance = 'Current feature is finished, ready to start new work';
+        break;
+    }
+
+    // Plan-based recommendations
+    if (planAnalysis) {
+      if (planAnalysis.active_tasks.length > 0) {
+        recommendations.immediate_actions.push(`Continue working on active tasks: ${planAnalysis.active_tasks.slice(0, 2).join(', ')}`);
+      }
+      
+      if (planAnalysis.active_tasks.length === 0 && planAnalysis.completed_tasks.length > 0) {
+        recommendations.potential_issues.push('No active tasks found - may be ready to transition to next phase');
+      }
+    }
+
+    // Always recommend calling whats_next
+    if (!recommendations.immediate_actions.some(action => action.includes('whats_next'))) {
+      recommendations.immediate_actions.unshift('Call whats_next() to get current phase-specific guidance');
+    }
+
+    return recommendations;
   }
 
   /**

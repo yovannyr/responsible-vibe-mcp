@@ -510,6 +510,50 @@ Tool for explicitly transitioning to a new development phase when current phase 
 - `plan_file_path` (string): Path to the plan file to update
 - `transition_reason` (string): Confirmation of phase transition
 
+#### `resume_workflow`
+Tool for resuming development workflow after conversation compression. Returns comprehensive project context, current state, system prompt instructions, and next steps to seamlessly continue development.
+
+**Parameters:**
+- `include_system_prompt` (boolean, optional): Whether to include system prompt instructions (default: true)
+- `simple_prompt` (boolean, optional): Whether to use simplified system prompt when included (default: true)
+
+**Returns:**
+- `workflow_status`: Current conversation and project state information
+  - `conversation_id`: Unique conversation identifier
+  - `current_phase`: Current development phase from database
+  - `project_path`: Absolute project path
+  - `git_branch`: Current git branch
+  - `state_machine`: State machine information and available phases
+- `plan_status`: Plan file analysis and status
+  - `exists`: Whether plan file exists
+  - `path`: Path to plan file
+  - `analysis`: Extracted tasks, decisions, and progress (if file exists)
+- `system_prompt`: Complete system prompt instructions (if requested)
+- `recommendations`: Phase-specific next steps and guidance
+  - `immediate_actions`: Recommended next actions
+  - `phase_guidance`: Current phase-specific guidance
+  - `potential_issues`: Potential issues to be aware of
+- `generated_at`: Timestamp when response was generated
+- `tool_version`: Tool version for compatibility tracking
+
+**Usage:**
+```javascript
+// Get complete workflow resumption info (recommended)
+resume_workflow()
+
+// Get workflow info without system prompt
+resume_workflow({ include_system_prompt: false })
+
+// Get workflow info with verbose system prompt
+resume_workflow({ simple_prompt: false })
+```
+
+**When to use:**
+- **After conversation compression** when you need to re-establish development context
+- **Starting new development sessions** to understand current project state
+- **Debugging workflow issues** to see complete project context
+- **Onboarding to existing projects** to understand current development status
+
 ### Prompts
 
 #### `phase-guidance`
