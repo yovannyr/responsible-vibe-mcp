@@ -151,6 +151,7 @@
 - [x] Ensure documentation is complete and accurate
 - [x] Verify test coverage is comprehensive
 - [x] Check for any performance issues
+- [x] Update CUSTOM_STATE_MACHINE.md with correct schema and Anthropic workflow example
 
 #### Completed
 
@@ -162,6 +163,10 @@
 - [x] Confirmed documentation is comprehensive and covers all aspects
 - [x] Verified test coverage includes unit tests and integration tests
 - [x] Identified potential performance improvements for future optimization
+- [x] Updated CUSTOM_STATE_MACHINE.md with corrected schema matching TypeScript implementation
+- [x] Replaced obsolete simple example with comprehensive Anthropic "Explore-Plan-Code-Commit" workflow
+- [x] Added detailed instructions, thinking triggers, and subagent support to state machine example
+- [x] Committed updated documentation with comprehensive improvements
 
 #### Recommendations
 
