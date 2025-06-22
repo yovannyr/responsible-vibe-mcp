@@ -395,8 +395,11 @@ direct_transitions:
 
       await fs.writeFile(path.join(vibeDir, 'state-machine.yaml'), customWorkflow);
 
-      // Start development with custom state machine
-      const start = await client.callTool('start_development', {});
+      // Start development with custom state machine using whats_next
+      const start = await client.callTool('whats_next', {
+        user_input: 'start agile sprint development',
+        context: 'new feature request'
+      });
       const startResponse = assertToolSuccess(start);
       
       // The server may start at any valid phase in the custom state machine

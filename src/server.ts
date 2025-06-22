@@ -213,6 +213,43 @@ export class VibeFeatureMCPServer {
       }
     );
 
+    // start_development tool
+    this.server.registerTool(
+      'start_development',
+      {
+        description: 'Initialize development workflow and transition to the initial development phase. This should be called at the beginning of a new development session.',
+        inputSchema: {},
+        annotations: {
+          title: 'Development Initializer',
+          readOnlyHint: false,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false
+        }
+      },
+      async (args) => {
+        try {
+          const result = await this.handleStartDevelopment(args);
+          return {
+            content: [{
+              type: 'text' as const,
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error('start_development tool execution failed', error as Error);
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Error: ${errorMessage}`
+            }],
+            isError: true
+          };
+        }
+      }
+    );
+
     // resume_workflow tool
     this.server.registerTool(
       'resume_workflow',
@@ -409,7 +446,7 @@ export class VibeFeatureMCPServer {
           });
           
           // Force regeneration of plan file with new phase structure
-          await this.planManager.regeneratePlanFile(
+          await this.planManager.ensurePlanFile(
             conversationContext.planFilePath,
             conversationContext.projectPath,
             conversationContext.gitBranch
@@ -553,6 +590,72 @@ export class VibeFeatureMCPServer {
 
     } catch (error) {
       logger.error('proceed_to_phase tool execution failed', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle start_development tool calls
+   * Made public for direct testing access
+   */
+  public async handleStartDevelopment(args: any): Promise<any> {
+    try {
+      logger.debug('Processing start_development request', args);
+      
+      // Get current conversation state
+      const conversationContext = await this.conversationManager.getConversationContext();
+      const currentPhase = conversationContext.currentPhase;
+      
+      // Get the state machine to determine the initial phase
+      const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath);
+      const initialState = stateMachine.initial_state;
+      
+      // Check if development is already started
+      if (currentPhase !== initialState) {
+        throw new Error(`Development already started. Current phase is '${currentPhase}', not initial state '${initialState}'. Use whats_next() to continue development.`);
+      }
+      
+      // The initial state IS the first development phase - it's explicitly modeled
+      const targetPhase = initialState;
+      
+      // Transition to the initial development phase
+      const transitionResult = await this.transitionEngine.handleExplicitTransition(
+        currentPhase,
+        targetPhase,
+        conversationContext.projectPath,
+        'Development initialization'
+      );
+      
+      // Update conversation state
+      await this.conversationManager.updateConversationState(
+        conversationContext.conversationId,
+        { currentPhase: transitionResult.newPhase }
+      );
+      
+      // Ensure plan file exists
+      await this.planManager.ensurePlanFile(
+        conversationContext.planFilePath,
+        conversationContext.projectPath,
+        conversationContext.gitBranch
+      );
+      
+      const response = {
+        phase: transitionResult.newPhase,
+        instructions: transitionResult.instructions,
+        plan_file_path: conversationContext.planFilePath,
+        conversation_id: conversationContext.conversationId
+      };
+      
+      // Log interaction
+      if (this.interactionLogger) {
+        await this.interactionLogger.logInteraction(conversationContext.conversationId, 'start_development', args, response, transitionResult.newPhase);
+      }
+      
+      logger.debug('start_development response generated', response);
+      return response;
+      
+    } catch (error) {
+      logger.error('start_development tool execution failed', error as Error);
       throw error;
     }
   }
