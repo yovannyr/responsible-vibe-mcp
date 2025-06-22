@@ -29,7 +29,7 @@ export interface TransitionResult {
 
 export class TransitionEngine {
   private stateMachineLoader: StateMachineLoader;
-  private conversationManager: any; // Will be injected
+  private conversationManager?: { hasInteractions: (conversationId: string) => Promise<boolean> };
   
   constructor(projectPath: string) {
     this.stateMachineLoader = new StateMachineLoader();
@@ -41,7 +41,7 @@ export class TransitionEngine {
   /**
    * Set the conversation manager (dependency injection)
    */
-  setConversationManager(conversationManager: any) {
+  setConversationManager(conversationManager: { hasInteractions: (conversationId: string) => Promise<boolean> }) {
     this.conversationManager = conversationManager;
   }
   
@@ -63,6 +63,11 @@ export class TransitionEngine {
     if (!isInitialState) return false;
     
     // Check database for any previous interactions in this conversation
+    if (!this.conversationManager) {
+      logger.warn('ConversationManager not set, assuming first call');
+      return true;
+    }
+
     const hasInteractions = await this.conversationManager.hasInteractions(context.conversationId);
     
     logger.debug('Checking first call from initial state', {
