@@ -62,6 +62,7 @@ export class VibeFeatureMCPServer {
     this.database = new Database(this.projectPath);
     this.conversationManager = new ConversationManager(this.database, this.projectPath);
     this.transitionEngine = new TransitionEngine(this.projectPath);
+    this.transitionEngine.setConversationManager(this.conversationManager);
     this.planManager = new PlanManager();
     this.instructionGenerator = new InstructionGenerator(this.planManager);
     
@@ -382,13 +383,14 @@ export class VibeFeatureMCPServer {
       );
 
       // Analyze phase transition
-      const transitionResult = this.transitionEngine.analyzePhaseTransition({
+      const transitionResult = await this.transitionEngine.analyzePhaseTransition({
         currentPhase,
         projectPath: conversationContext.projectPath,
         userInput: user_input,
         context,
         conversationSummary: conversation_summary,
-        recentMessages: recent_messages
+        recentMessages: recent_messages,
+        conversationId: conversationContext.conversationId
       });
 
       // Update conversation state if phase changed
@@ -397,6 +399,23 @@ export class VibeFeatureMCPServer {
           conversationId,
           { currentPhase: transitionResult.newPhase }
         );
+        
+        // If this was a first-call auto-transition, regenerate the plan file to reflect the new phase
+        if (transitionResult.transitionReason.includes('Starting development - defining criteria')) {
+          logger.info('Regenerating plan file after first-call auto-transition', {
+            from: currentPhase,
+            to: transitionResult.newPhase,
+            planFilePath: conversationContext.planFilePath
+          });
+          
+          // Force regeneration of plan file with new phase structure
+          await this.planManager.regeneratePlanFile(
+            conversationContext.planFilePath,
+            conversationContext.projectPath,
+            conversationContext.gitBranch
+          );
+        }
+        
         logger.info('Phase transition completed', {
           from: currentPhase,
           to: transitionResult.newPhase,

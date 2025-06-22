@@ -13,6 +13,7 @@ const logger = createLogger('TransitionEngine');
 export interface TransitionContext {
   currentPhase: string;
   projectPath: string;
+  conversationId: string;
   userInput?: string;
   context?: string;
   conversationSummary?: string;
@@ -28,12 +29,20 @@ export interface TransitionResult {
 
 export class TransitionEngine {
   private stateMachineLoader: StateMachineLoader;
+  private conversationManager: any; // Will be injected
   
   constructor(projectPath: string) {
     this.stateMachineLoader = new StateMachineLoader();
     this.stateMachineLoader.loadStateMachine(projectPath);
     
     logger.info('TransitionEngine initialized', { projectPath });
+  }
+  
+  /**
+   * Set the conversation manager (dependency injection)
+   */
+  setConversationManager(conversationManager: any) {
+    this.conversationManager = conversationManager;
   }
   
   /**
@@ -45,18 +54,25 @@ export class TransitionEngine {
   }
 
   /**
-   * Check if this is the first call from initial state and criteria need to be defined
+   * Check if this is the first call from initial state based on database interactions
    */
-  private isFirstCallFromInitialState(context: TransitionContext): boolean {
+  private async isFirstCallFromInitialState(context: TransitionContext): Promise<boolean> {
     const stateMachine = this.stateMachineLoader.loadStateMachine(context.projectPath);
     const isInitialState = context.currentPhase === stateMachine.initial_state;
     
-    // Check if this appears to be the very first interaction
-    // (no conversation summary and minimal context)
-    const isFirstInteraction = !context.conversationSummary || 
-                              context.conversationSummary.trim().length < 50;
+    if (!isInitialState) return false;
     
-    return isInitialState && isFirstInteraction;
+    // Check database for any previous interactions in this conversation
+    const hasInteractions = await this.conversationManager.hasInteractions(context.conversationId);
+    
+    logger.debug('Checking first call from initial state', {
+      isInitialState,
+      hasInteractions,
+      conversationId: context.conversationId,
+      currentPhase: context.currentPhase
+    });
+    
+    return !hasInteractions;
   }
 
   /**
@@ -103,18 +119,34 @@ Once you've defined these criteria, we can begin development. Throughout the pro
   }
 
   /**
-   * Capitalize phase name for display
+   * Get the first development phase from the state machine
    */
-  private capitalizePhase(phase: string): string {
-    return phase.split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  private getFirstDevelopmentPhase(projectPath: string): string {
+    const stateMachine = this.stateMachineLoader.loadStateMachine(projectPath);
+    const initialState = stateMachine.initial_state;
+    
+    // Find the first transition from initial state
+    const initialStateDefinition = stateMachine.states[initialState];
+    if (initialStateDefinition.transitions && initialStateDefinition.transitions.length > 0) {
+      return initialStateDefinition.transitions[0].to;
+    }
+    
+    // Fallback: return first non-initial state
+    const phases = Object.keys(stateMachine.states);
+    const firstNonInitialPhase = phases.find(phase => phase !== initialState);
+    
+    if (!firstNonInitialPhase) {
+      logger.warn('No development phases found, staying in initial state', { initialState, phases });
+      return initialState;
+    }
+    
+    return firstNonInitialPhase;
   }
   
   /**
    * Analyze context and determine appropriate phase transition
    */
-  analyzePhaseTransition(context: TransitionContext): TransitionResult {
+  async analyzePhaseTransition(context: TransitionContext): Promise<TransitionResult> {
     const { currentPhase, projectPath, userInput, context: additionalContext, conversationSummary } = context;
     
     // Reload state machine for this specific project/conversation
@@ -129,18 +161,25 @@ Once you've defined these criteria, we can begin development. Throughout the pro
       userInput: userInput ? userInput.substring(0, 50) + (userInput.length > 50 ? '...' : '') : undefined
     });
 
-    // Check if this is the first call from initial state - need to define criteria
-    if (this.isFirstCallFromInitialState(context)) {
-      logger.info('First call from initial state - generating criteria definition instructions', {
+    // Check if this is the first call from initial state - transition to first development phase
+    if (await this.isFirstCallFromInitialState(context)) {
+      const firstDevelopmentPhase = this.getFirstDevelopmentPhase(projectPath);
+      
+      logger.info('First call from initial state - transitioning to first development phase with criteria', {
         currentPhase,
+        firstDevelopmentPhase,
         projectPath
       });
       
+      // Combine criteria definition with first phase instructions
+      const criteriaInstructions = this.generateCriteriaDefinitionInstructions(projectPath);
+      const phaseInstructions = this.stateMachineLoader.getContinuePhaseInstructions(firstDevelopmentPhase);
+      
       return {
-        newPhase: currentPhase, // Stay in current phase
-        instructions: this.generateCriteriaDefinitionInstructions(projectPath),
-        transitionReason: "First interaction - need to define phase entrance criteria",
-        isModeled: false
+        newPhase: firstDevelopmentPhase, // Transition to first development phase
+        instructions: criteriaInstructions + "\n\n---\n\n" + phaseInstructions,
+        transitionReason: "Starting development - defining criteria and beginning first phase",
+        isModeled: true
       };
     }
 
@@ -206,5 +245,14 @@ Once you've defined these criteria, we can begin development. Throughout the pro
       transitionReason: reason || transitionInfo.transitionReason,
       isModeled: transitionInfo.isModeled
     };
+  }
+
+  /**
+   * Capitalize phase name for display
+   */
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

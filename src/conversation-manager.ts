@@ -219,4 +219,27 @@ export class ConversationManager {
       return 'default';
     }
   }
+
+  /**
+   * Check if a conversation has any previous interactions
+   * Used to determine if this is the first interaction in a conversation
+   */
+  async hasInteractions(conversationId: string): Promise<boolean> {
+    try {
+      // Use the private getRow method through a public interface
+      const result = await (this.database as any).getRow(
+        'SELECT COUNT(*) as count FROM interaction_logs WHERE conversation_id = ?',
+        [conversationId]
+      );
+      
+      const count = result?.count || 0;
+      logger.debug('Checked interaction count for conversation', { conversationId, count });
+      
+      return count > 0;
+    } catch (error) {
+      logger.error('Failed to check interaction count', error as Error, { conversationId });
+      // If we can't check, assume this is the first interaction to be safe
+      return false;
+    }
+  }
 }

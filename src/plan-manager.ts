@@ -144,15 +144,9 @@ export class PlanManager {
 
 `;
 
-    // Generate sections for each phase (excluding the initial phase since it's covered in Current Status)
+    // Generate sections for each phase
     phases.forEach((phase, index) => {
       const phaseDescription = this.stateMachine!.states[phase].description;
-      const isInitialPhase = phase === initialPhase;
-      
-      // Skip the initial phase since it's already covered in Current Status
-      if (isInitialPhase) {
-        return;
-      }
       
       content += `## ${this.capitalizePhase(phase)}
 
