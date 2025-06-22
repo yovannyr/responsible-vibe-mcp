@@ -49,7 +49,7 @@ describe('MCP Contract Validation', () => {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         ...process.env,
-        VIBE_FEATURE_LOG_LEVEL: 'ERROR' // Reduce log noise during tests
+        LOG_LEVEL: 'ERROR' // Reduce log noise during tests
       }
     });
 
@@ -61,7 +61,7 @@ describe('MCP Contract Validation', () => {
         cwd: tempProject.projectPath,
         env: {
           ...process.env,
-          VIBE_FEATURE_LOG_LEVEL: 'ERROR'
+          LOG_LEVEL: 'ERROR'
         }
       }
     });

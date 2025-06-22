@@ -37,7 +37,7 @@ export async function startTestServer(options: {
     args: [tsxModule, serverPath],
     env: {
       ...process.env,
-      VIBE_FEATURE_LOG_LEVEL: options.logLevel || 'ERROR', // Reduce noise in tests
+      LOG_LEVEL: options.logLevel || 'ERROR', // Reduce noise in tests
       NODE_ENV: 'test'
     },
     cwd: tempDir // Set working directory to the test project

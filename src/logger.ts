@@ -33,7 +33,7 @@ class Logger {
   }
 
   private getLogLevelFromEnv(): LogLevel | null {
-    const envLevel = process.env.VIBE_FEATURE_LOG_LEVEL?.toUpperCase();
+    const envLevel = process.env.LOG_LEVEL?.toUpperCase();
     switch (envLevel) {
       case 'DEBUG': return LogLevel.DEBUG;
       case 'INFO': return LogLevel.INFO;

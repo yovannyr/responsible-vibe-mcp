@@ -13,20 +13,20 @@ The server uses four log levels following standard practices:
 
 ## Configuration
 
-Set the log level using the `VIBE_FEATURE_LOG_LEVEL` environment variable:
+Set the log level using the `LOG_LEVEL` environment variable:
 
 ```bash
 # Debug level (most verbose)
-export VIBE_FEATURE_LOG_LEVEL=DEBUG
+export LOG_LEVEL=DEBUG
 
 # Info level (default)
-export VIBE_FEATURE_LOG_LEVEL=INFO
+export LOG_LEVEL=INFO
 
 # Warning level
-export VIBE_FEATURE_LOG_LEVEL=WARN
+export LOG_LEVEL=WARN
 
 # Error level only
-export VIBE_FEATURE_LOG_LEVEL=ERROR
+export LOG_LEVEL=ERROR
 ```
 
 ## Log Format
@@ -57,17 +57,17 @@ The server logs from these main components:
 
 ### Development with Debug Logging
 ```bash
-VIBE_FEATURE_LOG_LEVEL=DEBUG npx tsx src/index.ts
+LOG_LEVEL=DEBUG npx tsx src/index.ts
 ```
 
 ### Production with Info Logging
 ```bash
-VIBE_FEATURE_LOG_LEVEL=INFO node dist/index.js
+LOG_LEVEL=INFO node dist/index.js
 ```
 
 ### Testing with Debug Logging
 ```bash
-VIBE_FEATURE_LOG_LEVEL=DEBUG npm test
+LOG_LEVEL=DEBUG npm test
 ```
 
 ## Log Context
@@ -108,7 +108,7 @@ Monitor `PlanManager` logs:
 When using the MCP Inspector for debugging, set debug logging to see detailed protocol interactions:
 
 ```bash
-VIBE_FEATURE_LOG_LEVEL=DEBUG npx @modelcontextprotocol/inspector npx tsx src/index.ts
+LOG_LEVEL=DEBUG npx @modelcontextprotocol/inspector npx tsx src/index.ts
 ```
 
 ## Performance Monitoring

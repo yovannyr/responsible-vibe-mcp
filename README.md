@@ -309,14 +309,14 @@ The server includes comprehensive logging with configurable levels for debugging
 - **ERROR**: Caught but unexpected errors
 
 ### Configuration
-Set the log level using the `VIBE_FEATURE_LOG_LEVEL` environment variable:
+Set the log level using the `LOG_LEVEL` environment variable:
 
 ```bash
 # Debug level (most verbose)
-VIBE_FEATURE_LOG_LEVEL=DEBUG npx tsx src/index.ts
+LOG_LEVEL=DEBUG npx tsx src/index.ts
 
 # Production level
-VIBE_FEATURE_LOG_LEVEL=INFO node dist/index.js
+LOG_LEVEL=INFO node dist/index.js
 ```
 
 ### Log Components
