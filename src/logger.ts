@@ -1,12 +1,17 @@
 /**
  * Logging utility for Vibe Feature MCP Server
  * 
- * Provides structured logging with proper levels:
- * - debug: Tracing and detailed execution flow
- * - info: Success operations and important milestones
- * - warn: Expected errors and recoverable issues
- * - error: Caught but unexpected errors
+ * Provides structured logging with proper MCP compliance:
+ * - Uses stderr for all local logging (MCP requirement)
+ * - Supports MCP log message notifications to client
+ * - Provides structured logging with proper levels:
+ *   - debug: Tracing and detailed execution flow
+ *   - info: Success operations and important milestones
+ *   - warn: Expected errors and recoverable issues
+ *   - error: Caught but unexpected errors
  */
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -21,6 +26,16 @@ export interface LogContext {
   phase?: string;
   operation?: string;
   [key: string]: any;
+}
+
+// Global MCP server reference for log notifications
+let mcpServerInstance: McpServer | null = null;
+
+/**
+ * Set the MCP server instance for log notifications
+ */
+export function setMcpServerForLogging(server: McpServer): void {
+  mcpServerInstance = server;
 }
 
 class Logger {
@@ -53,28 +68,129 @@ class Logger {
     return `[${timestamp}] ${level.toUpperCase()} [${this.component}] ${message}${contextStr}`;
   }
 
+  /**
+   * Send log message to MCP client if server is available
+   */
+  private async sendMcpLogMessage(level: 'debug' | 'info' | 'warning' | 'error', message: string, context?: LogContext): Promise<void> {
+    if (mcpServerInstance) {
+      try {
+        const logData = context ? `${message} ${JSON.stringify(context)}` : message;
+        await mcpServerInstance.server.notification({
+          method: 'notifications/message',
+          params: {
+            level,
+            logger: this.component,
+            data: logData
+          }
+        });
+      } catch (error) {
+        // Fallback to stderr if MCP notification fails
+        // Don't use this.error to avoid infinite recursion
+        process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`);
+      }
+    }
+  }
+
   debug(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
-      console.debug(this.formatMessage('debug', message, context));
+      const formattedMessage = this.formatMessage('debug', message, context);
+      // Always log to stderr for MCP compliance
+      process.stderr.write(formattedMessage + '\n');
+      // Also send to MCP client if available (only for debug level)
+      this.sendMcpLogMessage('debug', message, context).catch(() => {
+        // Ignore MCP notification errors for debug messages
+      });
     }
   }
 
   info(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.INFO)) {
-      console.info(this.formatMessage('info', message, context));
+      const formattedMessage = this.formatMessage('info', message, context);
+      // Always log to stderr for MCP compliance
+      process.stderr.write(formattedMessage + '\n');
+      
+      // Send enhanced notifications for important events
+      this.sendEnhancedMcpNotification('info', message, context).catch(() => {
+        // Ignore MCP notification errors for info messages
+      });
     }
+  }
+
+  /**
+   * Send enhanced MCP notifications with better formatting for important events
+   */
+  private async sendEnhancedMcpNotification(level: 'debug' | 'info' | 'warning' | 'error', message: string, context?: LogContext): Promise<void> {
+    if (mcpServerInstance) {
+      try {
+        let enhancedMessage = message;
+        let notificationLevel = level;
+        
+        // Enhance phase transition messages
+        if (context && (context.from || context.to) && message.includes('transition')) {
+          const from = context.from ? this.capitalizePhase(context.from as string) : '';
+          const to = context.to ? this.capitalizePhase(context.to as string) : '';
+          if (from && to) {
+            enhancedMessage = `Phase Transition: ${from} → ${to}`;
+            notificationLevel = 'info';
+          }
+        }
+        
+        // Enhance initialization messages
+        if (message.includes('initialized successfully')) {
+          enhancedMessage = '🚀 Vibe Feature MCP Server Ready';
+          notificationLevel = 'info';
+        }
+        
+        const logData = context ? `${enhancedMessage} ${JSON.stringify(context)}` : enhancedMessage;
+        
+        // Use the underlying server's notification method
+        await mcpServerInstance.server.notification({
+          method: 'notifications/message',
+          params: {
+            level: notificationLevel,
+            logger: this.component,
+            data: logData
+          }
+        });
+      } catch (error) {
+        // Fallback to stderr if MCP notification fails
+        // Don't use this.error to avoid infinite recursion
+        process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`);
+      }
+    }
+  }
+
+  /**
+   * Capitalize phase name for display
+   */
+  private capitalizePhase(phase: string): string {
+    return phase.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   warn(message: string, context?: LogContext): void {
     if (this.shouldLog(LogLevel.WARN)) {
-      console.warn(this.formatMessage('warn', message, context));
+      const formattedMessage = this.formatMessage('warn', message, context);
+      // Always log to stderr for MCP compliance
+      process.stderr.write(formattedMessage + '\n');
+      // Also send to MCP client if available
+      this.sendEnhancedMcpNotification('warning', message, context).catch(() => {
+        // Ignore MCP notification errors for warn messages
+      });
     }
   }
 
   error(message: string, error?: Error, context?: LogContext): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       const errorContext = error ? { ...context, error: error.message, stack: error.stack } : context;
-      console.error(this.formatMessage('error', message, errorContext));
+      const formattedMessage = this.formatMessage('error', message, errorContext);
+      // Always log to stderr for MCP compliance
+      process.stderr.write(formattedMessage + '\n');
+      // Also send to MCP client if available
+      this.sendEnhancedMcpNotification('error', message, errorContext).catch(() => {
+        // Ignore MCP notification errors for error messages
+      });
     }
   }
 

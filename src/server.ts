@@ -15,7 +15,7 @@ import { InstructionGenerator } from './instruction-generator.js';
 import { PlanManager } from './plan-manager.js';
 import { InteractionLogger } from './interaction-logger.js';
 import { generateSystemPrompt } from './system-prompt-generator.js';
-import { createLogger } from './logger.js';
+import { createLogger, setMcpServerForLogging } from './logger.js';
 
 const logger = createLogger('Server');
 
@@ -53,7 +53,7 @@ export class VibeFeatureMCPServer {
     
     // Initialize MCP server
     this.server = new McpServer({
-      name: 'vibe-feature-mcp',
+      name: 'responsible-vibe-mcp',
       version: '1.0.0'
     });
 
@@ -497,6 +497,7 @@ export class VibeFeatureMCPServer {
       return response;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('whats_next tool execution failed', error as Error);
       throw error;
     }
@@ -589,6 +590,7 @@ export class VibeFeatureMCPServer {
       return response;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       logger.error('proceed_to_phase tool execution failed', error as Error);
       throw error;
     }
@@ -879,21 +881,23 @@ export class VibeFeatureMCPServer {
     return recommendations;
   }
 
-  /**
-   * Capitalize phase name for display
-   */
-  private capitalizePhase(phase: string): string {
-    return phase.split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
+
+
+
 
   /**
    * Initialize the server (setup database, etc.)
    */
   public async initialize(): Promise<void> {
     logger.debug('Initializing server components');
+    
+    // Register MCP server for logging notifications
+    setMcpServerForLogging(this.server);
+    
     await this.database.initialize();
+    
+    // Initialization success will be logged automatically by the logger
+    
     logger.info('Server initialization completed');
   }
 
