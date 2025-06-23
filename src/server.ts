@@ -290,6 +290,46 @@ export class VibeFeatureMCPServer {
         }
       }
     );
+
+    // reset_development tool
+    this.server.registerTool(
+      'reset_development',
+      {
+        description: 'Reset conversation state and development progress. This permanently deletes conversation state and plan file, while soft-deleting interaction logs for audit trail. Requires explicit confirmation.',
+        inputSchema: {
+          confirm: z.boolean().describe('Must be true to execute reset - prevents accidental resets'),
+          reason: z.string().optional().describe('Optional reason for reset (for logging and audit trail)')
+        },
+        annotations: {
+          title: 'Development Reset Tool',
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: false
+        }
+      },
+      async (args) => {
+        try {
+          const result = await this.handleResetDevelopment(args);
+          return {
+            content: [{
+              type: 'text' as const,
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logger.error('reset_development tool execution failed', error as Error);
+          return {
+            content: [{
+              type: 'text' as const,
+              text: `Error resetting development: ${errorMessage}`
+            }],
+            isError: true
+          };
+        }
+      }
+    );
   }
 
   /**
@@ -732,6 +772,45 @@ export class VibeFeatureMCPServer {
       return response;
     } catch (error) {
       logger.error('resume_workflow tool execution failed', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle reset_development tool calls
+   * Made public for direct testing access
+   */
+  public async handleResetDevelopment(args: any): Promise<any> {
+    try {
+      logger.debug('Processing reset_development request', args);
+      
+      const confirm = args.confirm;
+      const reason = args.reason;
+      
+      // Validate parameters
+      if (typeof confirm !== 'boolean') {
+        throw new Error('confirm parameter must be a boolean');
+      }
+      
+      if (!confirm) {
+        throw new Error('Reset operation requires explicit confirmation. Set confirm parameter to true.');
+      }
+      
+      // Ensure state machine is loaded for current project
+      this.ensureStateMachineForProject(this.projectPath);
+      
+      // Perform the reset
+      const result = await this.conversationManager.resetConversation(confirm, reason);
+      
+      logger.info('Reset development completed successfully', {
+        conversationId: result.conversationId,
+        resetItems: result.resetItems,
+        reason
+      });
+      
+      return result;
+    } catch (error) {
+      logger.error('reset_development tool execution failed', error as Error);
       throw error;
     }
   }

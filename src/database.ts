@@ -72,6 +72,8 @@ export class Database {
           response_data TEXT NOT NULL,
           current_phase TEXT NOT NULL,
           timestamp TEXT NOT NULL,
+          is_reset BOOLEAN DEFAULT FALSE,
+          reset_at TEXT,
           FOREIGN KEY (conversation_id) REFERENCES conversation_states(conversation_id)
         )
       `);
@@ -81,6 +83,9 @@ export class Database {
         CREATE INDEX IF NOT EXISTS idx_interaction_conversation_id 
         ON interaction_logs(conversation_id)
       `);
+
+      // Run migrations to add soft delete columns if they don't exist
+      await this.runMigrations();
       
       logger.info('Database initialized successfully', { dbPath: this.dbPath });
     } catch (error) {
@@ -330,6 +335,130 @@ export class Database {
       return logs;
     } catch (error) {
       logger.error('Failed to get interaction logs', error as Error, { conversationId });
+      throw error;
+    }
+  }
+
+  /**
+   * Run database migrations to add new columns
+   */
+  private async runMigrations(): Promise<void> {
+    logger.debug('Running database migrations');
+    
+    try {
+      // Check if soft delete columns exist in interaction_logs table
+      const tableInfo = await this.getAllRows("PRAGMA table_info(interaction_logs)");
+      const hasIsReset = tableInfo.some((col: any) => col.name === 'is_reset');
+      const hasResetAt = tableInfo.some((col: any) => col.name === 'reset_at');
+      
+      if (!hasIsReset) {
+        logger.info('Adding is_reset column to interaction_logs table');
+        await this.runQuery('ALTER TABLE interaction_logs ADD COLUMN is_reset BOOLEAN DEFAULT FALSE');
+      }
+      
+      if (!hasResetAt) {
+        logger.info('Adding reset_at column to interaction_logs table');
+        await this.runQuery('ALTER TABLE interaction_logs ADD COLUMN reset_at TEXT');
+      }
+      
+      logger.debug('Database migrations completed successfully');
+    } catch (error) {
+      logger.error('Failed to run database migrations', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Soft delete interaction logs for a conversation
+   */
+  async softDeleteInteractionLogs(conversationId: string, reason?: string): Promise<void> {
+    logger.debug('Soft deleting interaction logs', { conversationId, reason });
+    
+    try {
+      const resetAt = new Date().toISOString();
+      await this.runQuery(
+        'UPDATE interaction_logs SET is_reset = TRUE, reset_at = ? WHERE conversation_id = ? AND is_reset = FALSE',
+        [resetAt, conversationId]
+      );
+      
+      logger.info('Interaction logs soft deleted successfully', { 
+        conversationId, 
+        reason,
+        resetAt 
+      });
+    } catch (error) {
+      logger.error('Failed to soft delete interaction logs', error as Error, { conversationId });
+      throw error;
+    }
+  }
+
+  /**
+   * Get active (non-reset) interaction logs for a conversation
+   */
+  async getActiveInteractionLogs(conversationId: string): Promise<InteractionLog[]> {
+    logger.debug('Getting active interaction logs', { conversationId });
+    
+    try {
+      const rows = await this.getAllRows(
+        'SELECT * FROM interaction_logs WHERE conversation_id = ? AND (is_reset = FALSE OR is_reset IS NULL) ORDER BY timestamp ASC',
+        [conversationId]
+      );
+
+      const logs: InteractionLog[] = rows.map(row => ({
+        id: row.id,
+        conversationId: row.conversation_id,
+        toolName: row.tool_name,
+        inputParams: row.input_params,
+        responseData: row.response_data,
+        currentPhase: row.current_phase,
+        timestamp: row.timestamp
+      }));
+      
+      logger.debug('Retrieved active interaction logs', { 
+        conversationId,
+        count: logs.length
+      });
+      
+      return logs;
+    } catch (error) {
+      logger.error('Failed to get active interaction logs', error as Error, { conversationId });
+      throw error;
+    }
+  }
+
+  /**
+   * Get all interaction logs including reset ones for a conversation
+   */
+  async getAllInteractionLogsIncludingReset(conversationId: string): Promise<InteractionLog[]> {
+    logger.debug('Getting all interaction logs including reset', { conversationId });
+    
+    try {
+      const rows = await this.getAllRows(
+        'SELECT * FROM interaction_logs WHERE conversation_id = ? ORDER BY timestamp ASC',
+        [conversationId]
+      );
+
+      const logs: InteractionLog[] = rows.map(row => ({
+        id: row.id,
+        conversationId: row.conversation_id,
+        toolName: row.tool_name,
+        inputParams: row.input_params,
+        responseData: row.response_data,
+        currentPhase: row.current_phase,
+        timestamp: row.timestamp,
+        isReset: row.is_reset || false,
+        resetAt: row.reset_at
+      }));
+      
+      logger.debug('Retrieved all interaction logs including reset', { 
+        conversationId,
+        count: logs.length,
+        resetCount: logs.filter(log => log.isReset).length
+      });
+      
+      return logs;
+    } catch (error) {
+      logger.error('Failed to get all interaction logs including reset', error as Error, { conversationId });
       throw error;
     }
   }

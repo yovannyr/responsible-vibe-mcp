@@ -39,7 +39,7 @@ states:
     transitions:
       - trigger: "implementation_complete"
         to: "commit"
-        instructions: "Implementation complete! The code is working and meets the requirements. Now prepare to commit your changes and create a pull request with proper documentation if possible."
+        instructions: "Implementation complete! The code is working and meets the requirements. Update Plan, READMEs, changelogs, documentation. Commit the code with a clear explanation of what was implemented and why."
         transition_reason: "Implementation finished successfully"
 
       - trigger: "implementation_issues"
@@ -72,7 +72,7 @@ states:
 
       - trigger: "continue_commit_prep"
         to: "commit"
-        instructions: "Continue preparing the commit. Update READMEs, changelogs, documentation, and ensure the pull request has a clear explanation of what was implemented and why."
+        instructions: "Continue preparing the commit. Update Plan, READMEs, changelogs, documentation. Commit the code with a clear explanation of what was implemented and why."
         transition_reason: "Commit preparation in progress"
 
 direct_transitions:

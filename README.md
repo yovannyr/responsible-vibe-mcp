@@ -554,6 +554,49 @@ resume_workflow({ simple_prompt: false })
 - **Debugging workflow issues** to see complete project context
 - **Onboarding to existing projects** to understand current development status
 
+#### `reset_development`
+Tool for resetting conversation state and development progress. This permanently deletes conversation state and plan file, while soft-deleting interaction logs for audit trail.
+
+**Parameters:**
+- `confirm` (boolean, required): Must be true to execute reset - prevents accidental resets
+- `reason` (string, optional): Optional reason for reset (for logging and audit trail)
+
+**Returns:**
+- `success` (boolean): Whether reset was successful
+- `reset_items` (array): List of items that were deleted/reset
+- `conversation_id` (string): The conversation that was reset
+- `message` (string): Human-readable result message
+
+**Reset Behavior:**
+- **Hard deletes** current conversation state from database (fresh start)
+- **Soft deletes** interaction logs (marks as reset with timestamp for audit trail)
+- **Hard deletes** the plan file for the current conversation (clean slate)
+- Provides clean slate for fresh development start while maintaining reset history
+
+**Usage:**
+```javascript
+// Reset development with confirmation
+reset_development({ confirm: true })
+
+// Reset with reason for audit trail
+reset_development({ 
+  confirm: true, 
+  reason: "Starting new feature approach" 
+})
+```
+
+**When to use:**
+- **Starting over** when current development direction isn't working
+- **Switching approaches** when you want to try a completely different solution
+- **Cleaning up** after experimental or exploratory development
+- **Fresh start** when conversation state becomes too complex or confusing
+
+**Safety Features:**
+- Requires explicit `confirm: true` parameter to prevent accidental execution
+- Maintains audit trail through soft-deleted interaction logs
+- Comprehensive logging of all reset operations
+- Clear feedback about what was reset
+
 ### Prompts
 
 #### `phase-guidance`

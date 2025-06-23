@@ -15,6 +15,8 @@ export interface InteractionLog {
   responseData: string;
   currentPhase: string;
   timestamp: string;
+  isReset?: boolean;
+  resetAt?: string;
 }
 
 /**

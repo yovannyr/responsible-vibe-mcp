@@ -242,4 +242,124 @@ export class ConversationManager {
       return false;
     }
   }
+
+  /**
+   * Reset conversation data (hybrid approach)
+   */
+  async resetConversation(confirm: boolean, reason?: string): Promise<{
+    success: boolean;
+    resetItems: string[];
+    conversationId: string;
+    message: string;
+  }> {
+    logger.info('Starting conversation reset', { confirm, reason });
+    
+    // Validate reset request
+    this.validateResetRequest(confirm);
+    
+    const context = await this.getConversationContext();
+    const resetItems: string[] = [];
+    
+    try {
+      // Step 1: Soft delete interaction logs
+      await this.database.softDeleteInteractionLogs(context.conversationId, reason);
+      resetItems.push('interaction_logs');
+      logger.debug('Interaction logs soft deleted');
+      
+      // Step 2: Hard delete conversation state
+      await this.database.deleteConversationState(context.conversationId);
+      resetItems.push('conversation_state');
+      logger.debug('Conversation state hard deleted');
+      
+      // Step 3: Hard delete plan file
+      const { PlanManager } = await import('./plan-manager.js');
+      const planManager = new PlanManager();
+      await planManager.deletePlanFile(context.planFilePath);
+      resetItems.push('plan_file');
+      logger.debug('Plan file deleted');
+      
+      // Verify cleanup
+      await this.verifyResetCleanup(context.conversationId, context.planFilePath);
+      
+      const message = `Successfully reset conversation ${context.conversationId}. Reset items: ${resetItems.join(', ')}${reason ? `. Reason: ${reason}` : ''}`;
+      
+      logger.info('Conversation reset completed successfully', {
+        conversationId: context.conversationId,
+        resetItems,
+        reason
+      });
+      
+      return {
+        success: true,
+        resetItems,
+        conversationId: context.conversationId,
+        message
+      };
+      
+    } catch (error) {
+      logger.error('Failed to reset conversation', error as Error, {
+        conversationId: context.conversationId,
+        resetItems,
+        reason
+      });
+      
+      throw new Error(`Reset failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Validate reset request parameters
+   */
+  private validateResetRequest(confirm: boolean): void {
+    if (!confirm) {
+      throw new Error('Reset operation requires explicit confirmation. Set confirm parameter to true.');
+    }
+  }
+
+  /**
+   * Verify that reset cleanup was successful
+   */
+  private async verifyResetCleanup(conversationId: string, planFilePath: string): Promise<void> {
+    logger.debug('Verifying reset cleanup', { conversationId, planFilePath });
+    
+    try {
+      // Check that conversation state is deleted
+      const state = await this.database.getConversationState(conversationId);
+      if (state) {
+        throw new Error('Conversation state was not properly deleted');
+      }
+      
+      // Check that plan file is deleted
+      const { PlanManager } = await import('./plan-manager.js');
+      const planManager = new PlanManager();
+      const isDeleted = await planManager.ensurePlanFileDeleted(planFilePath);
+      if (!isDeleted) {
+        throw new Error('Plan file was not properly deleted');
+      }
+      
+      logger.debug('Reset cleanup verification successful');
+    } catch (error) {
+      logger.error('Reset cleanup verification failed', error as Error);
+      throw error;
+    }
+  }
+
+  /**
+   * Clean up conversation data (used internally)
+   */
+  async cleanupConversationData(conversationId: string): Promise<void> {
+    logger.debug('Cleaning up conversation data', { conversationId });
+    
+    try {
+      // This method can be used for additional cleanup if needed
+      // Currently, the main cleanup is handled by resetConversation
+      await this.database.softDeleteInteractionLogs(conversationId);
+      await this.database.deleteConversationState(conversationId);
+      
+      logger.debug('Conversation data cleanup completed', { conversationId });
+    } catch (error) {
+      logger.error('Failed to cleanup conversation data', error as Error, { conversationId });
+      throw error;
+    }
+  }
 }

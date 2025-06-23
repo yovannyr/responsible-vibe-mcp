@@ -225,7 +225,55 @@ export class PlanManager {
   }
 
   /**
-   * Generate default plan file guidance for standard phases
+   * Delete plan file
+   */
+  async deletePlanFile(planFilePath: string): Promise<boolean> {
+    logger.debug('Deleting plan file', { planFilePath });
+    
+    try {
+      // Check if file exists first
+      await access(planFilePath);
+      
+      // Import unlink dynamically to avoid issues
+      const { unlink } = await import('fs/promises');
+      await unlink(planFilePath);
+      
+      logger.info('Plan file deleted successfully', { planFilePath });
+      return true;
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        logger.debug('Plan file does not exist, nothing to delete', { planFilePath });
+        return true; // Consider it successful if file doesn't exist
+      }
+      
+      logger.error('Failed to delete plan file', error as Error, { planFilePath });
+      throw error;
+    }
+  }
+
+  /**
+   * Ensure plan file is deleted (verify deletion)
+   */
+  async ensurePlanFileDeleted(planFilePath: string): Promise<boolean> {
+    logger.debug('Ensuring plan file is deleted', { planFilePath });
+    
+    try {
+      await access(planFilePath);
+      // If we reach here, file still exists
+      logger.warn('Plan file still exists after deletion attempt', { planFilePath });
+      return false;
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        logger.debug('Plan file successfully deleted (does not exist)', { planFilePath });
+        return true;
+      }
+      
+      // Some other error occurred
+      logger.error('Error checking plan file deletion', error as Error, { planFilePath });
+      throw error;
+    }
+  }
+
   /**
    * Capitalize phase name for display
    */
