@@ -838,7 +838,7 @@ export class VibeFeatureMCPServer {
           phaseDefinition.transitions.forEach(transition => {
             const targetPhase = stateMachine.states[transition.to];
             const targetDescription = targetPhase ? targetPhase.description : transition.to;
-            recommendations.immediate_actions.push(`• ${this.capitalizePhase(transition.to)}: ${targetDescription}`);
+            recommendations.immediate_actions.push(`• ${transition.to}: ${targetDescription}`);
           });
 
           // Add instruction on how to transition

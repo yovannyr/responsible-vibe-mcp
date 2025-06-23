@@ -74,7 +74,18 @@ class Logger {
   private async sendMcpLogMessage(level: 'debug' | 'info' | 'warning' | 'error', message: string, context?: LogContext): Promise<void> {
     if (mcpServerInstance) {
       try {
-        const logData = context ? `${message} ${JSON.stringify(context)}` : message;
+        // Safely serialize context to avoid JSON issues
+        let logData = message;
+        if (context) {
+          try {
+            const contextStr = JSON.stringify(context, null, 0);
+            logData = `${message} ${contextStr}`;
+          } catch (jsonError) {
+            // If JSON serialization fails, just use the message
+            logData = `${message} [context serialization failed]`;
+          }
+        }
+        
         await mcpServerInstance.server.notification({
           method: 'notifications/message',
           params: {
@@ -141,7 +152,17 @@ class Logger {
           notificationLevel = 'info';
         }
         
-        const logData = context ? `${enhancedMessage} ${JSON.stringify(context)}` : enhancedMessage;
+        // Safely serialize context to avoid JSON issues
+        let logData = enhancedMessage;
+        if (context) {
+          try {
+            const contextStr = JSON.stringify(context, null, 0);
+            logData = `${enhancedMessage} ${contextStr}`;
+          } catch (jsonError) {
+            // If JSON serialization fails, just use the message
+            logData = `${enhancedMessage} [context serialization failed]`;
+          }
+        }
         
         // Use the underlying server's notification method
         await mcpServerInstance.server.notification({
