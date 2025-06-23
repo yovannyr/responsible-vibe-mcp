@@ -32,7 +32,7 @@ export class TestSuiteIsolation {
     if (!this.suiteDirectories.has(suiteName)) {
       // Create unique directory for this suite
       const suiteId = `${suiteName.replace(/[^a-zA-Z0-9]/g, '-')}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const suiteDir = join(tmpdir(), 'vibe-feature-e2e-suites', suiteId);
+      const suiteDir = join(tmpdir(), 'responsible-vibe-e2e-suites', suiteId);
       
       // Ensure directory exists
       mkdirSync(suiteDir, { recursive: true });

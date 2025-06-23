@@ -19,7 +19,7 @@ User: "implement auth"
   ↓
 LLM: calls whats_next()
   ↓
-Vibe-Feature-MCP: analyzes context → determines phase → returns instructions
+Responsible-Vibe-MCP: analyzes context → determines phase → returns instructions
   ↓
 LLM: follows instructions → interacts with user → updates plan file
   ↓
@@ -53,7 +53,7 @@ graph TB
     end
     
     subgraph "Persistent Storage"
-        DBFILE[~/.vibe-feature-mcp/db.sqlite]
+        DBFILE[~/.responsible-vibe-mcp/db.sqlite]
         PF[Project Plan Files]
         GIT[Git Repository Context]
     end
@@ -163,7 +163,7 @@ The database provides persistent storage for conversation state and metadata.
 
 **Key Features:**
 - **Persistent State**: Survives server restarts and system reboots
-- **Multi-User Support**: Stored in user's home directory (~/.vibe-feature-mcp/)
+- **Multi-User Support**: Stored in user's home directory (~/.responsible-vibe-mcp/)
 - **Lightweight Storage**: Minimal overhead for state management
 - **Atomic Updates**: Ensures data consistency during concurrent operations
 
@@ -383,7 +383,7 @@ The server ensures the LLM maintains a living development plan document:
 
 ### How Users Advance Through Development Phases
 
-The vibe-feature-mcp server guides users through a structured development process using a two-tool approach that gives users full control over phase transitions:
+The responsible-vibe-mcp server guides users through a structured development process using a two-tool approach that gives users full control over phase transitions:
 
 #### 1. **Continuous Guidance with `whats_next`**
 - LLM calls `whats_next()` after each user interaction
@@ -422,28 +422,28 @@ flowchart TD
 ```
 User: "I want to implement user authentication"
 LLM: *calls whats_next()*
-vibe-feature-mcp: "New feature detected. Starting requirements analysis. Ask the user clarifying questions about WHAT they need for authentication..."
+responsible-vibe-mcp: "New feature detected. Starting requirements analysis. Ask the user clarifying questions about WHAT they need for authentication..."
 ```
 
 #### Working Within a Phase
 ```
 LLM: *asks clarifying questions, updates plan file*
 LLM: *calls whats_next()*
-vibe-feature-mcp: "Continue requirements gathering. You still need to clarify password policies and session management..."
+responsible-vibe-mcp: "Continue requirements gathering. You still need to clarify password policies and session management..."
 ```
 
 #### Completing a Phase
 ```
 LLM: *completes all requirements tasks*
 LLM: *calls whats_next()*
-vibe-feature-mcp: "All requirements tasks are complete! ✅ You can proceed to design phase using 'proceed_to_phase' tool, or continue refining requirements if needed."
+responsible-vibe-mcp: "All requirements tasks are complete! ✅ You can proceed to design phase using 'proceed_to_phase' tool, or continue refining requirements if needed."
 ```
 
 #### Transitioning to Next Phase
 ```
 LLM: "Great! We've covered all authentication requirements. Let's move to design."
 LLM: *calls proceed_to_phase(target_phase: "design", reason: "requirements complete")*
-vibe-feature-mcp: "Transitioning to design phase. Help the user design the technical solution. Ask about architecture, technologies, and quality goals..."
+responsible-vibe-mcp: "Transitioning to design phase. Help the user design the technical solution. Ask about architecture, technologies, and quality goals..."
 ```
 
 ### Phase Completion Indicators
@@ -463,7 +463,7 @@ Users can always choose to:
 - **Go back**: Use `proceed_to_phase` to return to earlier phases if issues are discovered
 - **Skip ahead**: In rare cases, jump to later phases if earlier work is already done
 
-This approach ensures users maintain full control over the development process while receiving structured guidance from vibe-feature-mcp.
+This approach ensures users maintain full control over the development process while receiving structured guidance from responsible-vibe-mcp.
 
 ## API Reference
 
@@ -607,7 +607,7 @@ User: "I need to implement user authentication for my web app"
 
 LLM: *calls whats_next(context: "user wants auth", user_input: "implement user authentication")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "requirements",
   "instructions": "Analyze the user's authentication request. Ask clarifying questions about WHAT they need: What type of authentication? What user data? What security requirements? Break down their needs into specific tasks and add them to the development plan file at ./auth-feature-plan.md. Mark any completed requirements tasks as you progress.",
@@ -629,7 +629,7 @@ User: "I need email/password auth with optional Google login. Store email, name,
 
 LLM: *calls whats_next(context: "user clarified basic auth requirements", user_input: "email/password + Google, React/Node stack", conversation_summary: "User wants to implement authentication for web app, clarified basic requirements")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "requirements", 
   "instructions": "Continue gathering requirements. Ask about password policies, session management, user roles, forgot password flow, data validation. Update the plan file with detailed requirements. Mark basic requirements gathering as complete.",
@@ -652,7 +652,7 @@ User: "Standard password rules, 24-hour sessions, just basic user role for now, 
 
 LLM: *calls whats_next(context: "requirements seem complete", user_input: "password rules, 24h sessions, basic roles, forgot password, email validation")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "requirements",
   "instructions": "All requirements tasks are complete! ✅ You have documented: authentication type, user data, security requirements, tech stack, password policies, session management, user roles, and forgot password flow. You can proceed to design phase using 'proceed_to_phase' tool, or continue refining requirements if needed.",
@@ -665,7 +665,7 @@ LLM: "Perfect! We've covered all the authentication requirements comprehensively
 
 LLM: *calls proceed_to_phase(target_phase: "design", reason: "requirements complete")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "design",
   "instructions": "Help the user design the technical solution. Ask about database schema, API endpoints, security measures (JWT, bcrypt), third-party services for Google auth, error handling strategies. Ask about quality goals and specific technologies they prefer. Update the plan file with design decisions and mark completed requirements tasks as done.",
@@ -702,7 +702,7 @@ User: "Yes, looks good. Let's implement it."
 
 LLM: *calls whats_next(context: "design approved by user", user_input: "approved design, ready to implement")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "design",
   "instructions": "All design tasks are complete! ✅ You have defined the architecture, database schema, API endpoints, and security measures. You can proceed to implementation phase using 'proceed_to_phase' tool, or continue refining the design if needed.",
@@ -715,7 +715,7 @@ LLM: "Excellent! The design is solid and approved. Let's move to implementation.
 
 LLM: *calls proceed_to_phase(target_phase: "implementation", reason: "design complete and approved")*
 
-Vibe-Feature-MCP Response:
+Responsible-Vibe-MCP Response:
 {
   "phase": "implementation",
   "instructions": "Guide the user through implementing the authentication system. Start with backend setup (user model, middleware, API endpoints), then frontend components. Follow coding best practices, include proper error handling, and write basic tests. Update the plan file with implementation progress and mark completed design tasks.",
@@ -750,13 +750,13 @@ Here's the authentication middleware...
 
 ## LLM System Prompt Integration
 
-To properly integrate with vibe-feature-mcp, the LLM should be configured with a system prompt that establishes the interaction pattern. The key requirement for the stateless approach is that the LLM must provide conversation context when calling `whats_next()`.
+To properly integrate with responsible-vibe-mcp, the LLM should be configured with a system prompt that establishes the interaction pattern. The key requirement for the stateless approach is that the LLM must provide conversation context when calling `whats_next()`.
 
 ### Key Requirements for LLM Integration:
 
 1. **Always call whats_next() after user interactions**
 2. **Provide conversation context**: Include summary and recent messages
-3. **Follow instructions precisely** from vibe-feature-mcp
+3. **Follow instructions precisely** from responsible-vibe-mcp
 4. **Continuously update the plan file** as instructed
 5. **Mark completed tasks** when directed
 
@@ -768,7 +768,7 @@ When calling `whats_next()`, the LLM should provide:
 - **conversation_summary**: Summary of the conversation so far (optional but recommended)
 - **recent_messages**: Array of recent relevant messages (optional)
 
-This stateless approach ensures that vibe-feature-mcp can make informed decisions about phase transitions without storing potentially inconsistent conversation history.
+This stateless approach ensures that responsible-vibe-mcp can make informed decisions about phase transitions without storing potentially inconsistent conversation history.
 
 For a complete system prompt template, see [SYSTEM_PROMPT.md](./SYSTEM_PROMPT.md).
 

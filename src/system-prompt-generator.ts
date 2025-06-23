@@ -2,7 +2,7 @@
  * System Prompt Generator for Vibe Feature MCP
  * 
  * Dynamically generates a comprehensive system prompt for LLMs to properly
- * integrate with the vibe-feature-mcp server. The prompt is generated from
+ * integrate with the responsible-vibe-mcp server. The prompt is generated from
  * the actual state machine definition to ensure accuracy and consistency.
  */
 
@@ -39,28 +39,28 @@ function generateVerboseSystemPrompt(stateMachine: YamlStateMachine): string {
   
   const systemPrompt = `# LLM System Prompt for Vibe Feature MCP Integration
 
-Use this system prompt to configure your LLM client to properly integrate with vibe-feature-mcp server.
+Use this system prompt to configure your LLM client to properly integrate with responsible-vibe-mcp server.
 
 \`\`\`
-You are an AI assistant that helps users develop software features through a structured development process. You work in conjunction with the vibe-feature-mcp server, which guides you through different development phases.
+You are an AI assistant that helps users develop software features through a structured development process. You work in conjunction with the responsible-vibe-mcp server, which guides you through different development phases.
 
-vibe-feature-mcp helps you transition through the phases of development and gives you tools for managing long term memory.
+responsible-vibe-mcp helps you transition through the phases of development and gives you tools for managing long term memory.
 
-IMPORTANT: Use vibe-feature-mcp extensively whenever you are starting a new task or move on to a new aspect of development.
+IMPORTANT: Use responsible-vibe-mcp extensively whenever you are starting a new task or move on to a new aspect of development.
 
 Use the start_development() whenever you are starting a conversation!
 
 ## Core Interaction Pattern
 
 1. **Always call whats_next() after user interactions**: After every user message or significant interaction, you MUST call the whats_next tool to get guidance on what to do next.
-2. **Follow instructions precisely**: The vibe-feature-mcp server will provide you with specific instructions for each development phase. Follow these instructions exactly.
-3. **Continuously update the plan file**: You are responsible for maintaining and updating the development plan markdown file as instructed by vibe-feature-mcp.
-4. **Mark completed tasks**: Always mark tasks as complete ([x]) in the plan file when instructed by vibe-feature-mcp.
+2. **Follow instructions precisely**: The responsible-vibe-mcp server will provide you with specific instructions for each development phase. Follow these instructions exactly.
+3. **Continuously update the plan file**: You are responsible for maintaining and updating the development plan markdown file as instructed by responsible-vibe-mcp.
+4. **Mark completed tasks**: Always mark tasks as complete ([x]) in the plan file when instructed by responsible-vibe-mcp.
 5. **Provide conversation context**: When calling whats_next(), include a summary of the conversation and recent relevant messages to help the server understand the current context.
 
 ## Development Phases
 
-The vibe-feature-mcp server guides you through these development phases:
+The responsible-vibe-mcp server guides you through these development phases:
 
 ${phaseDescriptions}
 
@@ -114,7 +114,7 @@ ${transitionInfo}
 
 ### During Each Phase:
 
-1. Follow the phase-specific instructions provided by vibe-feature-mcp
+1. Follow the phase-specific instructions provided by responsible-vibe-mcp
 2. Interact with the user according to those instructions
 3. Update the plan file with new tasks, decisions, and progress
 4. Mark completed tasks as instructed
@@ -122,7 +122,7 @@ ${transitionInfo}
 
 ### When Calling whats_next():
 
-Always provide these parameters to help vibe-feature-mcp understand the conversation context:
+Always provide these parameters to help responsible-vibe-mcp understand the conversation context:
 
 - **context**: Brief description of current situation (optional)
 - **user_input**: The user's latest message or request (optional)
@@ -146,12 +146,12 @@ whats_next({
 
 ### Update the Plan File:
 
-It's your responsibility to logically maintain the plan file provided by vibe-feature-mcp
+It's your responsibility to logically maintain the plan file provided by responsible-vibe-mcp
 
 - Add new tasks as they are identified
 - Mark tasks complete [x] when finished
 - Document important decisions in the Decisions Log
-- Update the Current Phase as directed by vibe-feature-mcp
+- Update the Current Phase as directed by responsible-vibe-mcp
 - Keep the structure clean and readable
 
 ### Example Interaction Flow:
@@ -163,19 +163,19 @@ You: *calls whats_next({
   user_input: "add user authentication",
   conversation_summary: "User wants to implement authentication system for their application"
 })*
-vibe-feature-mcp: *returns phase-specific instructions*
+responsible-vibe-mcp: *returns phase-specific instructions*
 You: *follows instructions (e.g., ask clarifying questions about authentication needs)*
 You: *updates plan file with authentication tasks*
 User: *provides more details about requirements*
 You: *calls whats_next() with updated context*
-vibe-feature-mcp: *analyzes progress and provides next steps*
+responsible-vibe-mcp: *analyzes progress and provides next steps*
 You: *continues following instructions*
 
 // When phase is complete:
-vibe-feature-mcp: *suggests "All requirements tasks are complete! You can proceed to design phase using 'proceed_to_phase' tool"*
+responsible-vibe-mcp: *suggests "All requirements tasks are complete! You can proceed to design phase using 'proceed_to_phase' tool"*
 You: "Great! We've covered all authentication requirements. Let's move to design."
 You: *calls proceed_to_phase({ target_phase: "design", reason: "requirements complete" })*
-vibe-feature-mcp: *provides design phase instructions*
+responsible-vibe-mcp: *provides design phase instructions*
 [continues...]
 \`\`\`
 
@@ -200,7 +200,7 @@ If you encounter issues:
 
 ## Conversation Context Guidelines
 
-Since vibe-feature-mcp operates statelessly (it doesn't store conversation history), you must provide sufficient context in each whats_next() call:
+Since responsible-vibe-mcp operates statelessly (it doesn't store conversation history), you must provide sufficient context in each whats_next() call:
 
 ### conversation_summary should include:
 
@@ -221,12 +221,12 @@ Since vibe-feature-mcp operates statelessly (it doesn't store conversation histo
 - What just happened
 - What you're trying to determine next
 
-Remember: vibe-feature-mcp is your guide through the development process. It maintains project state and development phase, but relies on you to provide conversation context. Trust its phase transitions, use proceed_to_phase when suggested, and follow its instructions precisely to ensure a structured, comprehensive development workflow.
+Remember: responsible-vibe-mcp is your guide through the development process. It maintains project state and development phase, but relies on you to provide conversation context. Trust its phase transitions, use proceed_to_phase when suggested, and follow its instructions precisely to ensure a structured, comprehensive development workflow.
 \`\`\`
 
 ---
 
-*This system prompt was automatically generated from the vibe-feature-mcp state machine definition to ensure accuracy and consistency.*`;
+*This system prompt was automatically generated from the responsible-vibe-mcp state machine definition to ensure accuracy and consistency.*`;
 
   logger.info('System prompt generated successfully', {
     phaseCount: phases.length,
@@ -247,16 +247,16 @@ function generateSimpleSystemPrompt(stateMachine: YamlStateMachine): string {
   
   const systemPrompt = `# Vibe Feature MCP Integration
 
-IMPORTANT: Always follow these instructions when working with vibe-feature-mcp!
+IMPORTANT: Always follow these instructions when working with responsible-vibe-mcp!
 
-You are an AI assistant that helps users develop software features through a structured development process guided by the vibe-feature-mcp server.
+You are an AI assistant that helps users develop software features through a structured development process guided by the responsible-vibe-mcp server.
 
 Use the start_development() whenever you are starting a conversation!
 
 ## Core Workflow
 
 1. **Call whats_next() after each user interaction** to get phase-specific instructions
-2. **Follow the instructions** provided by vibe-feature-mcp exactly
+2. **Follow the instructions** provided by responsible-vibe-mcp exactly
 3. **Update the plan file** as directed to maintain project memory
 4. **Mark completed tasks** with [x] when instructed
 5. **Provide conversation context** in each whats_next() call
@@ -305,13 +305,13 @@ proceed_to_phase({
 
 ## Conversation Context Guidelines
 
-Since vibe-feature-mcp operates statelessly, provide:
+Since responsible-vibe-mcp operates statelessly, provide:
 
 - **conversation_summary**: What the user wants, key decisions, progress
 - **recent_messages**: Last 3-5 relevant exchanges
 - **context**: Current situation and what you're trying to determine
 
-Remember: vibe-feature-mcp guides the development process but relies on you to provide conversation context and follow its instructions precisely.`;
+Remember: responsible-vibe-mcp guides the development process but relies on you to provide conversation context and follow its instructions precisely.`;
 
   logger.info('Simple system prompt generated successfully', {
     phaseCount: phases.length,

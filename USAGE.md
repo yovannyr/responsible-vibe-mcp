@@ -24,9 +24,9 @@ To use this server with an MCP client, configure it as a stdio transport:
 ```json
 {
   "mcpServers": {
-    "vibe-feature": {
+    "responsible-vibe": {
       "command": "node",
-      "args": ["/path/to/vibe-feature-mcp/dist/index.js"],
+      "args": ["/path/to/responsible-vibe-mcp/dist/index.js"],
       "env": {}
     }
   }
@@ -119,7 +119,7 @@ Dynamically generated system prompt for LLM integration with comprehensive usage
 
 ## Project File Organization
 
-The server creates a `.vibe` subdirectory in your project to store all vibe-feature-mcp related files:
+The server creates a `.vibe` subdirectory in your project to store all responsible-vibe-mcp related files:
 
 ```
 your-project/

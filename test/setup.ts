@@ -7,7 +7,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 
 // Global test configuration
-const TEST_DB_DIR = join(tmpdir(), 'vibe-feature-mcp-test');
+const TEST_DB_DIR = join(tmpdir(), 'responsible-vibe-mcp-test');
 
 // Export test utilities
 export const TEST_CONFIG = {

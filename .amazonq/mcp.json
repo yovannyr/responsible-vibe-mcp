@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "vibe-feature-mcp": {
+    "responsible-vibe-mcp": {
       "command": "node",
       "args": [
-        "/Users/oliverjaegle/projects/privat/mcp-server/vibe-feature/dist/index.js"
+        "/Users/oliverjaegle/projects/privat/mcp-server/responsible-vibe/dist/index.js"
       ]
     },
     "modelcontextprotocol Docs": {

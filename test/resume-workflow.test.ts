@@ -10,7 +10,7 @@ describe('resume_workflow tool', () => {
 
   beforeEach(async () => {
     // Create temporary directory for testing
-    tempDir = await mkdtemp(join(tmpdir(), 'vibe-feature-test-'));
+    tempDir = await mkdtemp(join(tmpdir(), 'responsible-vibe-test-'));
     
     server = new VibeFeatureMCPServer({
       projectPath: tempDir,
@@ -62,7 +62,7 @@ describe('resume_workflow tool', () => {
     
     expect(result.system_prompt).toBeTypeOf('string');
     expect(result.system_prompt.length).toBeGreaterThan(1000);
-    expect(result.system_prompt).toContain('vibe-feature-mcp');
+    expect(result.system_prompt).toContain('responsible-vibe-mcp');
   });
 
   it('should exclude system prompt when requested', async () => {

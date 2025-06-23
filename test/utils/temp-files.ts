@@ -147,7 +147,7 @@ export class TempProject {
     } = options;
 
     // Create temporary project directory
-    this.projectPath = join(baseDirectory, 'vibe-feature-tests', projectName);
+    this.projectPath = join(baseDirectory, 'responsible-vibe-tests', projectName);
     this.cleanupPaths.push(this.projectPath);
 
     // Create directory structure

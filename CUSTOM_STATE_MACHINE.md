@@ -150,7 +150,7 @@ If validation fails, the server will fall back to the default state machine and 
 For VSCode users, you can enable schema validation by adding this line at the top of your YAML file:
 
 ```yaml
-# yaml-language-server: $schema=../node_modules/vibe-feature-mcp/resources/state-machine-schema.json
+# yaml-language-server: $schema=../node_modules/responsible-vibe-mcp/resources/state-machine-schema.json
 ```
 
 This provides code completion, validation, and documentation while editing your custom state machine.
@@ -213,7 +213,7 @@ If validation fails, the server will fall back to the default state machine and 
 For VSCode users, you can enable schema validation by adding this line at the top of your YAML file:
 
 ```yaml
-# yaml-language-server: $schema=../node_modules/vibe-feature-mcp/resources/state-machine-schema.json
+# yaml-language-server: $schema=../node_modules/responsible-vibe-mcp/resources/state-machine-schema.json
 ```
 
 This provides code completion, validation, and documentation while editing your custom state machine.
@@ -223,7 +223,7 @@ This provides code completion, validation, and documentation while editing your 
 To test your custom state machine:
 
 1. Place the YAML file in `.vibe/state-machine.yaml` in your project
-2. Start the vibe-feature-mcp server
+2. Start the responsible-vibe-mcp server
 3. Check the logs for any validation errors
 4. Use the `whats_next` tool to see if your custom phases are being used
 5. Test transitions between phases using `proceed_to_phase`

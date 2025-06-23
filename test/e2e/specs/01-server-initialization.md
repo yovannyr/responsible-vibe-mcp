@@ -8,7 +8,7 @@ So that I can interact with it through the MCP protocol
 
 ### Background:
 - The server uses stdio transport for MCP communication
-- Database is stored in `~/.vibe-feature-mcp/db.sqlite`
+- Database is stored in `~/.responsible-vibe-mcp/db.sqlite`
 - Server exposes 2 tools and 2 resources
 - All components should be properly initialized
 
@@ -19,7 +19,7 @@ So that I can interact with it through the MCP protocol
 **Given** no existing database or configuration files exist
 **When** the MCP server is started
 **Then** the server should initialize successfully
-**And** the database should be created at `~/.vibe-feature-mcp/db.sqlite`
+**And** the database should be created at `~/.responsible-vibe-mcp/db.sqlite`
 **And** the conversation_states table should be created
 **And** the server should expose the following tools:
   - `whats_next`
@@ -29,7 +29,7 @@ So that I can interact with it through the MCP protocol
   - `conversation-state` at `state://current`
 
 ### Expected Behavior:
-- Database directory should be created at `~/.vibe-feature-mcp/`
+- Database directory should be created at `~/.responsible-vibe-mcp/`
 - SQLite database file should be created with proper schema
 - All MCP tools should be registered and available
 - All MCP resources should be registered and accessible

@@ -230,11 +230,11 @@ direct_transitions:
     transition_reason: "Direct transition to idle state"
   
   - state: "requirements"
-    instructions: "Starting requirements analysis. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress."
+    instructions: "Make yourself familiar with the code base. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress."
     transition_reason: "Direct transition to requirements phase"
   
   - state: "design"
-    instructions: "Starting design phase. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document design decisions in the plan file and ensure the approach is solid before implementation."
+    instructions: "Starting design phase. Re-analyze important interfaces of the application. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document design decisions in the plan file and ensure the approach is solid before implementation."
     transition_reason: "Direct transition to design phase"
   
   - state: "implementation"
