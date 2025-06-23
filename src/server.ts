@@ -177,7 +177,7 @@ export class VibeFeatureMCPServer {
     this.server.registerTool(
       'proceed_to_phase',
       {
-        description: 'Explicitly transition to a specific development phase when the current phase is complete or when a direct phase change is needed. Use this tool when whats_next suggests a phase transition or when you need to move to a specific phase.',
+        description: 'Explicitly transition to a specific development phase when the current phase is complete or when a direct phase change is needed. Use this tool when whats_next suggests a phase transition or when you need to move to a specific phase. Always get confirmation by the user for the reason',
         inputSchema: {
           target_phase: z.string().describe('The development phase to transition to'),
           reason: z.string().optional().describe('Optional reason for transitioning to this phase now (e.g., "requirements complete", "user requested", "design approved")')
