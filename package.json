@@ -1,5 +1,5 @@
 {
-  "name": "vibe-feature-mcp",
+  "name": "responsible-vibe-mcp",
   "version": "1.0.0",
   "description": "A Model Context Protocol server that acts as an intelligent conversation state manager and development guide for LLMs",
   "main": "dist/index.js",
@@ -12,6 +12,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:mcp-contract": "[ -f .vibe/state-machine.yml ] || [ -f .vibe/state-machine.yaml ] && echo '⚠️  Skipping MCP contract tests: Custom state machine detected' || vitest run --run test/e2e/consolidated/mcp-contract.test.ts",
     "generate-system-prompt": "vite-node src/scripts/generate-system-prompt.ts",
     "generate-system-prompt:simple": "vite-node src/scripts/generate-system-prompt.ts --type=simple",
     "generate-system-prompt:verbose": "vite-node src/scripts/generate-system-prompt.ts --type=verbose"
