@@ -77,7 +77,7 @@ states:
 
 direct_transitions:
   - state: "explore"
-    instructions: "Starting exploration phase. Read relevant files, understand the codebase structure, and gather context about the problem. Use general pointers or specific filenames, but don't write any code yet."
+    instructions: "Starting exploration phase. Read relevant files, understand the codebase structure, and gather context about the problem. Ask the user for clarification. Propose alternatives and illustrate them without code, highlight the options impact on the overall architecture and semantical differences compared to other options. Use general pointers or specific filenames, but don't write any code yet."
     transition_reason: "Beginning development cycle with exploration"
 
   - state: "plan"
