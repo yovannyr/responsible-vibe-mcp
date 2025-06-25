@@ -12,7 +12,8 @@ import { existsSync } from 'fs';
 import { createLogger } from './logger.js';
 import { Database } from './database.js';
 import type { ConversationState, ConversationContext } from './types.js';
-import { StateMachineLoader } from './state-machine-loader.js';
+import { WorkflowManager } from './workflow-manager.js';
+import { PlanManager } from './plan-manager.js';
 
 const logger = createLogger('ConversationManager');
 
@@ -28,8 +29,10 @@ export class ConversationManager {
   /**
    * Get the current conversation context
    * 
-   * Detects the current project path and git branch, then retrieves or creates
-   * a conversation state for this context.
+   * Detects the current project path and git branch, then retrieves an existing
+   * conversation state for this context. Does NOT create a new conversation.
+   * 
+   * @throws Error if no conversation exists for this context
    */
   async getConversationContext(): Promise<ConversationContext> {
     const projectPath = this.getProjectPath();
@@ -41,11 +44,12 @@ export class ConversationManager {
     const conversationId = this.generateConversationId(projectPath, gitBranch);
     
     // Try to find existing conversation state
-    let state = await this.database.getConversationState(conversationId);
+    const state = await this.database.getConversationState(conversationId);
     
-    // If no existing state, create a new one
+    // If no existing state, throw an error - conversation must be created with start_development first
     if (!state) {
-      state = await this.createNewConversationState(conversationId, projectPath, gitBranch);
+      logger.warn('No conversation found for context', { projectPath, gitBranch, conversationId });
+      throw new Error('No development conversation exists for this project. Use the start_development tool first to initialize development with a workflow.');
     }
     
     // Return the conversation context
@@ -54,7 +58,55 @@ export class ConversationManager {
       projectPath: state.projectPath,
       gitBranch: state.gitBranch,
       currentPhase: state.currentPhase,
-      planFilePath: state.planFilePath
+      planFilePath: state.planFilePath,
+      workflowName: state.workflowName
+    };
+  }
+  
+  /**
+   * Create a new conversation context
+   * 
+   * This should only be called by the start_development tool to explicitly
+   * create a new conversation with a selected workflow.
+   * 
+   * @param workflowName - The workflow to use for this conversation
+   * @returns The newly created conversation context
+   */
+  async createConversationContext(workflowName: string): Promise<ConversationContext> {
+    const projectPath = this.getProjectPath();
+    const gitBranch = this.getGitBranch(projectPath);
+    
+    logger.debug('Creating conversation context', { projectPath, gitBranch, workflowName });
+    
+    // Generate a unique conversation ID based on project path and git branch
+    const conversationId = this.generateConversationId(projectPath, gitBranch);
+    
+    // Check if a conversation already exists
+    const existingState = await this.database.getConversationState(conversationId);
+    
+    if (existingState) {
+      logger.debug('Conversation already exists, returning existing context', { conversationId });
+      return {
+        conversationId: existingState.conversationId,
+        projectPath: existingState.projectPath,
+        gitBranch: existingState.gitBranch,
+        currentPhase: existingState.currentPhase,
+        planFilePath: existingState.planFilePath,
+        workflowName: existingState.workflowName
+      };
+    }
+    
+    // Create a new conversation state
+    const state = await this.createNewConversationState(conversationId, projectPath, gitBranch, workflowName);
+    
+    // Return the conversation context
+    return {
+      conversationId: state.conversationId,
+      projectPath: state.projectPath,
+      gitBranch: state.gitBranch,
+      currentPhase: state.currentPhase,
+      planFilePath: state.planFilePath,
+      workflowName: state.workflowName
     };
   }
   
@@ -66,7 +118,7 @@ export class ConversationManager {
    */
   async updateConversationState(
     conversationId: string, 
-    updates: Partial<Pick<ConversationState, 'currentPhase' | 'planFilePath'>>
+    updates: Partial<Pick<ConversationState, 'currentPhase' | 'planFilePath' | 'workflowName'>>
   ): Promise<void> {
     logger.debug('Updating conversation state', { conversationId, updates });
     
@@ -94,6 +146,29 @@ export class ConversationManager {
   }
   
   /**
+   * Detect the appropriate workflow for a project
+   * Checks for custom workflow first, then defaults to waterfall
+   */
+  private detectWorkflowForProject(projectPath: string): string {
+    // Check for custom workflow files
+    const customFilePaths = [
+      resolve(projectPath, '.vibe', 'state-machine.yaml'),
+      resolve(projectPath, '.vibe', 'state-machine.yml')
+    ];
+    
+    for (const filePath of customFilePaths) {
+      if (existsSync(filePath)) {
+        logger.debug('Custom workflow detected', { filePath });
+        return 'custom';
+      }
+    }
+    
+    // Default to waterfall
+    logger.debug('No custom workflow found, defaulting to waterfall');
+    return 'waterfall';
+  }
+
+  /**
    * Create a new conversation state
    * 
    * @param conversationId - ID for the new conversation
@@ -103,7 +178,8 @@ export class ConversationManager {
   private async createNewConversationState(
     conversationId: string,
     projectPath: string,
-    gitBranch: string
+    gitBranch: string,
+    workflowName: string = 'waterfall'
   ): Promise<ConversationState> {
     logger.info('Creating new conversation state', { 
       conversationId, 
@@ -120,11 +196,10 @@ export class ConversationManager {
     
     const planFilePath = resolve(projectPath, '.vibe', planFileName);
     
-    // Get initial state from state machine loader
-    // Import dynamically to avoid circular dependencies
-    const stateMachineLoader = new StateMachineLoader();
-    stateMachineLoader.loadStateMachine(projectPath);
-    const initialPhase = stateMachineLoader.getInitialState();
+    // Get initial state from the appropriate workflow
+    const workflowManager = new WorkflowManager();
+    const stateMachine = workflowManager.loadWorkflowForProject(projectPath, workflowName);
+    const initialPhase = stateMachine.initial_state;
 
     // Create new state
     const newState: ConversationState = {
@@ -133,6 +208,7 @@ export class ConversationManager {
       gitBranch,
       currentPhase: initialPhase,
       planFilePath,
+      workflowName,
       createdAt: timestamp,
       updatedAt: timestamp
     };
@@ -272,7 +348,6 @@ export class ConversationManager {
       logger.debug('Conversation state hard deleted');
       
       // Step 3: Hard delete plan file
-      const { PlanManager } = await import('./plan-manager.js');
       const planManager = new PlanManager();
       await planManager.deletePlanFile(context.planFilePath);
       resetItems.push('plan_file');
@@ -330,7 +405,7 @@ export class ConversationManager {
       }
       
       // Check that plan file is deleted
-      const { PlanManager } = await import('./plan-manager.js');
+      const { PlanManager } = await import('./plan-manager');
       const planManager = new PlanManager();
       const isDeleted = await planManager.ensurePlanFileDeleted(planFilePath);
       if (!isDeleted) {
