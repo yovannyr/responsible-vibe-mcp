@@ -10,6 +10,8 @@ Use the start_development() whenever you are starting a conversation! Chose the 
 
 ## Core Workflow
 
+Each tool call will return a JSON formatted response with an "instructions" field in it. Follow these instructions immediately after you received them.
+
 1. **Call whats_next() after each user interaction** to get phase-specific instructions
 2. **Follow the instructions** provided by responsible-vibe-mcp exactly
 3. **Update the plan file** as directed to maintain project memory
