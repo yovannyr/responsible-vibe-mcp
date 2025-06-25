@@ -17,6 +17,7 @@ import { InteractionLogger } from './interaction-logger.js';
 import { WorkflowManager } from './workflow-manager.js';
 import { generateSystemPrompt } from './system-prompt-generator.js';
 import { createLogger, setMcpServerForLogging } from './logger.js';
+import { homedir } from 'os';
 
 const logger = createLogger('Server');
 
@@ -52,6 +53,12 @@ export class VibeFeatureMCPServer {
     
     // Set project path
     this.projectPath = config.projectPath || process.cwd();
+    if (this.projectPath === '/' || this.projectPath === '') {
+      this.projectPath = homedir();
+      logger.info('Invalid project path detected, using home directory for .vibe', {
+        projectPath: this.projectPath,
+      });
+    }
     
     // Initialize MCP server
     this.server = new McpServer({
