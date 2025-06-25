@@ -2,21 +2,10 @@
 ---
 name: "waterfall"
 description: "From Specification down to test – the historical way. Ideal for larger, design-heavy tasks with well-defined requirements"
-initial_state: "idle"
+initial_state: "requirements"
 
 # Regular state transitions
 states:
-  idle:
-    description: "Waiting for feature requests"
-    transitions:
-      - trigger: "new_feature_request"
-        to: "requirements"
-        instructions: >
-          New feature request detected! Start requirements analysis by asking the user clarifying questions about WHAT they need.
-          Focus on understanding their goals, scope, and constraints. Break down their needs into specific, actionable tasks
-          and document them in the plan file. Mark completed requirements tasks as you progress.
-        transition_reason: "New feature request detected, starting requirements analysis"
-
   requirements:
     description: "Gathering and analyzing requirements"
     transitions:
@@ -37,13 +26,6 @@ states:
             Focus on HOW to build what was defined in requirements. Suggest alternative solutions and present tradeoffs.
             Document design decisions in the plan file and mark completed requirements tasks.
         transition_reason: "All requirements tasks completed, moving to technical design"
-      
-      - trigger: "abandon_feature"
-        to: "idle"
-        instructions: >
-            Feature development abandoned. Clean up any temporary work and return to idle state.
-            The plan file will remain for future reference if the user wants to resume this feature later.
-        transition_reason: "User decided to abandon this feature development"
 
   design:
     description: "Designing technical solution"
