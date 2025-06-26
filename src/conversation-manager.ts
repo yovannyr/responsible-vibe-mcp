@@ -405,7 +405,6 @@ export class ConversationManager {
       }
       
       // Check that plan file is deleted
-      const { PlanManager } = await import('./plan-manager');
       const planManager = new PlanManager();
       const isDeleted = await planManager.ensurePlanFileDeleted(planFilePath);
       if (!isDeleted) {
