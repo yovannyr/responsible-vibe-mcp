@@ -77,7 +77,6 @@ export class WhatsNextHandler extends ConversationRequiredToolHandler<WhatsNextA
     const transitionResult = await context.transitionEngine.analyzePhaseTransition({
       currentPhase,
       projectPath: conversationContext.projectPath,
-      workflowName: conversationContext.workflowName,
       userInput: user_input,
       context: requestContext,
       conversationSummary: conversation_summary,

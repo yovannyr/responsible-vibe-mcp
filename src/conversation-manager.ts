@@ -27,6 +27,13 @@ export class ConversationManager {
   }
 
   /**
+   * Get conversation state by ID
+   */
+  async getConversationState(conversationId: string): Promise<ConversationState | null> {
+    return await this.database.getConversationState(conversationId);
+  }
+
+  /**
    * Get the current conversation context
    * 
    * Detects the current project path and git branch, then retrieves an existing
