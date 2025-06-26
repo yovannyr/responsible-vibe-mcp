@@ -175,11 +175,7 @@ export class ResumeWorkflowHandler extends ConversationRequiredToolHandler<Resum
       // Get the actual state machine for this project
       const stateMachine = context.transitionEngine.getStateMachine(projectPath, workflowName);
       
-      // Determine if it's custom or default by checking the name
-      const isCustom = stateMachine.name !== 'Classical waterfall';
-      
       return {
-        type: isCustom ? 'custom' : 'default',
         name: stateMachine.name,
         description: stateMachine.description,
         initial_state: stateMachine.initial_state,

@@ -23,8 +23,7 @@ export interface ResetDevelopmentArgs {
  */
 export interface ResetDevelopmentResult {
   success: boolean;
-  reset_items: string[];
-  conversation_id: string;
+  resetItems: string[];
   message: string;
 }
 
@@ -65,8 +64,7 @@ export class ResetDevelopmentHandler extends BaseToolHandler<ResetDevelopmentArg
     // Transform to match our interface
     const result: ResetDevelopmentResult = {
       success: resetResult.success,
-      reset_items: resetResult.resetItems,
-      conversation_id: resetResult.conversationId,
+      resetItems: resetResult.resetItems,
       message: resetResult.message
     };
     
@@ -75,8 +73,7 @@ export class ResetDevelopmentHandler extends BaseToolHandler<ResetDevelopmentArg
     (result as any).conversationId = resetResult.conversationId;
     
     this.logger.info('Reset development completed successfully', {
-      conversationId: result.conversation_id,
-      resetItems: result.reset_items,
+      resetItems: result.resetItems,
       reason
     });
     
