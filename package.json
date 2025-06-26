@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "npx @modelcontextprotocol/inspector",
+    "inspector": "npx @modelcontextprotocol/inspector",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:manual": "npm run build && npm run inspector",
     "test:mcp-contract": "[ -f .vibe/state-machine.yml ] || [ -f .vibe/state-machine.yaml ] && echo '⚠️  Skipping MCP contract tests: Custom state machine detected' || vitest run --run test/e2e/consolidated/mcp-contract.test.ts",
     "generate-system-prompt": "vite-node src/scripts/generate-system-prompt.ts"
   },
