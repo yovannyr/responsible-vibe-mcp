@@ -45,10 +45,15 @@ describe('MCP Contract Validation', () => {
     // Note: Due to limitations in StdioClientTransport, environment variables
     // are not properly passed to the spawned server process, so this test
     // may show INFO level logs despite our attempts to suppress them.
+    
+    // Use a shell script wrapper that explicitly changes the working directory
+    // This ensures the server operates in the temporary directory and not the current project directory
+    // which is essential for clean test isolation
+    const wrapperScriptPath = path.resolve(__dirname, '../../utils/run-server-in-dir.sh');
+    
     transport = new StdioClientTransport({
-      command: 'node',
-      args: [serverPath],
-      cwd: tempProject.projectPath,
+      command: wrapperScriptPath,
+      args: [tempProject.projectPath, serverPath],
       env: {
         ...process.env,
         LOG_LEVEL: 'ERROR',
