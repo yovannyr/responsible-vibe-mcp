@@ -15,10 +15,16 @@ export default defineConfig({
       'node_modules', 
       'dist',
       // Exclude MCP contract tests if custom state machine is present
-      ...(hasCustomStateMachine ? ['test/e2e/consolidated/mcp-contract.test.ts'] : [])
+      ...(hasCustomStateMachine ? ['test/e2e/consolidated/mcp-contract.test.ts'] : []),
     ],
     typecheck: {
       tsconfig: './tsconfig.test.json'
+    },
+    env: {
+      // Set log level to ERROR for tests by default
+      LOG_LEVEL: 'ERROR',
+      NODE_ENV: 'test',
+      VITEST: 'true'
     }
   },
   resolve: {

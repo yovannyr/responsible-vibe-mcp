@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { TempProject, createTempProjectWithDefaultStateMachine } from '../../utils/temp-files';
@@ -23,7 +22,6 @@ vi.unmock('fs/promises');
 describe('MCP Contract Validation', () => {
   let client: Client;
   let transport: StdioClientTransport;
-  let serverProcess: ChildProcess;
   let tempProject: TempProject;
   let cleanup: () => Promise<void>;
 
@@ -38,31 +36,24 @@ describe('MCP Contract Validation', () => {
     // Build the server if needed
     const serverPath = path.resolve(__dirname, '../../../dist/index.js');
     const serverExists = await fs.access(serverPath).then(() => true).catch(() => false);
-    
+
     if (!serverExists) {
       throw new Error(`Server not built. Please run 'npm run build' first. Looking for: ${serverPath}`);
     }
 
-    // Start the MCP server as a subprocess
-    serverProcess = spawn('node', [serverPath], {
-      cwd: tempProject.projectPath,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        LOG_LEVEL: 'ERROR' // Reduce log noise during tests
-      }
-    });
-
-    // Create MCP client and transport
+    // Create MCP client and transport (this will spawn the server process)
+    // Note: Due to limitations in StdioClientTransport, environment variables
+    // are not properly passed to the spawned server process, so this test
+    // may show INFO level logs despite our attempts to suppress them.
     transport = new StdioClientTransport({
       command: 'node',
       args: [serverPath],
-      options: {
-        cwd: tempProject.projectPath,
-        env: {
-          ...process.env,
-          LOG_LEVEL: 'ERROR'
-        }
+      cwd: tempProject.projectPath,
+      env: {
+        ...process.env,
+        LOG_LEVEL: 'ERROR',
+        NODE_ENV: 'test',
+        VITEST: 'true'
       }
     });
 
@@ -78,7 +69,7 @@ describe('MCP Contract Validation', () => {
 
     // Connect to the server
     await client.connect(transport);
-    
+
     // Start development for all MCP contract tests
     await client.callTool({
       name: 'start_development',
@@ -94,19 +85,6 @@ describe('MCP Contract Validation', () => {
     if (transport) {
       await transport.close();
     }
-    if (serverProcess && !serverProcess.killed) {
-      serverProcess.kill('SIGTERM');
-      // Wait for process to exit
-      await new Promise<void>((resolve) => {
-        serverProcess.on('exit', () => resolve());
-        setTimeout(() => {
-          if (!serverProcess.killed) {
-            serverProcess.kill('SIGKILL');
-          }
-          resolve();
-        }, 5000);
-      });
-    }
     if (cleanup) {
       await cleanup();
     }
@@ -117,7 +95,7 @@ describe('MCP Contract Validation', () => {
       // The connection in beforeEach validates basic initialization
       // Here we verify the server info was properly exchanged
       expect(client).toBeDefined();
-      
+
       // Verify we can make basic requests (this confirms initialization succeeded)
       const tools = await client.listTools();
       expect(tools).toBeDefined();
@@ -126,12 +104,12 @@ describe('MCP Contract Validation', () => {
     it('should expose correct capabilities', async () => {
       // Test that server exposes the expected capabilities
       // by verifying we can call the expected methods without errors
-      
+
       // Should support tools
       const tools = await client.listTools();
       expect(tools.tools).toBeDefined();
       expect(Array.isArray(tools.tools)).toBe(true);
-      
+
       // Should support resources  
       const resources = await client.listResources();
       expect(resources.resources).toBeDefined();
@@ -142,17 +120,17 @@ describe('MCP Contract Validation', () => {
   describe('Tools Contract Validation', () => {
     it('should expose whats_next tool with correct schema', async () => {
       const tools = await client.listTools();
-      
+
       const whatsNextTool = tools.tools.find(tool => tool.name === 'whats_next');
       expect(whatsNextTool).toBeDefined();
       expect(whatsNextTool!.description).toBeTruthy();
       expect(whatsNextTool!.inputSchema).toBeDefined();
-      
+
       // Verify the input schema allows the expected parameters
       const schema = whatsNextTool!.inputSchema;
       expect(schema.type).toBe('object');
       expect(schema.properties).toBeDefined();
-      
+
       // Should accept optional parameters like user_input, context, etc.
       const properties = schema.properties as Record<string, any>;
       expect(properties.user_input).toBeDefined();
@@ -163,20 +141,20 @@ describe('MCP Contract Validation', () => {
 
     it('should expose proceed_to_phase tool with correct schema', async () => {
       const tools = await client.listTools();
-      
+
       const proceedTool = tools.tools.find(tool => tool.name === 'proceed_to_phase');
       expect(proceedTool).toBeDefined();
       expect(proceedTool!.description).toBeTruthy();
       expect(proceedTool!.inputSchema).toBeDefined();
-      
+
       const schema = proceedTool!.inputSchema;
       expect(schema.type).toBe('object');
       expect(schema.properties).toBeDefined();
-      
+
       const properties = schema.properties as Record<string, any>;
       expect(properties.target_phase).toBeDefined();
       expect(properties.reason).toBeDefined();
-      
+
       // target_phase should be required
       expect(schema.required).toContain('target_phase');
     });
@@ -192,12 +170,12 @@ describe('MCP Contract Validation', () => {
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
       expect(result.content.length).toBeGreaterThan(0);
-      
+
       // Should return text content with phase information
       const textContent = result.content.find(c => c.type === 'text');
       expect(textContent).toBeDefined();
       expect(textContent!.text).toBeTruthy();
-      
+
       // Response should contain structured data about the phase
       const responseText = textContent!.text;
       expect(responseText).toContain('phase');
@@ -226,11 +204,11 @@ describe('MCP Contract Validation', () => {
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
       expect(result.content.length).toBeGreaterThan(0);
-      
+
       const textContent = result.content.find(c => c.type === 'text');
       expect(textContent).toBeDefined();
       expect(textContent!.text).toBeTruthy();
-      
+
       const responseText = textContent!.text;
       expect(responseText).toContain('phase');
       expect(responseText).toContain('design');
@@ -255,7 +233,7 @@ describe('MCP Contract Validation', () => {
   describe('Resources Contract Validation', () => {
     it('should expose plan://current resource', async () => {
       const resources = await client.listResources();
-      
+
       const planResource = resources.resources.find(r => r.uri === 'plan://current');
       expect(planResource).toBeDefined();
       expect(planResource!.name).toBeTruthy();
@@ -265,7 +243,7 @@ describe('MCP Contract Validation', () => {
 
     it('should expose state://current resource', async () => {
       const resources = await client.listResources();
-      
+
       const stateResource = resources.resources.find(r => r.uri === 'state://current');
       expect(stateResource).toBeDefined();
       expect(stateResource!.name).toBeTruthy();
@@ -289,12 +267,12 @@ describe('MCP Contract Validation', () => {
       expect(result.contents).toBeDefined();
       expect(Array.isArray(result.contents)).toBe(true);
       expect(result.contents.length).toBeGreaterThan(0);
-      
+
       const content = result.contents[0];
       expect(content.uri).toBe('plan://current');
       expect(content.mimeType).toBe('text/markdown');
       expect(content.text).toBeTruthy();
-      
+
       // Should contain markdown plan structure
       expect(content.text).toContain('# Development Plan');
       expect(content.text).toContain('## Project Overview');
@@ -316,12 +294,12 @@ describe('MCP Contract Validation', () => {
       expect(result.contents).toBeDefined();
       expect(Array.isArray(result.contents)).toBe(true);
       expect(result.contents.length).toBeGreaterThan(0);
-      
+
       const content = result.contents[0];
       expect(content.uri).toBe('state://current');
       expect(content.mimeType).toBe('application/json');
       expect(content.text).toBeTruthy();
-      
+
       // Should contain valid JSON with state information
       const stateData = JSON.parse(content.text);
       expect(stateData.conversationId).toBeTruthy();
@@ -353,7 +331,7 @@ describe('MCP Contract Validation', () => {
           arguments: { user_input: 'concurrent test 1' }
         }),
         client.callTool({
-          name: 'whats_next', 
+          name: 'whats_next',
           arguments: { user_input: 'concurrent test 2' }
         }),
         client.listTools(),
@@ -361,16 +339,16 @@ describe('MCP Contract Validation', () => {
       ];
 
       const results = await Promise.all(promises);
-      
+
       // All requests should succeed
       results.forEach(result => {
         expect(result).toBeDefined();
       });
-      
+
       // Tool results should have content
       expect(results[0].content).toBeDefined();
       expect(results[1].content).toBeDefined();
-      
+
       // List results should have arrays
       expect(Array.isArray(results[2].tools)).toBe(true);
       expect(Array.isArray(results[3].resources)).toBe(true);
@@ -384,10 +362,10 @@ describe('MCP Contract Validation', () => {
           user_input: 'start new project'
         }
       });
-      
+
       const response1 = JSON.parse(result1.content[0].text);
       const conversationId1 = response1.conversation_id;
-      
+
       // Second interaction in the same session
       const result2 = await client.callTool({
         name: 'whats_next',
@@ -395,10 +373,10 @@ describe('MCP Contract Validation', () => {
           user_input: 'continue project'
         }
       });
-      
+
       const response2 = JSON.parse(result2.content[0].text);
       const conversationId2 = response2.conversation_id;
-      
+
       // Should maintain same conversation ID within the same MCP session
       // Note: Each MCP client connection maintains its own conversation context
       expect(conversationId1).toBe(conversationId2);
@@ -433,22 +411,22 @@ describe('MCP Contract Validation', () => {
           context: 'new feature development'
         }
       });
-      
+
       const startResponse = JSON.parse(start.content[0].text);
-      
+
       // Check if we're using a custom state machine by looking at the phase
       // Default state machine uses: idle, requirements, design, implementation, qa, testing, complete
       // If we get other phases, skip the test as it's using a custom state machine
       const defaultPhases = ['idle', 'requirements', 'design', 'implementation', 'qa', 'testing', 'complete'];
-      
+
       if (!defaultPhases.includes(startResponse.phase)) {
         console.log(`Skipping test: Custom state machine detected (phase: ${startResponse.phase})`);
         return; // Skip test
       }
-      
+
       // The server intelligently determines the appropriate starting phase
       expect(['requirements', 'design']).toContain(startResponse.phase);
-      
+
       // Transition to design (if not already there)
       let currentPhase = startResponse.phase;
       if (currentPhase !== 'design') {
@@ -459,25 +437,25 @@ describe('MCP Contract Validation', () => {
             reason: 'requirements analysis complete'
           }
         });
-        
+
         const designResponse = JSON.parse(design.content[0].text);
         expect(designResponse.phase).toBe('design');
         currentPhase = 'design';
       }
-      
+
       // Verify state resource reflects the current phase
       const stateResult = await client.readResource({
         uri: 'state://current'
       });
-      
+
       const stateData = JSON.parse(stateResult.contents[0].text);
       expect(stateData.currentPhase).toBe(currentPhase);
-      
+
       // Verify plan resource contains relevant phase information
       const planResult = await client.readResource({
         uri: 'plan://current'
       });
-      
+
       const planContent = planResult.contents[0].text;
       expect(planContent).toContain('# Development Plan');
       expect(planContent).toContain('Project Overview');

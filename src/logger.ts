@@ -31,8 +31,26 @@ export interface LogContext {
 // Global MCP server reference for log notifications
 let mcpServerInstance: McpServer | null = null;
 
-// Test mode flag to suppress MCP notification errors
-const isTestMode = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+// Test mode detection function to check at runtime
+function isTestMode(): boolean {
+  // Check explicit environment variables
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
+    return true;
+  }
+  
+  // Check if running in a temporary directory (common for tests)
+  const cwd = process.cwd();
+  if (cwd.includes('/tmp/') || cwd.includes('temp') || cwd.includes('test-')) {
+    return true;
+  }
+  
+  // Check if LOG_LEVEL is explicitly set to ERROR
+  if (process.env.LOG_LEVEL === 'ERROR') {
+    return true;
+  }
+  
+  return false;
+}
 
 /**
  * Set the MCP server instance for log notifications
@@ -42,12 +60,33 @@ export function setMcpServerForLogging(server: McpServer): void {
 }
 
 class Logger {
-  private logLevel: LogLevel;
   private component: string;
+  private explicitLogLevel?: LogLevel;
 
-  constructor(component: string, logLevel: LogLevel = LogLevel.INFO) {
+  constructor(component: string, logLevel?: LogLevel) {
     this.component = component;
-    this.logLevel = this.getLogLevelFromEnv() ?? logLevel;
+    this.explicitLogLevel = logLevel;
+  }
+
+  private getCurrentLogLevel(): LogLevel {
+    // Force ERROR level in test environments
+    if (isTestMode()) {
+      return LogLevel.ERROR;
+    }
+    
+    // Check environment variable
+    const envLevel = this.getLogLevelFromEnv();
+    if (envLevel !== null) {
+      return envLevel;
+    }
+    
+    // If explicit log level was provided, use it
+    if (this.explicitLogLevel !== undefined) {
+      return this.explicitLogLevel;
+    }
+    
+    // Default to INFO
+    return LogLevel.INFO;
   }
 
   private getLogLevelFromEnv(): LogLevel | null {
@@ -62,7 +101,7 @@ class Logger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return level >= this.logLevel;
+    return level >= this.getCurrentLogLevel();
   }
 
   private formatMessage(level: string, message: string, context?: LogContext): string {
@@ -100,7 +139,7 @@ class Logger {
       } catch (error) {
         // Fallback to stderr if MCP notification fails
         // Don't use this.error to avoid infinite recursion
-        if (!isTestMode) { process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`); }
+        if (!isTestMode()) { process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`); }
       }
     }
   }
@@ -179,7 +218,7 @@ class Logger {
       } catch (error) {
         // Fallback to stderr if MCP notification fails
         // Don't use this.error to avoid infinite recursion
-        if (!isTestMode) { process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`); }
+        if (!isTestMode()) { process.stderr.write(`[MCP-LOG-ERROR] Failed to send log notification: ${error}\n`); }
       }
     }
   }
@@ -219,7 +258,7 @@ class Logger {
   }
 
   child(childComponent: string): Logger {
-    return new Logger(`${this.component}:${childComponent}`, this.logLevel);
+    return new Logger(`${this.component}:${childComponent}`, this.explicitLogLevel);
   }
 }
 

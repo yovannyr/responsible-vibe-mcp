@@ -3,6 +3,12 @@
  * Configures global test environment and utilities
  */
 
+// Configure logging for tests FIRST - only show errors by default
+// This must be set before any modules are imported that use the logger
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'ERROR';
+process.env.NODE_ENV = 'test';
+process.env.VITEST = 'true';
+
 import { join } from 'path';
 import { tmpdir } from 'os';
 
