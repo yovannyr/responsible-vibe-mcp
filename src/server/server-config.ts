@@ -54,6 +54,10 @@ export async function initializeServerComponents(config: ServerConfig = {}): Pro
   const mcpServer = new McpServer({
     name: 'responsible-vibe-mcp',
     version: '1.0.0'
+  }, {
+    capabilities: {
+      logging: {}
+    }
   });
 
   // Initialize core components
