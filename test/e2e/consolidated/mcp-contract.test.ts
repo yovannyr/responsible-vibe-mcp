@@ -275,7 +275,7 @@ describe('MCP Contract Validation', () => {
 
       // Should contain markdown plan structure
       expect(content.text).toContain('# Development Plan');
-      expect(content.text).toContain('## Project Overview');
+      expect(content.text).toContain('## Goal');
     });
 
     it('should read state resource successfully', async () => {
@@ -458,7 +458,7 @@ describe('MCP Contract Validation', () => {
 
       const planContent = planResult.contents[0].text;
       expect(planContent).toContain('# Development Plan');
-      expect(planContent).toContain('Project Overview');
+      expect(planContent).toContain('## Goal');
     });
 
     it('should handle complex conversation context', async () => {
