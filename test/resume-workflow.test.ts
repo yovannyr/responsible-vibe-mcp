@@ -74,13 +74,6 @@ describe('resume_workflow tool', () => {
     expect(result.system_prompt).toBeNull();
   });
 
-  it('should use verbose system prompt when requested', async () => {
-    const simpleResult = await server.handleResumeWorkflow({ simple_prompt: true });
-    const verboseResult = await server.handleResumeWorkflow({ simple_prompt: false });
-    
-    expect(verboseResult.system_prompt.length).toBeGreaterThan(simpleResult.system_prompt.length);
-  });
-
   it('should provide phase-specific recommendations', async () => {
     const result = await server.handleResumeWorkflow({});
     

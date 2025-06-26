@@ -746,7 +746,7 @@ export class VibeFeatureMCPServer {
       
       const response = {
         phase: transitionResult.newPhase,
-        instructions: `Look at the plan file. Define entrance criteria for each phase of the workflow except the initial phase. Those criteria shall be based on the contents of the previous phase. 
+        instructions: `Look at the plan file (${conversationContext.planFilePath}). Define entrance criteria for each phase of the workflow except the initial phase. Those criteria shall be based on the contents of the previous phase. 
         Example: 
         \`\`\`
         ## Design
@@ -757,7 +757,7 @@ export class VibeFeatureMCPServer {
         - [ ] It's clear what's in scope and out of scope
         \`\`\`
         
-        Once you added reasonable entrance Use the whats_next() tool to get guided instructions for the next current phase.`,
+        IMPORTANT: Once you added reasonable entrance call the whats_next() tool to get guided instructions for the next current phase.`,
         plan_file_path: conversationContext.planFilePath,
         conversation_id: conversationContext.conversationId,
         workflow: stateMachine
@@ -786,7 +786,6 @@ export class VibeFeatureMCPServer {
       logger.debug('Processing resume_workflow request', args);
       
       const includeSystemPrompt = args.include_system_prompt !== false; // Default to true
-      const simplePrompt = args.simple_prompt !== false; // Default to true
       
       // Get conversation (will throw error if none exists)
       let conversationContext;
@@ -815,7 +814,7 @@ export class VibeFeatureMCPServer {
       const stateMachine = this.transitionEngine.getStateMachine(conversationContext.projectPath, conversationContext.workflowName);
       
       // Generate system prompt if requested
-      const systemPrompt = includeSystemPrompt ? generateSystemPrompt(stateMachine, simplePrompt) : null;
+      const systemPrompt = includeSystemPrompt ? generateSystemPrompt(stateMachine, 'simple') : null;
       
       // Build comprehensive response
       const response = {
@@ -851,7 +850,7 @@ export class VibeFeatureMCPServer {
         phase: conversationContext.currentPhase,
         planExists: planInfo.exists,
         includeSystemPrompt,
-        simplePrompt
+        promptIncluded: 'simple'
       });
       
       return response;

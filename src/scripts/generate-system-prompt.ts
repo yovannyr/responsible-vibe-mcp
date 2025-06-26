@@ -7,7 +7,7 @@
  * definition to ensure it stays in sync with the codebase.
  * 
  * Options:
- * --type=<verbose|simple>  - Select prompt type (default: verbose)
+ * --type=<verbose|simple|minimal>  - Select prompt type (default: simple)
  * --output=<path>          - Specify output file path (default: SYSTEM_PROMPT.md)
  */
 
@@ -22,17 +22,17 @@ const logger = createLogger('GenerateSystemPrompt');
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    type: 'verbose',
+    type: 'simple',
     output: join(process.cwd(), 'SYSTEM_PROMPT.md')
   };
 
   for (const arg of args) {
     if (arg.startsWith('--type=')) {
       const type = arg.split('=')[1];
-      if (type === 'verbose' || type === 'simple') {
+      if (type === 'verbose' || type === 'simple' || type === 'minimal') {
         options.type = type;
       } else {
-        console.warn(`Invalid type: ${type}. Using default: verbose`);
+        console.warn(`Invalid type: ${type}. Using default: simple`);
       }
     } else if (arg.startsWith('--output=')) {
       options.output = arg.split('=')[1];
@@ -57,7 +57,7 @@ async function main() {
     const stateMachine = loader.loadStateMachine(process.cwd()); // Use current directory
     
     // Generate the system prompt
-    const systemPrompt = generateSystemPrompt(stateMachine, options.type === 'simple');
+    const systemPrompt = generateSystemPrompt(stateMachine, options.type);
     
     // Write to output file
     await writeFile(options.output, systemPrompt, 'utf-8');

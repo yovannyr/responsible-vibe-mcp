@@ -17,14 +17,22 @@ const logger = createLogger('SystemPromptGenerator');
  * @param simple Whether to generate a simplified version of the prompt
  * @returns The generated system prompt
  */
-export function generateSystemPrompt(stateMachine: YamlStateMachine, simple: boolean = false): string {
+export function generateSystemPrompt(stateMachine: YamlStateMachine, type: string): string {
   logger.debug('Generating system prompt from state machine definition', {
-    simple,
+    type,
     stateMachineName: stateMachine.name,
     phaseCount: Object.keys(stateMachine.states).length
   });
 
-  return simple ? generateSimpleSystemPrompt(stateMachine) : generateVerboseSystemPrompt(stateMachine);
+  if (type === 'simple') {
+    return generateSimpleSystemPrompt(stateMachine);
+  } else if (type === 'verbose') {
+    return generateVerboseSystemPrompt(stateMachine);
+  } else if (type === 'minimal') {
+    return generateMinimalSystemPrompt(stateMachine);
+  } else {
+    throw new Error(`Unknown system prompt type: ${type}`);
+  }
 }
 
 /**
@@ -226,6 +234,41 @@ Remember: responsible-vibe-mcp is your guide through the development process. It
 }
 
 /**
+ * Generate a minimal system prompt for LLM integration
+ */
+function generateMinimalSystemPrompt(stateMachine: YamlStateMachine): string {
+  logger.debug('Generating minimal system prompt');
+
+  const phases = Object.keys(stateMachine.states);
+  const phaseDescriptions = generateSimplifiedPhaseDescriptions(stateMachine);
+
+  const systemPrompt = `
+You are an AI assistant that helps users develop software features.
+You do this by following a structured development process guided by the responsible-vibe-mcp server.
+
+IMPORTANT: Use responsible-vibe-mcp tools after each user message!
+IMPORTANT: Use the start_development() to start a new development.
+Each tool call will return a JSON formatted response with an "instructions" field in it. 
+Follow these instructions immediately after you received them.
+
+## Core Workflow
+
+1. **Call whats_next() after each user interaction** to get phase-specific instructions
+2. **Follow the instructions** provided by responsible-vibe-mcp exactly
+3. **Update the plan file** as directed to maintain project memory
+4. **Mark completed tasks** with [x] when instructed
+
+Remember: responsible-vibe-mcp guides the development process but relies on you to provide conversation context and follow its instructions precisely.`;
+
+  logger.info('Minimal system prompt generated successfully', {
+    phaseCount: phases.length,
+    promptLength: systemPrompt.length
+  });
+
+  return systemPrompt;
+}
+
+/**
  * Generate a simple system prompt for LLM integration
  */
 function generateSimpleSystemPrompt(stateMachine: YamlStateMachine): string {
@@ -235,11 +278,12 @@ function generateSimpleSystemPrompt(stateMachine: YamlStateMachine): string {
   const phaseDescriptions = generateSimplifiedPhaseDescriptions(stateMachine);
 
   const systemPrompt = `
-You are an AI assistant that helps users develop software features through a structured development process guided by the responsible-vibe-mcp server.
+You are an AI assistant that helps users develop software features.
+You do this by following a structured development process guided by the responsible-vibe-mcp server.
 
 IMPORTANT: Use responsible-vibe-mcp tools after each user message!
 
-Use the start_development() whenever you are starting a conversation! Chose the workflow that fits the user's request.
+Use the start_development() to start a new development.
 
 ## Core Workflow
 

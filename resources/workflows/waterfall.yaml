@@ -58,9 +58,9 @@ states:
         transition_reason: "Technical design is complete, ready to start building"
       
       - trigger: "abandon_feature"
-        to: "idle"
+        to: "requirements"
         instructions: >
-            Feature development abandoned during design phase. Clean up any design artifacts and return to idle state.
+            Feature development abandoned during design phase. Clean up any design artifacts and return to requirements state.
             The plan file will remain for future reference.
         transition_reason: "User decided to abandon feature during design phase"
 
@@ -103,9 +103,9 @@ states:
         transition_reason: "Core implementation is complete, ready for quality review"
       
       - trigger: "abandon_feature"
-        to: "idle"
+        to: "requirements"
         instructions: >
-            Feature development abandoned during implementation. Clean up any incomplete code and return to idle state.
+            Feature development abandoned during implementation. Clean up any incomplete code and return to requirements state.
             The plan file and any completed work will remain for future reference.
         transition_reason: "User decided to abandon feature during implementation"
 
@@ -149,9 +149,9 @@ states:
         transition_reason: "Quality assurance is complete, ready for comprehensive testing"
       
       - trigger: "abandon_feature"
-        to: "idle"
+        to: "requirements"
         instructions: >
-            Feature development abandoned during QA phase. Clean up any QA artifacts and return to idle state.
+            Feature development abandoned during QA phase. Clean up any QA artifacts and return to requirements state.
             You may stash technical artifacts you already created.
             The plan file and completed work will remain for future reference.
         transition_reason: "User decided to abandon feature during quality assurance"
@@ -183,9 +183,9 @@ states:
         transition_reason: "All testing is complete, feature is ready for delivery"
       
       - trigger: "abandon_feature"
-        to: "idle"
+        to: "requirements"
         instructions: >
-            Feature development abandoned during testing phase. Clean up any testing artifacts and return to idle state.
+            Feature development abandoned during testing phase. Clean up any testing artifacts and return to requirements state.
             The plan file and completed work will remain for future reference.
         transition_reason: "User decided to abandon feature during testing phase"
 
@@ -193,11 +193,11 @@ states:
     description: "Feature complete and ready for delivery"
     transitions:
       - trigger: "feature_delivered"
-        to: "idle"
+        to: "requirements"
         instructions: >
-            Feature has been delivered successfully! Return to idle state, ready for the next development task.
+            Feature has been delivered successfully! Return to requirements state, ready for the next development task.
             The completed plan file serves as documentation of what was accomplished.
-        transition_reason: "Feature delivery complete, returning to idle state"
+        transition_reason: "Feature delivery complete, returning to requirements state"
       
       - trigger: "new_feature_request"
         to: "requirements"
@@ -208,9 +208,9 @@ states:
 
 # Direct transition instructions
 direct_transitions:
-  - state: "idle"
-    instructions: "Returned to idle state. Ask the user why he did this."
-    transition_reason: "Direct transition to idle state"
+  - state: "requirements"
+    instructions: "Returned to requirements state. Ask the user why he did this."
+    transition_reason: "Direct transition to requirements state"
   
   - state: "requirements"
     instructions: "Make yourself familiar with the code base. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress."
