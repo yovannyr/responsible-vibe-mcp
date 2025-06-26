@@ -14,8 +14,11 @@ export interface YamlTransition {
   /** Target state after transition */
   to: string;
   
-  /** Instructions to provide when this transition occurs */
-  instructions: string;
+  /** Instructions to provide when this transition occurs (optional - uses target state default if not provided) */
+  instructions?: string;
+  
+  /** Additional instructions to combine with target state's default instructions (optional) */
+  additional_instructions?: string;
   
   /** Reason for this transition */
   transition_reason: string;
@@ -28,22 +31,11 @@ export interface YamlState {
   /** Description of this state */
   description: string;
   
+  /** Default instructions when entering this state */
+  default_instructions: string;
+  
   /** Transitions from this state */
   transitions: YamlTransition[];
-}
-
-/**
- * Direct transition definition for non-modeled transitions
- */
-export interface YamlDirectTransition {
-  /** State name for this direct transition */
-  state: string;
-  
-  /** Instructions to provide when directly transitioning to this state */
-  instructions: string;
-  
-  /** Reason for the direct transition */
-  transition_reason: string;
 }
 
 /**
@@ -61,7 +53,4 @@ export interface YamlStateMachine {
   
   /** Map of states in the state machine */
   states: Record<string, YamlState>;
-  
-  /** Direct transition instructions for non-modeled transitions */
-  direct_transitions: YamlDirectTransition[];
 }

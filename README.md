@@ -900,3 +900,55 @@ All interaction logs are stored in the local SQLite database in the `.vibe` dire
 Logs can be queried by conversation ID for analysis and debugging purposes. No UI is provided in the current implementation, but the database can be accessed directly using SQLite tools.
 
 **Note**: All interaction data is stored locally on your system and is never transmitted to external services.
+
+## Testing
+
+The project includes comprehensive test coverage with different test execution options to balance thoroughness with development speed:
+
+### Test Commands
+
+#### Default Test Run (Quiet)
+```bash
+npm test          # Interactive test runner
+npm run test:run  # Single test run (quiet, no noisy tests)
+```
+- **9 test files**, **79 tests**
+- Excludes the MCP contract test (which shows INFO logs due to SDK limitations)
+- Clean output with ERROR-level logging only
+- **Recommended for development** - fast and quiet
+
+#### All Tests (Including Noisy)
+```bash
+npm run test:all  # Run all tests including noisy ones
+```
+- **10 test files**, **96+ tests**
+- Includes the MCP contract test with spawned processes
+- Shows INFO-level logs from MCP SDK (unavoidable)
+- **Use for comprehensive testing** before commits/releases
+
+#### Specific Test Categories
+```bash
+npm run test:noisy        # Run only the noisy MCP contract test
+npm run test:mcp-contract # Run MCP contract test (with custom state machine check)
+npm run test:ui           # Interactive test UI
+```
+
+### Test Configuration
+
+The test setup automatically:
+- Sets `LOG_LEVEL=ERROR` for clean output during testing
+- Configures test environment variables (`NODE_ENV=test`, `VITEST=true`)
+- Excludes noisy tests by default unless `INCLUDE_NOISY_TESTS=true`
+- Uses TypeScript source files and compiled JavaScript as needed
+
+### Why Split Test Execution?
+
+The MCP contract test spawns actual server processes and uses the MCP SDK, which:
+- Generates unavoidable INFO-level logging from the SDK
+- Takes longer to execute due to process spawning
+- Is comprehensive but noisy for day-to-day development
+
+By excluding it from the default test run, developers get:
+- **Fast feedback** during development (79 tests in ~2 seconds)
+- **Clean output** for easy error spotting
+- **Full coverage** when needed via `npm run test:all`

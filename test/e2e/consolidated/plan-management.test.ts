@@ -91,7 +91,7 @@ describe('Plan Management', () => {
 
       expect(planContent).toContain('# Development Plan');
       expect(planContent).toContain('## Goal');
-      expect(planContent).toContain('## Current Phase: Requirements');
+      expect(planContent).toContain('## Requirements');
       expect(planContent).toContain('## Key Decisions');
     });
 
@@ -111,7 +111,7 @@ describe('Plan Management', () => {
       const planContent = planResource.contents[0].text;
 
       expect(planContent).toContain('## Design');
-      expect(planContent).toContain('## Current Phase: Requirements');
+      expect(planContent).toContain('## Requirements');
     });
 
     it('should maintain consistent markdown formatting', async () => {

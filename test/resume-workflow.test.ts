@@ -94,7 +94,7 @@ describe('resume_workflow tool', () => {
     // Create a mock plan file
     const planContent = `# Development Plan
 
-## Current Phase: implementation
+## Implementation
 
 ### Tasks
 - [x] Completed task 1

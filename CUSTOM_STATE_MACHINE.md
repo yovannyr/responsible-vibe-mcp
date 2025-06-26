@@ -17,26 +17,29 @@ name: "Your Workflow Name"
 description: "Description of your workflow"
 initial_state: "starting_state"
 
-# State definitions with transitions
+# State definitions with default instructions and transitions
 states:
   state_name:
     description: "Description of this state"
+    default_instructions: "Default instructions when entering this state"
     transitions:
       - trigger: "event_name"
         to: "target_state"
-        instructions: "Instructions to provide when this transition occurs"
+        instructions: "Instructions to provide when this transition occurs (optional - uses target state default if not provided)"
+        additional_instructions: "Additional context to combine with target state's default instructions (optional)"
         transition_reason: "Reason for this transition"
-
-# Direct transition instructions for non-modeled transitions
-direct_transitions:
-  - state: "state_name"
-    instructions: "Instructions for direct transition to this state"
-    transition_reason: "Reason for direct transition"
 ```
+
+### Key Changes in the New Format
+
+- **`default_instructions`**: Each state now has default instructions that are used when entering the state
+- **Optional `instructions`**: Transition instructions are now optional - if not provided, the target state's default instructions are used
+- **`additional_instructions`**: For special transitions, you can provide additional context that gets combined with the target state's default instructions
+- **No `direct_transitions`**: The old `direct_transitions` section has been removed - default instructions per state replace this functionality
 
 ## Example: Anthropic's "Explore, Plan, Code, Commit" Workflow
 
-Here's a complete state machine based on Anthropic's recommended development workflow:
+Here's a complete state machine based on Anthropic's recommended development workflow using the new simplified format:
 
 ```yaml
 name: "Explore-Plan-Code-Commit Workflow"
@@ -46,6 +49,7 @@ initial_state: "explore"
 states:
   explore:
     description: "Research and exploration phase - understanding the problem space"
+    default_instructions: "Starting exploration phase. Read relevant files, understand the codebase structure, and gather context about the problem. Use general pointers or specific filenames, but don't write any code yet."
     transitions:
       - trigger: "exploration_complete"
         to: "plan"
@@ -54,11 +58,12 @@ states:
       
       - trigger: "continue_exploring"
         to: "explore"
-        instructions: "Continue exploring the codebase and problem space. Read relevant files, understand existing patterns, and gather more context. Don't write any code yet - focus on understanding. Document knowledge in the plan"
+        additional_instructions: "Continue exploring the codebase and problem space. Read relevant files, understand existing patterns, and gather more context. Don't write any code yet - focus on understanding. Document knowledge in the plan"
         transition_reason: "More exploration needed"
 
   plan:
     description: "Planning phase - creating a detailed implementation strategy"
+    default_instructions: "Starting planning phase. Think hard about the implementation approach. Use 'think harder' or 'ultrathink' to evaluate alternatives thoroughly. Create a comprehensive plan that addresses the requirements and constraints you've discovered."
     transitions:
       - trigger: "plan_complete"
         to: "code"
@@ -67,16 +72,17 @@ states:
       
       - trigger: "need_more_exploration"
         to: "explore"
-        instructions: "The planning revealed gaps in understanding. Gather more information about the codebase, requirements, or constraints before continuing with the plan. You may need to revert artifacts you've already created."
+        additional_instructions: "The planning revealed gaps in understanding. Gather more information about the codebase, requirements, or constraints before continuing with the plan. You may need to revert artifacts you've already created."
         transition_reason: "Planning revealed knowledge gaps"
       
       - trigger: "refine_plan"
         to: "plan"
-        instructions: "Continue refining the plan. Think harder about edge cases, alternative approaches, and potential issues. Consider creating a document or GitHub issue with your plan for future reference. You may need to revert artifacts you've already created."
+        additional_instructions: "Continue refining the plan. Think harder about edge cases, alternative approaches, and potential issues. Consider creating a document or GitHub issue with your plan for future reference. You may need to revert artifacts you've already created."
         transition_reason: "Plan needs more refinement"
 
   code:
     description: "Implementation phase - writing and building the solution"
+    default_instructions: "Starting implementation phase. Follow your plan step by step, implementing the solution while verifying the reasonableness of each component. Maintain good coding practices and test as you go."
     transitions:
       - trigger: "implementation_complete"
         to: "commit"
@@ -85,21 +91,22 @@ states:
       
       - trigger: "implementation_issues"
         to: "plan"
-        instructions: "Implementation revealed issues with the plan. Go back to planning to address the problems discovered during coding. Think through alternative approaches."
+        additional_instructions: "Implementation revealed issues with the plan. Go back to planning to address the problems discovered during coding. Think through alternative approaches."
         transition_reason: "Implementation revealed planning issues"
       
       - trigger: "continue_coding"
         to: "code"
-        instructions: "Continue implementing the solution. Follow the plan step by step, verify the reasonableness of each component as you build it, and maintain good coding practices."
+        additional_instructions: "Continue implementing the solution. Follow the plan step by step, verify the reasonableness of each component as you build it, and maintain good coding practices."
         transition_reason: "Implementation in progress"
       
       - trigger: "need_exploration"
         to: "explore"
-        instructions: "Implementation revealed the need for more exploration. Investigate the codebase further to understand how to properly integrate your changes."
+        additional_instructions: "Implementation revealed the need for more exploration. Investigate the codebase further to understand how to properly integrate your changes."
         transition_reason: "Implementation requires more exploration"
 
   commit:
     description: "Finalization phase - committing changes and documentation"
+    default_instructions: "Starting commit preparation phase. Finalize your implementation, update documentation, create clear commit messages, and prepare a pull request with proper explanation of the changes."
     transitions:
       - trigger: "commit_complete"
         to: "explore"
@@ -108,42 +115,33 @@ states:
       
       - trigger: "need_code_fixes"
         to: "code"
-        instructions: "Issues found during commit preparation. Return to implementation to fix the problems before committing."
+        additional_instructions: "Issues found during commit preparation. Return to implementation to fix the problems before committing."
         transition_reason: "Code needs fixes before commit"
       
       - trigger: "continue_commit_prep"
         to: "commit"
-        instructions: "Continue preparing the commit. Update READMEs, changelogs, documentation, and ensure the pull request has a clear explanation of what was implemented and why."
+        additional_instructions: "Continue preparing the commit. Update READMEs, changelogs, documentation, and ensure the pull request has a clear explanation of what was implemented and why."
         transition_reason: "Commit preparation in progress"
-
-direct_transitions:
-  - state: "explore"
-    instructions: "Starting exploration phase. Read relevant files, understand the codebase structure, and gather context about the problem. Use general pointers or specific filenames, but don't write any code yet."
-    transition_reason: "Beginning development cycle with exploration"
-  
-  - state: "plan"
-    instructions: "Starting planning phase. Think hard about the implementation approach. Use 'think harder' or 'ultrathink' to evaluate alternatives thoroughly. Create a comprehensive plan that addresses the requirements and constraints you've discovered."
-    transition_reason: "Direct transition to planning phase"
-  
-  - state: "code"
-    instructions: "Starting implementation phase. Follow your plan step by step, implementing the solution while verifying the reasonableness of each component. Maintain good coding practices and test as you go."
-    transition_reason: "Direct transition to implementation phase"
-  
-  - state: "commit"
-    instructions: "Starting commit preparation phase. Finalize your implementation, update documentation, create clear commit messages, and prepare a pull request with proper explanation of the changes."
-    transition_reason: "Direct transition to commit phase"
 ```
 
 ## Validation
 
 The state machine file is validated when loaded. Common validation errors include:
 
-- Missing required properties
-- References to undefined states
+- Missing required properties (`name`, `description`, `initial_state`, `states`)
+- States missing required `default_instructions` field
+- References to undefined states in transitions
 - Invalid transition targets
-- Missing side effects
+- Missing `transition_reason` in transitions
 
 If validation fails, the server will fall back to the default state machine and log an error.
+
+## Benefits of the New Format
+
+- **Reduced redundancy**: No more duplicate instruction definitions between `direct_transitions` and state-specific transitions
+- **Cleaner structure**: Each state has clear default behavior with optional special cases
+- **Better maintainability**: Single source of truth for phase instructions
+- **Simpler composition**: Additional instructions are clearly combined with defaults
 
 ## Editor Support
 

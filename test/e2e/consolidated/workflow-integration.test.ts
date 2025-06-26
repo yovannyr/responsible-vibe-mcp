@@ -346,6 +346,7 @@ initial_state: "backlog"
 states:
   backlog:
     description: "Feature backlog"
+    default_instructions: "Manage feature backlog and prioritize items"
     transitions:
       - trigger: "ready_for_sprint"
         to: "sprint_planning"
@@ -353,6 +354,7 @@ states:
         transition_reason: "Backlog items prioritized and ready for sprint"
   sprint_planning:
     description: "Sprint planning"
+    default_instructions: "Plan sprint activities and estimate effort"
     transitions:
       - trigger: "sprint_planned"
         to: "development"
@@ -360,6 +362,7 @@ states:
         transition_reason: "Sprint planning complete, ready to develop"
   development:
     description: "Active development"
+    default_instructions: "Implement features according to sprint plan"
     transitions:
       - trigger: "development_complete"
         to: "review"
@@ -367,6 +370,7 @@ states:
         transition_reason: "Development phase finished, ready for review"
   review:
     description: "Code review"
+    default_instructions: "Review code and validate implementation"
     transitions:
       - trigger: "review_approved"
         to: "done"
@@ -374,23 +378,8 @@ states:
         transition_reason: "Code review passed, ready to complete sprint"
   done:
     description: "Sprint complete"
+    default_instructions: "Sprint complete, prepare for next iteration"
     transitions: []
-direct_transitions:
-  - state: "backlog"
-    instructions: "Manage feature backlog and prioritize items"
-    transition_reason: "Starting agile workflow"
-  - state: "sprint_planning"
-    instructions: "Plan sprint activities and estimate effort"
-    transition_reason: "Ready for sprint planning"
-  - state: "development"
-    instructions: "Implement features according to sprint plan"
-    transition_reason: "Sprint planned, ready to develop"
-  - state: "review"
-    instructions: "Review code and validate implementation"
-    transition_reason: "Development complete, ready for review"
-  - state: "done"
-    instructions: "Sprint complete, prepare for next iteration"
-    transition_reason: "Review approved, sprint done"
 `;
 
       await fs.writeFile(path.join(vibeDir, 'state-machine.yaml'), customWorkflow);

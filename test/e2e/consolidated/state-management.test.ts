@@ -128,6 +128,7 @@ initial_state: "planning"
 states:
   planning:
     description: "Planning phase"
+    default_instructions: "Start planning the feature. Define what needs to be built and create a plan."
     transitions:
       - trigger: "planning_complete"
         to: "building"
@@ -135,6 +136,7 @@ states:
         transition_reason: "Planning phase finished, moving to building"
   building:
     description: "Building phase"
+    default_instructions: "Build the feature according to the plan. Focus on implementation and testing."
     transitions:
       - trigger: "build_finished"
         to: "complete"
@@ -142,17 +144,8 @@ states:
         transition_reason: "Building phase finished, feature complete"
   complete:
     description: "Completed"
+    default_instructions: "Feature is complete and ready for delivery."
     transitions: []
-direct_transitions:
-  - state: "planning"
-    instructions: "Start planning the feature. Define what needs to be built and create a plan."
-    transition_reason: "Beginning custom workflow"
-  - state: "building"
-    instructions: "Build the feature according to the plan. Focus on implementation and testing."
-    transition_reason: "Ready to build"
-  - state: "complete"
-    instructions: "Feature is complete and ready for delivery."
-    transition_reason: "Build finished"
 `;
 
       await fs.writeFile(path.join(vibeDir, 'state-machine.yaml'), customStateMachine);
@@ -176,11 +169,8 @@ initial_state: "start"
 states:
   start:
     description: "Start state"
+    default_instructions: "YML state machine loaded"
     transitions: []
-direct_transitions:
-  - state: "start"
-    instructions: "YML state machine loaded"
-    transition_reason: "YML extension test"
 `;
 
       await fs.writeFile(path.join(vibeDir, 'state-machine.yml'), customStateMachine);

@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "State Machine Definition",
-  "description": "YAML-based state machine definition for Vibe Feature MCP",
+  "description": "YAML-based state machine definition for Vibe Feature MCP (Simplified Format)",
   "type": "object",
-  "required": ["name", "description", "initial_state", "states", "direct_transitions"],
+  "required": ["name", "description", "initial_state", "states"],
   "properties": {
     "name": {
       "type": "string",
@@ -23,38 +23,20 @@
       "additionalProperties": {
         "$ref": "#/definitions/state"
       }
-    },
-    "direct_transitions": {
-      "type": "array",
-      "description": "Direct transition instructions for non-modeled transitions",
-      "items": {
-        "type": "object",
-        "required": ["state", "instructions", "transition_reason"],
-        "properties": {
-          "state": {
-            "type": "string",
-            "description": "State name for this direct transition"
-          },
-          "instructions": {
-            "type": "string",
-            "description": "Instructions to provide when directly transitioning to this state"
-          },
-          "transition_reason": {
-            "type": "string",
-            "description": "Reason for the direct transition"
-          }
-        }
-      }
     }
   },
   "definitions": {
     "state": {
       "type": "object",
-      "required": ["description", "transitions"],
+      "required": ["description", "default_instructions", "transitions"],
       "properties": {
         "description": {
           "type": "string",
           "description": "Description of this state"
+        },
+        "default_instructions": {
+          "type": "string",
+          "description": "Default instructions when entering this state"
         },
         "transitions": {
           "type": "array",
@@ -67,7 +49,7 @@
     },
     "transition": {
       "type": "object",
-      "required": ["trigger", "to", "instructions", "transition_reason"],
+      "required": ["trigger", "to", "transition_reason"],
       "properties": {
         "trigger": {
           "type": "string",
@@ -79,7 +61,11 @@
         },
         "instructions": {
           "type": "string",
-          "description": "Instructions to provide when this transition occurs"
+          "description": "Instructions to provide when this transition occurs (optional - uses target state default if not provided)"
+        },
+        "additional_instructions": {
+          "type": "string",
+          "description": "Additional instructions to combine with target state's default instructions (optional)"
         },
         "transition_reason": {
           "type": "string",

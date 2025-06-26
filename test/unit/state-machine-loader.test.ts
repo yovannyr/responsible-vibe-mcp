@@ -21,6 +21,7 @@ const mockStateMachine = {
   states: {
     idle: {
       description: 'Idle state',
+      default_instructions: 'Starting idle state. Wait for user input and analyze requests.',
       transitions: [
         {
           trigger: 'new_feature_request',
@@ -32,21 +33,10 @@ const mockStateMachine = {
     },
     requirements: {
       description: 'Requirements state',
+      default_instructions: 'Starting requirements analysis. Gather and document user requirements.',
       transitions: []
     }
-  },
-  direct_transitions: [
-    {
-      state: 'idle',
-      instructions: 'Direct to idle',
-      transition_reason: 'Direct transition to idle'
-    },
-    {
-      state: 'requirements',
-      instructions: 'Direct to requirements',
-      transition_reason: 'Direct transition to requirements'
-    }
-  ]
+  }
 };
 
 // Mock modules
@@ -206,18 +196,18 @@ describe('StateMachineLoader', () => {
       });
     });
 
-    it('should return direct transition instructions when no modeled transition exists', () => {
+    it('should return default instructions when no modeled transition exists', () => {
       const result = stateMachineLoader.getTransitionInstructions('requirements', 'idle');
       
       expect(result).toEqual({
-        instructions: 'Direct to idle',
-        transitionReason: 'Direct transition to idle',
+        instructions: 'Starting idle state. Wait for user input and analyze requests.',
+        transitionReason: 'Direct transition to idle phase',
         isModeled: false
       });
     });
 
     it('should throw error if no transition found', () => {
-      expect(() => stateMachineLoader.getTransitionInstructions('requirements', 'unknown')).toThrow('No transition found from "requirements" to "unknown"');
+      expect(() => stateMachineLoader.getTransitionInstructions('requirements', 'unknown')).toThrow('Target state "unknown" not found');
     });
   });
 });

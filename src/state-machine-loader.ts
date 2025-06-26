@@ -100,7 +100,6 @@ export class StateMachineLoader {
       logger.info('State machine loaded successfully', {
         name: stateMachine.name,
         stateCount: Object.keys(stateMachine.states).length,
-        directTransitionCount: stateMachine.direct_transitions.length,
         phases: Array.from(this.validPhases)
       });
       
@@ -129,8 +128,13 @@ export class StateMachineLoader {
       throw new Error(`Initial state "${stateMachine.initial_state}" is not defined in states`);
     }
     
-    // Validate transition targets
+    // Validate states and transitions
     Object.entries(stateMachine.states).forEach(([stateName, state]) => {
+      // Check required state properties
+      if (!state.description || !state.default_instructions) {
+        throw new Error(`State "${stateName}" is missing required properties (description or default_instructions)`);
+      }
+      
       if (!state.transitions || !Array.isArray(state.transitions)) {
         throw new Error(`State "${stateName}" has invalid transitions property`);
       }
@@ -140,25 +144,10 @@ export class StateMachineLoader {
           throw new Error(`State "${stateName}" has transition to unknown state "${transition.to}"`);
         }
         
-        if (!transition.instructions || !transition.transition_reason) {
-          throw new Error(`Transition from "${stateName}" to "${transition.to}" is missing instructions or transition_reason`);
+        if (!transition.transition_reason) {
+          throw new Error(`Transition from "${stateName}" to "${transition.to}" is missing transition_reason`);
         }
       });
-    });
-    
-    // Validate direct transitions
-    if (!stateMachine.direct_transitions || !Array.isArray(stateMachine.direct_transitions)) {
-      throw new Error('State machine is missing direct_transitions array');
-    }
-    
-    stateMachine.direct_transitions.forEach(directTransition => {
-      if (!stateNames.includes(directTransition.state)) {
-        throw new Error(`Direct transition references unknown state: ${directTransition.state}`);
-      }
-      
-      if (!directTransition.instructions || !directTransition.transition_reason) {
-        throw new Error(`Direct transition for state "${directTransition.state}" has invalid properties`);
-      }
     });
     
     logger.debug('State machine validation successful');
@@ -176,38 +165,47 @@ export class StateMachineLoader {
       throw new Error('State machine not loaded');
     }
     
+    // Get target state definition
+    const targetState = this.stateMachine.states[toState];
+    if (!targetState) {
+      throw new Error(`Target state "${toState}" not found`);
+    }
+    
     // Look for a modeled transition first
-    const stateDefinition = this.stateMachine.states[fromState];
-    if (stateDefinition) {
-      const transition = stateDefinition.transitions.find(
+    const fromStateDefinition = this.stateMachine.states[fromState];
+    if (fromStateDefinition) {
+      const transition = fromStateDefinition.transitions.find(
         t => t.to === toState && (!trigger || t.trigger === trigger)
       );
       
       if (transition) {
+        // For modeled transitions, compose instructions
+        let composedInstructions = targetState.default_instructions;
+        
+        // If transition has specific instructions, use those instead of default
+        if (transition.instructions) {
+          composedInstructions = transition.instructions;
+        }
+        
+        // If transition has additional instructions, combine them
+        if (transition.additional_instructions) {
+          composedInstructions = `${composedInstructions}\n\n**Additional Context:**\n${transition.additional_instructions}`;
+        }
+        
         return {
-          instructions: transition.instructions,
+          instructions: composedInstructions,
           transitionReason: transition.transition_reason,
           isModeled: true
         };
       }
     }
     
-    // Fall back to direct transition instructions
-    const directTransition = this.stateMachine.direct_transitions.find(
-      dt => dt.state === toState
-    );
-    
-    if (directTransition) {
-      return {
-        instructions: directTransition.instructions,
-        transitionReason: directTransition.transition_reason,
-        isModeled: false
-      };
-    }
-    
-    // If no transition found, throw error
-    logger.error('No transition found', new Error(`No transition found from "${fromState}" to "${toState}"`));
-    throw new Error(`No transition found from "${fromState}" to "${toState}"`);
+    // Fall back to target state's default instructions for unmodeled transitions
+    return {
+      instructions: targetState.default_instructions,
+      transitionReason: `Direct transition to ${toState} phase`,
+      isModeled: false
+    };
   }
   
   /**
@@ -259,24 +257,29 @@ export class StateMachineLoader {
       throw new Error(`Unknown phase: ${phase}`);
     }
     
+    // Look for a self-transition (continue in same phase)
     const continueTransition = stateDefinition.transitions.find(
       t => t.to === phase
     );
     
     if (continueTransition) {
-      return continueTransition.instructions;
+      // Compose instructions for continue transition
+      let composedInstructions = stateDefinition.default_instructions;
+      
+      // If transition has specific instructions, use those instead of default
+      if (continueTransition.instructions) {
+        composedInstructions = continueTransition.instructions;
+      }
+      
+      // If transition has additional instructions, combine them
+      if (continueTransition.additional_instructions) {
+        composedInstructions = `${composedInstructions}\n\n**Additional Context:**\n${continueTransition.additional_instructions}`;
+      }
+      
+      return composedInstructions;
     }
     
-    // Fall back to direct transition instructions
-    const directTransition = this.stateMachine.direct_transitions.find(
-      dt => dt.state === phase
-    );
-    
-    if (directTransition) {
-      return directTransition.instructions;
-    }
-    
-    logger.warn('No continue instructions found for phase', { phase });
-    return `Continue working in ${phase} phase.`;
+    // Fall back to default instructions for the phase
+    return stateDefinition.default_instructions;
   }
 }

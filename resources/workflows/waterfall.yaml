@@ -4,10 +4,11 @@ name: "waterfall"
 description: "From Specification down to test – the historical way. Ideal for larger, design-heavy tasks with well-defined requirements"
 initial_state: "requirements"
 
-# Regular state transitions
+# States with default instructions and transitions
 states:
   requirements:
     description: "Gathering and analyzing requirements"
+    default_instructions: "Make yourself familiar with the code base. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress."
     transitions:
       - trigger: "refine_requirements"
         to: "requirements"
@@ -28,210 +29,128 @@ states:
         transition_reason: "All requirements tasks completed, moving to technical design"
 
   design:
-    description: "Designing technical solution"
+    description: "Technical design and architecture planning"
+    default_instructions: "Starting design phase. Re-analyze important interfaces of the application. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document design decisions in the plan file and ensure the approach is solid before implementation."
     transitions:
       - trigger: "refine_design"
         to: "design"
         instructions: >
-            Continue refining the technical design. Ask about architecture details, technology choices, data models, API design,
-            and quality considerations. Update the plan file with design decisions and mark completed design tasks.
-            Ensure the design is solid before implementation.
+            Continue refining the technical design. Add more architectural details, consider additional patterns,
+            evaluate technology choices, and ensure the design is comprehensive. Update design decisions in the plan file.
         transition_reason: "Design needs further refinement and detail"
       
-      - trigger: "requirements_unclear"
+      - trigger: "need_more_requirements"
         to: "requirements"
-        instructions: >
-            Design phase revealed unclear requirements. Return to requirements analysis to clarify the WHAT before continuing with HOW.
-            You may stash technical artifacts you already created.
-            Ask specific questions about the unclear aspects and update the plan file with refined requirements.
-        transition_reason: "Design work revealed gaps or ambiguities in requirements"
+        additional_instructions: "Design work revealed gaps in requirements understanding. Focus on clarifying the specific requirements that are blocking design decisions."
+        transition_reason: "Design work revealed need for additional requirements clarification"
       
       - trigger: "design_complete"
         to: "implementation"
         instructions: >
-            Design is complete! ✅ Now transition to implementation. Before we start, get a solid understanding of the 
-            code style and patterns used up to now. Guide the user through building the solution following the design.
-            If there are special challenges, present them as pseudo code. When you provide real code, always use your 
-            tools to edit the actual files. 
-            Focus on coding best practices, proper structure, error handling, and basic testing.
-            Update the plan file with implementation progress and mark completed design tasks.
-        transition_reason: "Technical design is complete, ready to start building"
-      
-      - trigger: "abandon_feature"
-        to: "requirements"
-        instructions: >
-            Feature development abandoned during design phase. Clean up any design artifacts and return to requirements state.
-            The plan file will remain for future reference.
-        transition_reason: "User decided to abandon feature during design phase"
+            Design is complete! ✅ Now transition to implementation phase. Follow the technical design you've created.
+            Build the solution with clean, well-structured code following the architectural decisions made in design.
+            Focus on code quality, error handling, and maintainability. Update the plan file with implementation progress
+            and mark completed design tasks.
+        transition_reason: "Technical design is complete, ready for implementation"
 
   implementation:
-    description: "Building the solution"
+    description: "Building the solution according to design"
+    default_instructions: "Starting implementation phase. Guide the user through building the solution following best practices. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress."
     transitions:
-      - trigger: "refine_implementation"
+      - trigger: "continue_implementation"
         to: "implementation"
         instructions: >
-            Continue implementation work. Help with coding, debugging, structure improvements, and adding functionality.
-            Follow best practices and ensure code quality. Update the plan file with progress and mark completed implementation tasks.
-        transition_reason: "Implementation work continues, adding features or improving code"
+            Continue implementation work. Follow the design, write clean code, handle edge cases, and maintain good
+            code structure. Update the plan file with progress and mark completed implementation tasks.
+        transition_reason: "Implementation work continues, building the solution"
       
-      - trigger: "design_issues"
+      - trigger: "need_design_changes"
         to: "design"
-        instructions: >
-            Implementation revealed issues with the design. Return to design phase to address architectural problems or design gaps.
-            You may stash technical artifacts you already created.
-            Analyze what's not working and revise the technical approach. Present high-level alternative ideas to the user.
-            Update the plan file with design changes.
-        transition_reason: "Implementation work revealed problems with the current design"
+        additional_instructions: "Implementation revealed issues with the current design. Consider what you've learned during coding and adjust the design accordingly. Document the changes and reasons."
+        transition_reason: "Implementation work revealed need to revise the design"
+      
+      - trigger: "need_more_requirements"
+        to: "requirements"
+        additional_instructions: "Implementation revealed gaps in requirements understanding. Focus on clarifying the specific requirements that are blocking implementation."
+        transition_reason: "Implementation work revealed need for additional requirements"
       
       - trigger: "implementation_complete"
         to: "qa"
         instructions: >
-            Implementation is complete! ✅ Now transition to quality assurance. Take these specific actions:
-
-            1. **Syntax Check**: Run syntax checking tools or validate syntax manually
-            2. **Build Project**: Build the project to verify it compiles without errors
-            3. **Run Linter**: Execute linting tools to ensure code style consistency
-            4. **Execute Tests**: Run existing tests to verify functionality
-
-            Then conduct a multi-perspective code review:
-            - **Security Perspective**: Check for vulnerabilities, input validation, authentication issues
-            - **Performance Perspective**: Identify bottlenecks, inefficient algorithms, resource usage
-            - **Maintainability Perspective**: Assess code readability, documentation, future maintenance
-            - **Requirement Compliance**: Verify all requirements are properly implemented
-
-            Update the plan file and mark completed implementation tasks.
-        transition_reason: "Core implementation is complete, ready for quality review"
-      
-      - trigger: "abandon_feature"
-        to: "requirements"
-        instructions: >
-            Feature development abandoned during implementation. Clean up any incomplete code and return to requirements state.
-            The plan file and any completed work will remain for future reference.
-        transition_reason: "User decided to abandon feature during implementation"
+            Implementation is complete! ✅ Now transition to quality assurance phase. Review the implemented solution
+            for code quality, security, performance, and compliance with requirements. Run syntax checks, build verification,
+            linting, and existing tests. Conduct comprehensive code review and update the plan file with QA progress.
+        transition_reason: "Core implementation is complete, ready for quality assurance"
 
   qa:
-    description: "Quality assurance and review"
+    description: "Quality assurance and code review"
+    default_instructions: "Starting quality assurance phase. Take the following specific actions: 1) Syntax Check: Run syntax checking tools or validate syntax manually, 2) Build Project: Build the project to verify it compiles without errors, 3) Run Linter: Execute linting tools to ensure code style consistency, 4) Execute Tests: Run existing tests to verify functionality. Then conduct a multi-perspective code review from security, performance, UX, maintainability, and requirement compliance perspectives. Update the plan file with QA progress and mark completed tasks."
     transitions:
-      - trigger: "refine_qa"
+      - trigger: "continue_qa"
         to: "qa"
         instructions: >
-            Continue quality assurance work. Take these specific actions if not already completed:
-
-            1. **Syntax Check**: Run syntax checking tools or validate syntax manually
-            2. **Build Project**: Build the project to verify it compiles without errors
-            3. **Run Linter**: Execute linting tools to ensure code style consistency
-            4. **Execute Tests**: Run existing tests to verify functionality
-
-            Continue multi-perspective code review:
-            - **Security Perspective**: Check for vulnerabilities, input validation, authentication issues
-            - **Performance Perspective**: Identify bottlenecks, inefficient algorithms, resource usage
-            - **Maintainability Perspective**: Assess code readability, documentation, future maintenance
-            - **Requirement Compliance**: Verify all requirements are properly implemented
-
-            Update the plan file with QA progress and mark completed tasks.
-        transition_reason: "Quality assurance work continues, improving code quality"
+            Continue quality assurance work. Perform additional code reviews, run more tests, check for security issues,
+            and validate compliance with requirements. Update the plan file with QA progress.
+        transition_reason: "Quality assurance work continues, ensuring code quality"
       
-      - trigger: "implementation_issues"
+      - trigger: "need_implementation_fixes"
         to: "implementation"
-        instructions: >
-            Quality assurance revealed implementation issues. Return to implementation phase to fix bugs,
-            improve code quality, or add missing functionality. Focus on addressing the specific issues identified during QA review.
-        transition_reason: "QA review found issues that require implementation changes"
+        additional_instructions: "Quality assurance revealed issues that require code changes. Focus on the specific problems identified during QA review."
+        transition_reason: "QA found issues requiring implementation fixes"
+      
+      - trigger: "need_design_changes"
+        to: "design"
+        additional_instructions: "Quality assurance revealed fundamental design issues. Consider the QA findings and adjust the design accordingly."
+        transition_reason: "QA found issues requiring design changes"
       
       - trigger: "qa_complete"
         to: "testing"
         instructions: >
-            Quality assurance is complete! ✅ Now transition to testing phase. 
-            Ask the user about edge cases you identified, propose new test scenarios.
-            Implement those new tests and make sure they succeed. At this phase, do not change the actual source code anymore, but adapt the tests.
-            Once they succeed, review the tests to make sure they actually test the artifacts implemented.
+            Quality assurance is complete! ✅ Now transition to testing phase. Create comprehensive test plans,
+            write and execute tests, validate feature completeness, and ensure everything works as expected.
+            Focus on test coverage, edge cases, integration testing, and user acceptance validation.
             Update the plan file and mark completed QA tasks.
         transition_reason: "Quality assurance is complete, ready for comprehensive testing"
-      
-      - trigger: "abandon_feature"
-        to: "requirements"
-        instructions: >
-            Feature development abandoned during QA phase. Clean up any QA artifacts and return to requirements state.
-            You may stash technical artifacts you already created.
-            The plan file and completed work will remain for future reference.
-        transition_reason: "User decided to abandon feature during quality assurance"
 
   testing:
-    description: "Testing and validation"
+    description: "Comprehensive testing and validation"
+    default_instructions: "Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation."
     transitions:
-      - trigger: "refine_testing"
+      - trigger: "continue_testing"
         to: "testing"
         instructions: >
-            Continue testing work. Create more test cases, improve test coverage, run integration tests, and validate edge cases.
-            Update the plan file with testing progress and mark completed testing tasks.
-        transition_reason: "Testing work continues, improving coverage and validation"
+            Continue testing work. Execute more test cases, check edge cases, perform integration testing,
+            and validate user acceptance criteria. Update the plan file with testing progress.
+        transition_reason: "Testing work continues, validating the solution"
       
-      - trigger: "qa_issues"
+      - trigger: "need_implementation_fixes"
+        to: "implementation"
+        additional_instructions: "Testing revealed bugs or issues that require code changes. Focus on the specific problems identified during testing."
+        transition_reason: "Testing found issues requiring implementation fixes"
+      
+      - trigger: "need_qa_review"
         to: "qa"
-        instructions: >
-            Testing revealed quality issues. Return to QA phase to address code quality problems,
-            documentation gaps, or requirement compliance issues identified during testing.
-            Focus on the specific QA issues found.
-        transition_reason: "Testing found issues that require quality assurance attention"
+        additional_instructions: "Testing revealed quality issues that need additional QA review. Focus on the specific quality concerns identified."
+        transition_reason: "Testing found issues requiring additional QA review"
       
       - trigger: "testing_complete"
         to: "complete"
         instructions: >
-            Testing is complete! ✅ The feature is fully implemented, tested, and ready for delivery.
-            Transition to complete state. Summarize what was accomplished and prepare final documentation.
+            Testing is complete! ✅ All tests pass and the feature is validated. Transition to completion phase.
+            Summarize what was accomplished, ensure all documentation is finalized, and prepare for delivery.
             Mark all testing tasks as complete.
         transition_reason: "All testing is complete, feature is ready for delivery"
-      
-      - trigger: "abandon_feature"
-        to: "requirements"
-        instructions: >
-            Feature development abandoned during testing phase. Clean up any testing artifacts and return to requirements state.
-            The plan file and completed work will remain for future reference.
-        transition_reason: "User decided to abandon feature during testing phase"
 
   complete:
-    description: "Feature complete and ready for delivery"
+    description: "Feature completion and delivery"
+    default_instructions: "Feature development is complete! All phases have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized."
     transitions:
-      - trigger: "feature_delivered"
-        to: "requirements"
-        instructions: >
-            Feature has been delivered successfully! Return to requirements state, ready for the next development task.
-            The completed plan file serves as documentation of what was accomplished.
-        transition_reason: "Feature delivery complete, returning to requirements state"
+      - trigger: "need_final_changes"
+        to: "implementation"
+        additional_instructions: "Final review revealed minor issues that need to be addressed. Focus on the specific final changes needed."
+        transition_reason: "Final review found issues requiring minor implementation changes"
       
-      - trigger: "new_feature_request"
+      - trigger: "restart_development"
         to: "requirements"
-        instructions: >
-            New feature request while previous feature is complete. Start fresh requirements analysis for the new feature.
-            Ask clarifying questions about what they need and create a new development plan.
-        transition_reason: "New feature request received, starting new development cycle"
-
-# Direct transition instructions
-direct_transitions:
-  - state: "requirements"
-    instructions: "Returned to requirements state. Ask the user why he did this."
-    transition_reason: "Direct transition to requirements state"
-  
-  - state: "requirements"
-    instructions: "Make yourself familiar with the code base. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific, actionable tasks and document them in the plan file. Mark completed requirements tasks as you progress."
-    transition_reason: "Direct transition to requirements phase"
-  
-  - state: "design"
-    instructions: "Starting design phase. Re-analyze important interfaces of the application. Help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document design decisions in the plan file and ensure the approach is solid before implementation."
-    transition_reason: "Direct transition to design phase"
-  
-  - state: "implementation"
-    instructions: "Starting implementation phase. Guide the user through building the solution following best practices. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress."
-    transition_reason: "Direct transition to implementation phase"
-  
-  - state: "qa"
-    instructions: "Starting quality assurance phase. Take the following specific actions: 1) Syntax Check: Run syntax checking tools or validate syntax manually, 2) Build Project: Build the project to verify it compiles without errors, 3) Run Linter: Execute linting tools to ensure code style consistency, 4) Execute Tests: Run existing tests to verify functionality. Then conduct a multi-perspective code review from security, performance, UX, maintainability, and requirement compliance perspectives. Update the plan file with QA progress and mark completed tasks."
-    transition_reason: "Direct transition to quality assurance phase"
-  
-  - state: "testing"
-    instructions: "Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation."
-    transition_reason: "Direct transition to testing phase"
-  
-  - state: "complete"
-    instructions: "Feature development is complete! All phases have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized."
-    transition_reason: "Direct transition to complete phase"
+        additional_instructions: "Starting new development cycle. Prepare to gather requirements for the next feature or iteration."
+        transition_reason: "Beginning new development cycle"

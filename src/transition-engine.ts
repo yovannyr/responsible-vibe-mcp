@@ -160,20 +160,20 @@ Once you've defined these criteria, we can begin development. Throughout the pro
     );
     
     if (continueTransition) {
-      return continueTransition.instructions;
+      // Use the transition instructions if available, otherwise use default + additional
+      if (continueTransition.instructions) {
+        return continueTransition.instructions;
+      } else {
+        let composedInstructions = stateDefinition.default_instructions;
+        if (continueTransition.additional_instructions) {
+          composedInstructions = `${composedInstructions}\n\n**Additional Context:**\n${continueTransition.additional_instructions}`;
+        }
+        return composedInstructions;
+      }
     }
     
-    // Fall back to direct transition instructions
-    const directTransition = stateMachine.direct_transitions.find(
-      dt => dt.state === phase
-    );
-    
-    if (directTransition) {
-      return directTransition.instructions;
-    }
-    
-    logger.warn('No continue instructions found for phase', { phase });
-    return `Continue working in ${phase} phase.`;
+    // Fall back to default instructions for the phase
+    return stateDefinition.default_instructions;
   }
   /**
    * Get the first development phase from the state machine
@@ -294,12 +294,13 @@ Once you've defined these criteria, we can begin development. Throughout the pro
       throw new Error(errorMsg);
     }
 
-    // Get transition instructions from the state machine
-    const directTransition = stateMachine.direct_transitions?.find(dt => dt.state === targetPhase);
+    // Get default instructions from the target state
+    const targetState = stateMachine.states[targetPhase];
+    const instructions = targetState.default_instructions;
     const transitionInfo = {
-      instructions: directTransition?.instructions || `Transition to ${targetPhase}`,
-      transitionReason: directTransition?.transition_reason || reason || `Moving to ${targetPhase}`,
-      isModeled: !!directTransition
+      instructions: instructions,
+      transitionReason: reason || `Moving to ${targetPhase}`,
+      isModeled: false // Direct phase transitions are not modeled
     };
     
     logger.info('Explicit phase transition processed', {
