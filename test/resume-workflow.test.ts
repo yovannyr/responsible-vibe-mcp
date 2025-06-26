@@ -131,15 +131,17 @@ describe('resume_workflow tool', () => {
 
   it('should handle missing plan file gracefully', async () => {
     // Create a custom test that mocks the plan manager to report no plan file
-    const originalPlanManager = (server as any).planManager;
+    const originalPlanManager = (server as any).components?.context?.planManager;
     
     try {
       // Replace plan manager with a mock that reports no plan file
-      (server as any).planManager = {
-        getPlanFileInfo: async () => ({ exists: false, path: '/fake/path.md' }),
-        ensurePlanFile: async () => {},
-        setStateMachine: () => {}
-      };
+      if ((server as any).components?.context) {
+        (server as any).components.context.planManager = {
+          getPlanFileInfo: async () => ({ exists: false, path: '/fake/path.md' }),
+          ensurePlanFile: async () => {},
+          setStateMachine: () => {}
+        };
+      }
       
       const result = await server.handleResumeWorkflow({});
       
@@ -148,7 +150,9 @@ describe('resume_workflow tool', () => {
       expect(planStatus.analysis).toBeNull();
     } finally {
       // Restore original plan manager
-      (server as any).planManager = originalPlanManager;
+      if ((server as any).components?.context && originalPlanManager) {
+        (server as any).components.context.planManager = originalPlanManager;
+      }
     }
   });
 
