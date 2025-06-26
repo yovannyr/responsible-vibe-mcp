@@ -7,7 +7,6 @@
  * definition to ensure it stays in sync with the codebase.
  * 
  * Options:
- * --type=<verbose|simple|minimal>  - Select prompt type (default: simple)
  * --output=<path>          - Specify output file path (default: SYSTEM_PROMPT.md)
  */
 
@@ -22,19 +21,11 @@ const logger = createLogger('GenerateSystemPrompt');
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    type: 'simple',
     output: join(process.cwd(), 'SYSTEM_PROMPT.md')
   };
 
   for (const arg of args) {
-    if (arg.startsWith('--type=')) {
-      const type = arg.split('=')[1];
-      if (type === 'verbose' || type === 'simple' || type === 'minimal') {
-        options.type = type;
-      } else {
-        console.warn(`Invalid type: ${type}. Using default: simple`);
-      }
-    } else if (arg.startsWith('--output=')) {
+    if (arg.startsWith('--output=')) {
       options.output = arg.split('=')[1];
       // If path is not absolute, make it relative to current directory
       if (!options.output.startsWith('/')) {
@@ -57,24 +48,22 @@ async function main() {
     const stateMachine = loader.loadStateMachine(process.cwd()); // Use current directory
     
     // Generate the system prompt
-    const systemPrompt = generateSystemPrompt(stateMachine, options.type);
+    const systemPrompt = generateSystemPrompt(stateMachine);
     
     // Write to output file
     await writeFile(options.output, systemPrompt, 'utf-8');
     
     logger.info('System prompt written to file', { 
-      outputPath: options.output,
-      type: options.type
+      outputPath: options.output
     });
     
     // Log the generated prompt to console
     console.log('\n' + '='.repeat(80));
-    console.log(`GENERATED ${options.type.toUpperCase()} SYSTEM PROMPT`);
+    console.log('GENERATED SYSTEM PROMPT');
     console.log('='.repeat(80));
     console.log(systemPrompt);
     console.log('='.repeat(80));
     console.log(`\nSystem prompt saved to: ${options.output}`);
-    console.log(`Type: ${options.type}`);
     console.log(`Length: ${systemPrompt.length} characters`);
     
   } catch (error) {

@@ -172,8 +172,6 @@ describe('resume_workflow tool', () => {
     await expect(server.handleResumeWorkflow({})).resolves.toBeDefined();
     await expect(server.handleResumeWorkflow({ include_system_prompt: true })).resolves.toBeDefined();
     await expect(server.handleResumeWorkflow({ include_system_prompt: false })).resolves.toBeDefined();
-    await expect(server.handleResumeWorkflow({ simple_prompt: true })).resolves.toBeDefined();
-    await expect(server.handleResumeWorkflow({ simple_prompt: false })).resolves.toBeDefined();
   });
 
   it('should include metadata in response', async () => {

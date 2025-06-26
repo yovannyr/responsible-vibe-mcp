@@ -15,7 +15,6 @@ import { generateSystemPrompt } from '../../system-prompt-generator.js';
  */
 export interface ResumeWorkflowArgs {
   include_system_prompt?: boolean;
-  simple_prompt?: boolean;
 }
 
 /**
@@ -55,12 +54,10 @@ export class ResumeWorkflowHandler extends ConversationRequiredToolHandler<Resum
     conversationContext: any
   ): Promise<ResumeWorkflowResult> {
     const includeSystemPrompt = args.include_system_prompt !== false; // Default to true
-    const simplePrompt = args.simple_prompt !== false; // Default to true
 
     this.logger.debug('Processing resume_workflow request', { 
       conversationId: conversationContext.conversationId,
-      includeSystemPrompt,
-      simplePrompt
+      includeSystemPrompt
     });
 
     // Get plan file information
@@ -82,7 +79,7 @@ export class ResumeWorkflowHandler extends ConversationRequiredToolHandler<Resum
     
     // Generate system prompt if requested
     const systemPrompt = includeSystemPrompt 
-      ? generateSystemPrompt(stateMachine, simplePrompt ? 'simple' : 'verbose') 
+      ? generateSystemPrompt(stateMachine) 
       : null;
     
     // Build comprehensive response
@@ -118,8 +115,7 @@ export class ResumeWorkflowHandler extends ConversationRequiredToolHandler<Resum
       conversationId: conversationContext.conversationId,
       phase: conversationContext.currentPhase,
       planExists: planInfo.exists,
-      includeSystemPrompt,
-      promptType: simplePrompt ? 'simple' : 'verbose'
+      includeSystemPrompt
     });
     
     return response;

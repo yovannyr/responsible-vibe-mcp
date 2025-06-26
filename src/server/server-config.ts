@@ -204,8 +204,7 @@ export function registerMcpTools(
     {
       description: 'Resume development workflow after conversation compression. Returns system prompt instructions plus comprehensive project context, current state, and next steps to seamlessly continue development.',
       inputSchema: {
-        include_system_prompt: z.boolean().optional().describe('Whether to include system prompt instructions (default: true)'),
-        simple_prompt: z.boolean().optional().describe('Whether to use simplified system prompt when included (default: true)')
+        include_system_prompt: z.boolean().optional().describe('Whether to include system prompt instructions (default: true)')
       },
       annotations: {
         title: 'Workflow Resumption Assistant',
