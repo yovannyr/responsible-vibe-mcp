@@ -90,9 +90,9 @@ describe('Plan Management', () => {
       const planContent = planResource.contents[0].text;
 
       expect(planContent).toContain('# Development Plan');
-      expect(planContent).toContain('## Project Overview');
-      expect(planContent).toContain('## Requirements');
-      expect(planContent).toContain('## Current Status');
+      expect(planContent).toContain('## Goal');
+      expect(planContent).toContain('## Current Phase: Requirements');
+      expect(planContent).toContain('## Key Decisions');
     });
 
     it('should include phase-specific sections', async () => {
@@ -111,7 +111,7 @@ describe('Plan Management', () => {
       const planContent = planResource.contents[0].text;
 
       expect(planContent).toContain('## Design');
-      expect(planContent).toContain('## Requirements');
+      expect(planContent).toContain('## Current Phase: Requirements');
     });
 
     it('should maintain consistent markdown formatting', async () => {
@@ -286,7 +286,7 @@ describe('Plan Management', () => {
       const planContent = planResource.contents[0].text;
 
       // Plan should contain QA-specific content
-      expect(planContent).toContain('Quality assurance');
+      expect(planContent).toContain('## Qa');
     });
 
     it('should track task completion in plan file', async () => {

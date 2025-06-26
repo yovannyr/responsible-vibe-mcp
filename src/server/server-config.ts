@@ -112,15 +112,15 @@ export function registerMcpTools(
   mcpServer.registerTool(
     'whats_next',
     {
-      description: 'Analyze conversation context and determine the next development phase with specific instructions for the LLM. This is the primary tool for orchestrating development workflow and should be called after each user interaction.',
+      description: 'Get guidance for the current development phase and determine what to work on next. Call this tool after each user message to receive phase-specific instructions and check if you should transition to the next development phase. The tool will reference your plan file for specific tasks and context.',
       inputSchema: {
-        context: z.string().optional().describe('Additional context about current conversation or situation'),
-        user_input: z.string().optional().describe('Latest user input or request for analysis'),
-        conversation_summary: z.string().optional().describe('LLM-provided summary of the conversation so far, including key decisions and progress made'),
+        context: z.string().optional().describe('Brief description of what you\'re currently working on or discussing with the user'),
+        user_input: z.string().optional().describe('The user\'s most recent message or request'),
+        conversation_summary: z.string().optional().describe('Summary of the development progress and key decisions made so far'),
         recent_messages: z.array(z.object({
-          role: z.enum(['user', 'assistant']).describe('The role of the message sender'),
-          content: z.string().describe('The content of the message')
-        })).optional().describe('Array of recent conversation messages that LLM considers relevant for context')
+          role: z.enum(['user', 'assistant']).describe('Who sent the message (user or assistant)'),
+          content: z.string().describe('The message content')
+        })).optional().describe('Recent conversation messages that provide context for the current development state')
       },
       annotations: {
         title: 'Development Phase Analyzer',
@@ -145,10 +145,10 @@ export function registerMcpTools(
   mcpServer.registerTool(
     'proceed_to_phase',
     {
-      description: 'Explicitly transition to a specific development phase when the current phase is complete or when a direct phase change is needed. Use this tool when whats_next suggests a phase transition or when you need to move to a specific phase. Always get confirmation by the user for the reason',
+      description: 'Move to a specific development phase when the current phase is complete. Use this tool to explicitly transition between phases. Check your plan file to see available phases for the current workflow. Only transition when current phase tasks are finished and user confirms readiness.',
       inputSchema: {
-        target_phase: z.string().describe('The development phase to transition to'),
-        reason: z.string().optional().describe('Optional reason for transitioning to this phase now (e.g., "requirements complete", "user requested", "design approved")')
+        target_phase: z.string().describe('The development phase to move to. Check your plan file section headers to see available phases for the current workflow'),
+        reason: z.string().optional().describe('Why you\'re moving to this phase now (e.g., "requirements complete", "user approved design", "implementation finished")')
       },
       annotations: {
         title: 'Phase Transition Controller',
@@ -173,7 +173,7 @@ export function registerMcpTools(
   mcpServer.registerTool(
     'start_development',
     {
-      description: 'Initialize development workflow and transition to the initial development phase. Choose from predefined workflows or use a custom workflow.',
+      description: 'Begin a new development project with a structured workflow. Choose from different development approaches (waterfall, bugfix, epcc) or use a custom workflow. This tool sets up the project plan and initializes the development process.',
       inputSchema: {
         workflow: z.enum(buildWorkflowEnum(context.workflowManager.getWorkflowNames()))
           .default('waterfall')
@@ -202,9 +202,9 @@ export function registerMcpTools(
   mcpServer.registerTool(
     'resume_workflow',
     {
-      description: 'Resume development workflow after conversation compression. Returns system prompt instructions plus comprehensive project context, current state, and next steps to seamlessly continue development.',
+      description: 'Continue development after a break or conversation restart. This tool provides complete project context, current development status, and next steps to seamlessly pick up where you left off. Use when starting a new conversation about an existing project.',
       inputSchema: {
-        include_system_prompt: z.boolean().optional().describe('Whether to include system prompt instructions (default: true)')
+        include_system_prompt: z.boolean().optional().describe('Whether to include setup instructions for the assistant (default: true)')
       },
       annotations: {
         title: 'Workflow Resumption Assistant',
@@ -229,7 +229,7 @@ export function registerMcpTools(
   mcpServer.registerTool(
     'reset_development',
     {
-      description: 'Reset conversation state and development progress. This permanently deletes conversation state and plan file, while soft-deleting interaction logs for audit trail. Requires explicit confirmation.',
+      description: 'Start over with a clean slate by deleting all development progress and conversation history. This permanently removes the project plan and resets the development state. Use when you want to completely restart the development approach for a project.',
       inputSchema: {
         confirm: z.boolean().describe('Must be true to execute reset - prevents accidental resets'),
         reason: z.string().optional().describe('Optional reason for reset (for logging and audit trail)')

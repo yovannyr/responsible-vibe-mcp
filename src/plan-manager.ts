@@ -112,31 +112,17 @@ export class PlanManager {
     
     const phases = Object.keys(this.stateMachine.states);
     const initialPhase = this.stateMachine.initial_state;
-    const initialPhaseDescription = this.stateMachine.states[initialPhase]?.description || initialPhase;
     
     let content = `# Development Plan: ${projectName}${branchInfo}
 
 *Generated on ${timestamp} by Vibe Feature MCP*
 *Workflow: ${this.stateMachine.name}*
 
-## Project Overview
+## Goal
+*Define what you're building or fixing - this will be updated as requirements are gathered*
 
-**Status**: ${this.capitalizePhase(initialPhase)} Phase  
-**Current Phase**: ${this.capitalizePhase(initialPhase)}  
-**Workflow**: ${this.stateMachine.description}
-
-### Feature Goals
-- [ ] *To be defined based on ${initialPhase} phase*
-
-### Scope
-- [ ] *To be defined during ${initialPhase} phase*
-
-## Current Status
-
-**Phase**: ${this.capitalizePhase(initialPhase)}  
-**Progress**: Starting development with ${initialPhaseDescription}
-
-### Current Phase Tasks
+## Current Phase: ${this.capitalizePhase(initialPhase)}
+### Tasks
 - [ ] *Tasks will be added as they are identified*
 
 ### Completed
@@ -144,38 +130,28 @@ export class PlanManager {
 
 `;
 
-    // Generate sections for each phase
+    // Generate simple sections for each phase
     phases.forEach((phase, index) => {
-      const phaseDescription = this.stateMachine!.states[phase].description;
-      
-      content += `## ${this.capitalizePhase(phase)}
-
-*${phaseDescription}*
-
+      if (phase !== initialPhase) {
+        content += `## ${this.capitalizePhase(phase)}
 ### Tasks
-- [ ] *To be added after previous phases completion*
+- [ ] *To be added when this phase becomes active*
 
 ### Completed
 *None yet*
 
 `;
+      }
     });
 
-    content += `## Decision Log
-
-### Technical Decisions
-*Technical decisions will be documented here as they are made*
-
-### Design Decisions
-*Design decisions will be documented here as they are made*
+    content += `## Key Decisions
+*Important decisions will be documented here as they are made*
 
 ## Notes
-
-*Additional notes and observations will be added here throughout development*
+*Additional context and observations*
 
 ---
-
-*This plan is continuously updated by the LLM as development progresses. Each phase's tasks and completed items are maintained to track progress and provide context for future development sessions.*
+*This plan is maintained by the LLM. Tool responses provide guidance on which section to focus on and what tasks to work on.*
 `;
 
     return content;

@@ -154,7 +154,7 @@ describe('Workflow Integration', () => {
       expect(planContent).toContain('Requirements');
       expect(planContent).toContain('Design');
       expect(planContent).toContain('Implementation');
-      expect(planContent).toContain('Quality assurance');
+      expect(planContent).toContain('## Qa');
     });
   });
 

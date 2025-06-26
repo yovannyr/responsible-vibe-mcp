@@ -28,6 +28,52 @@ LLM: calls whats_next() again
 [cycle continues...]
 ```
 
+## Information Architecture
+
+Responsible-Vibe-MCP implements a **plan-file-centric information architecture** with clear separation of responsibilities across different components:
+
+### Information Component Responsibilities
+
+| **Component** | **Responsibility** | **Information Type** | **Maintenance** |
+|---------------|-------------------|---------------------|-----------------|
+| **System Prompt** | Generic workflow guidance | How to use the system | Static |
+| **Tool Descriptions** | Generic tool usage | What each tool does | Static |
+| **Tool Responses** | Dynamic phase guidance | What to do right now | Dynamic |
+| **Plan File** | Project context & tasks | What we've done/decided | LLM-maintained |
+
+### Core Principles
+
+#### **1. Static Components Stay Generic**
+- **System Prompt**: Workflow-agnostic instructions on tool usage patterns
+- **Tool Descriptions**: Generic tool purposes without hardcoded phase names
+- **Benefit**: Works with any workflow (waterfall, bugfix, epcc, custom)
+
+#### **2. Dynamic Guidance Through Tool Responses**
+- **Tool responses provide**: Phase-specific instructions, user interaction guidance, completion criteria
+- **Plan-file-referential**: "Check your plan file's Design section for current tasks"
+- **Context-aware**: Adapts to current project state and progress
+
+#### **3. Plan File as Single Source of Truth**
+- **Contains**: Task lists per phase, key decisions, project context
+- **Structure**: Simple, LLM-maintainable (no complex dynamic elements)
+- **Purpose**: Task tracker and decision log, not workflow guide
+
+#### **4. Clear Separation of Concerns**
+```
+System Prompt: "How to use tools"
+Tool Descriptions: "What tools do" (generic)
+Tool Responses: "Check plan file section X, work on tasks Y, Z" (specific)
+Plan File: "[ ] Task 1  [x] Task 2  Decision: chose approach A" (tracking)
+```
+
+### Benefits of This Architecture
+
+- **✅ Workflow Flexibility**: Static components work with any workflow type
+- **✅ Maintainable**: No hardcoded workflow information in static descriptions
+- **✅ User Transparency**: Users see the same plan file the LLM follows
+- **✅ Consistent Guidance**: All dynamic instructions come from tool responses
+- **✅ Simple Maintenance**: LLM only updates simple task lists and decisions
+
 ## Architecture
 
 ### Static Architecture

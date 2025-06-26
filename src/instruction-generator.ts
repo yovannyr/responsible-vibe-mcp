@@ -85,38 +85,34 @@ export class InstructionGenerator {
     
     const { phase, conversationContext, transitionReason, isModeled, planFileExists } = context;
     
-    // Build enhanced instructions
-    let enhanced = baseInstructions;
+    // Build plan-file-referential instructions
+    let enhanced = `Check your plan file at \`${conversationContext.planFilePath}\` and focus on the "${this.capitalizePhase(phase)}" section.
 
-    // Add phase-specific context
-    enhanced += '\n\n' + this.getPhaseSpecificContext(phase);
+${baseInstructions}
 
-    // Add plan file instructions
-    enhanced += '\n\n**Plan File Management:**\n';
-    enhanced += `- Plan file location: \`${conversationContext.planFilePath}\`\n`;
-    
-    if (!planFileExists) {
-      enhanced += '- Plan file will be created when you first update it\n';
-    }
-    
-    enhanced += `- ${planFileGuidance}\n`;
-    enhanced += '- Always mark completed tasks with [x] and add new tasks as needed\n';
-    enhanced += '- Keep the plan file updated with your progress throughout the conversation\n';
+**Plan File Guidance:**
+- Work on the tasks listed in the ${this.capitalizePhase(phase)} section
+- Mark completed tasks with [x] as you finish them
+- Add new tasks as they are identified during your work with the user
+- Update the "Key Decisions" section with important choices made
+- Add relevant notes to help maintain context`;
 
     // Add project context
-    enhanced += '\n\n**Project Context:**\n';
-    enhanced += `- Project: ${conversationContext.projectPath}\n`;
-    enhanced += `- Branch: ${conversationContext.gitBranch}\n`;
-    enhanced += `- Current Phase: ${phase}\n`;
+    enhanced += `\n\n**Project Context:**
+- Project: ${conversationContext.projectPath}
+- Branch: ${conversationContext.gitBranch}
+- Current Phase: ${phase}`;
 
     // Add transition context if this is a modeled transition
     if (isModeled && transitionReason) {
-      enhanced += '\n\n**Transition Context:**\n';
-      enhanced += `- ${transitionReason}\n`;
+      enhanced += `\n\n**Phase Context:**
+- ${transitionReason}`;
     }
 
-    // Add phase-specific reminders
-    enhanced += '\n\n' + this.getPhaseReminders(phase);
+    // Add plan file creation note if needed
+    if (!planFileExists) {
+      enhanced += '\n\n**Note**: Plan file will be created when you first update it.';
+    }
 
     return enhanced;
   }
