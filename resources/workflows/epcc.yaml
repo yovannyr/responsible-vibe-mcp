@@ -36,7 +36,7 @@ states:
 
   plan:
     description: "Planning phase - creating a detailed implementation strategy"
-    default_instructions: "Starting planning phase. Create a detailed implementation strategy based on your exploration. Break down the work into specific, actionable tasks. Consider edge cases, dependencies, and potential challenges. Document the plan thoroughly."
+    default_instructions: "Starting planning phase. Create a detailed implementation strategy based on your exploration. Break down the work into specific, actionable tasks. Consider edge cases, dependencies, and potential challenges. Document the plan thoroughly. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
     transitions:
       - trigger: "refine_plan"
         to: "plan"
@@ -70,7 +70,7 @@ states:
 
   code:
     description: "Implementation phase - writing and building the solution"
-    default_instructions: "Starting implementation phase. Follow your plan to build the solution. Write clean, well-structured code with proper error handling. Prevent regression by building, linting and executing existing tests. Stay flexible and adapt the plan as you learn more during implementation. Update progress in the plan file."
+    default_instructions: "Starting implementation phase. Follow your plan to build the solution. Write clean, well-structured code with proper error handling. Prevent regression by building, linting and executing existing tests. Stay flexible and adapt the plan as you learn more during implementation. Update progress in the plan file. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
     transitions:
       - trigger: "need_replanning"
         to: "plan"
