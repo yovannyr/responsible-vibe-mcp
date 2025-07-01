@@ -1,5 +1,9 @@
 # Vibe Feature MCP Server
 
+[![Tests](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/pr.yml/badge.svg)](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/pr.yml)
+[![Release](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/release.yml)
+[![npm version](https://badge.fury.io/js/@mrsimpson%2Fresponsible-vibe-mcp.svg)](https://badge.fury.io/js/@mrsimpson%2Fresponsible-vibe-mcp)
+
 A Model Context Protocol (MCP) server that acts as an intelligent conversation state manager and development guide for LLMs. This server orchestrates feature development conversations by maintaining state, determining development phases, and providing contextual instructions to guide LLMs through structured development processes.
 
 ## Overview
