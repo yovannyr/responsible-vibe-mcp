@@ -3,7 +3,7 @@
     "responsible-vibe-mcp": {
       "command": "npx",
       "args": [
-        "@mrsimpson/responsible-vibe-mcp"
+        "responsible-vibe-mcp"
       ]
     },
     "modelcontextprotocol Docs": {

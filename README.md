@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/pr.yml/badge.svg)](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/pr.yml)
 [![Release](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/release.yml/badge.svg)](https://github.com/mrsimpson/vibe-feature-mcp/actions/workflows/release.yml)
-[![npm version](https://badge.fury.io/js/@mrsimpson%2Fresponsible-vibe-mcp.svg)](https://badge.fury.io/js/@mrsimpson%2Fresponsible-vibe-mcp)
+[![npm version](https://badge.fury.io/js/responsible-vibe-mcp.svg)](https://badge.fury.io/js/responsible-vibe-mcp)
 
 A Model Context Protocol (MCP) server that acts as an intelligent conversation state manager and development guide for LLMs. This server orchestrates feature development conversations by maintaining state, determining development phases, and providing contextual instructions to guide LLMs through structured development processes.
 
@@ -31,6 +31,73 @@ LLM: calls whats_next() again
   ↓
 [cycle continues...]
 ```
+
+## Installation and Usage
+
+### For MCP Client Users
+
+This MCP server is designed to be used with MCP-compatible clients (like Claude Desktop, Amazon Q, or other LLM applications). **Do not run `npx responsible-vibe-mcp` directly** - it will start and then exit because MCP servers communicate via stdin/stdout.
+
+#### Claude Desktop Configuration
+
+Add to your Claude Desktop configuration file:
+
+```json
+{
+  "mcpServers": {
+    "responsible-vibe-mcp": {
+      "command": "npx",
+      "args": ["responsible-vibe-mcp"]
+    }
+  }
+}
+```
+
+#### Amazon Q Configuration
+
+Add to your `.amazonq/mcp.json` file:
+
+```json
+{
+  "mcpServers": {
+    "responsible-vibe-mcp": {
+      "command": "npx",
+      "args": ["responsible-vibe-mcp"]
+    }
+  }
+}
+```
+
+#### Other MCP Clients
+
+Configure your MCP client to run:
+- **Command**: `npx`
+- **Args**: `["responsible-vibe-mcp"]`
+
+### For Developers and Testing
+
+#### Using the MCP Inspector
+
+To test and explore the server's capabilities:
+
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+Then configure it to connect to `npx responsible-vibe-mcp`.
+
+#### Manual Testing
+
+You can test the server manually by sending MCP messages:
+
+```bash
+echo '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1.0.0"}}}' | npx responsible-vibe-mcp
+```
+
+### Requirements
+
+- Node.js 18.0.0 or higher
+- npm or npx
 
 ## Information Architecture
 
