@@ -597,7 +597,7 @@ Available workflows include:
 - **bugfix**: Focused workflow for bug fixing: Reproduce, Analyze, Fix, Verify
 - **minor-enhancement**: Streamlined workflow for small-impact changes: Explore → Implement
 - **greenfield**: Comprehensive workflow for starting new projects from scratch: Ideation, Architecture, Plan, Code, Document - ideal for greenfield projects requiring thorough upfront planning
-- **custom**: Custom workflow defined in `.vibe/state-machine.yaml`
+- **custom**: Custom workflow defined in `.vibe/workflow.yaml`
 
 > **Important**: The `start_development` tool must be called before any other tools (`whats_next`, `proceed_to_phase`, `resume_workflow`). This ensures that development follows a deliberate workflow selection process.
 

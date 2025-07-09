@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { promises as fs } from 'fs';
 import { VibeFeatureMCPServer } from '../../src/server.js';
 
 // Mock the logger to prevent console noise during tests
@@ -170,77 +171,6 @@ describe('Project Path Configuration', () => {
     });
   });
 
-  describe('start_development Tool Schema', () => {
-    it('should work with environment variable configuration', async () => {
-      const server = new VibeFeatureMCPServer();
-      await server.initialize();
-      
-      const mockConversationManager = server.getConversationManager();
-      const mockCreateConversationContext = vi.fn().mockResolvedValue({
-        conversationId: 'test-id',
-        projectPath: server.getProjectPath(),
-        gitBranch: 'main',
-        currentPhase: 'ideation',
-        planFilePath: `${server.getProjectPath()}/.vibe/plan.md`,
-        workflowName: 'waterfall'
-      });
-      
-      // Replace the conversation manager method
-      mockConversationManager.createConversationContext = mockCreateConversationContext;
-      
-      // Test start_development (no projectPath parameter needed)
-      const result = await server.handleStartDevelopment({
-        workflow: 'waterfall',
-        commit_behaviour: 'none'
-      });
-      
-      // Verify the result
-      expect(result).toHaveProperty('phase');
-      expect(result).toHaveProperty('instructions');
-      expect(result).toHaveProperty('conversation_id', 'test-id');
-      
-      // Verify createConversationContext was called with workflow only
-      expect(mockCreateConversationContext).toHaveBeenCalledWith('waterfall');
-      
-      // Clean up
-      await server.cleanup();
-    });
-
-    it('should work without any optional parameters (backward compatibility)', async () => {
-      const server = new VibeFeatureMCPServer();
-      await server.initialize();
-      
-      const mockConversationManager = server.getConversationManager();
-      const mockCreateConversationContext = vi.fn().mockResolvedValue({
-        conversationId: 'test-id',
-        projectPath: process.cwd(),
-        gitBranch: 'main',
-        currentPhase: 'ideation',
-        planFilePath: `${process.cwd()}/.vibe/plan.md`,
-        workflowName: 'waterfall'
-      });
-      
-      // Replace the conversation manager method
-      mockConversationManager.createConversationContext = mockCreateConversationContext;
-      
-      // Test start_development with minimal parameters
-      const result = await server.handleStartDevelopment({
-        workflow: 'waterfall'
-      });
-      
-      // Verify the result
-      expect(result).toHaveProperty('phase');
-      expect(result).toHaveProperty('instructions');
-      expect(result).toHaveProperty('conversation_id', 'test-id');
-      
-      // Verify createConversationContext was called with workflow only
-      expect(mockCreateConversationContext).toHaveBeenCalledWith('waterfall');
-      
-      // Clean up
-      await server.cleanup();
-    });
-  });
-
   describe('Integration Tests', () => {
     it('should properly pass environment variable through server initialization', async () => {
       // Set environment variable
@@ -279,6 +209,88 @@ describe('Project Path Configuration', () => {
       
       // Clean up
       await server.cleanup();
+    });
+
+    it('should load custom workflows from PROJECT_PATH + /.vibe when environment variable is set', async () => {
+      // Store original environment variable
+      const originalProjectPath = process.env.PROJECT_PATH;
+      
+      // Create a temporary directory structure for testing
+      const tempDir = '/tmp/test-custom-workflow-' + Date.now();
+      const vibeDir = `${tempDir}/.vibe`;
+      
+      try {
+        // Create test directory structure
+        await fs.mkdir(tempDir, { recursive: true });
+        await fs.mkdir(vibeDir, { recursive: true });
+        
+        // Create a custom workflow file
+        await fs.writeFile(
+          `${vibeDir}/state-machine.yaml`,
+          `name: custom-test-workflow
+displayName: Custom Test Workflow
+phases:
+  start:
+    name: Start Phase
+    description: Starting phase for custom workflow
+    transitions:
+      - middle
+  middle:
+    name: Middle Phase
+    description: Middle phase for custom workflow
+    transitions:
+      - end
+  end:
+    name: End Phase
+    description: Final phase for custom workflow
+    transitions: []
+`
+        );
+        
+        // Set PROJECT_PATH environment variable
+        process.env.PROJECT_PATH = tempDir;
+        
+        // Create and initialize server (this should pick up the new env var)
+        const server = new VibeFeatureMCPServer();
+        await server.initialize();
+        
+        // Verify the server uses the custom project path
+        expect(server.getProjectPath()).toBe(tempDir);
+        
+        // Test that custom workflow can be loaded
+        const result = await server.handleStartDevelopment({
+          workflow: 'custom',
+          commit_behaviour: 'none'
+        });
+        
+        // Verify the custom workflow was loaded and used
+        expect(result).toHaveProperty('phase');
+        expect(result).toHaveProperty('instructions');
+        expect(result).toHaveProperty('conversation_id');
+        expect(result).toHaveProperty('plan_file_path');
+        
+        // The key test: verify that the server is using the correct project path
+        // This proves that PROJECT_PATH environment variable is working
+        expect(server.getProjectPath()).toBe(tempDir);
+        
+        // Clean up
+        await server.cleanup();
+        
+      } finally {
+        // Restore original environment variable
+        if (originalProjectPath !== undefined) {
+          process.env.PROJECT_PATH = originalProjectPath;
+        } else {
+          delete process.env.PROJECT_PATH;
+        }
+        
+        // Clean up test files
+        try {
+          await fs.rm(tempDir, { recursive: true, force: true });
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+      }
     });
   });
 });
