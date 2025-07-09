@@ -49,8 +49,13 @@ export interface ServerComponents {
 export async function initializeServerComponents(config: ServerConfig = {}): Promise<ServerComponents> {
   logger.debug('Initializing server components', config);
   
-  // Set project path
-  const projectPath = normalizeProjectPath(config.projectPath);
+  // Set project path with support for environment variable
+  const projectPath = normalizeProjectPath(config.projectPath || process.env.PROJECT_PATH);
+  
+  logger.info('Using project path', { 
+    projectPath, 
+    source: config.projectPath ? 'config' : (process.env.PROJECT_PATH ? 'env' : 'default')
+  });
   
   // Initialize MCP server
   const mcpServer = new McpServer({
