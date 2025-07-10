@@ -17,7 +17,7 @@ import { StateMachineLoader } from './state-machine-loader.js';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { startVisualizationTool } from './scripts/startVisualizationTool.js';
+import { startVisualizationTool } from './cli/visualization-launcher.js';
 
 const logger = createLogger('Main');
 
