@@ -34,6 +34,26 @@ LLM: calls whats_next() again
 
 ## Installation and Usage
 
+### Interactive Workflow Visualizer
+
+Start the interactive web-based workflow visualizer to explore and understand workflow state machines:
+
+```bash
+# Start the workflow visualizer
+npx responsible-vibe-mcp --visualize
+
+# Or use the short form
+npx responsible-vibe-mcp --viz
+```
+
+This opens a professional web interface with:
+- **Interactive PlantUML diagrams** with auto-layout
+- **Clickable states and transitions** for detailed exploration
+- **Side panel navigation** with comprehensive information
+- **Support for built-in and custom workflows**
+
+The visualizer automatically installs dependencies and starts a development server at `http://localhost:3000`.
+
 ### Getting System Prompt for LLM Integration
 
 Before configuring your MCP client, you can get the system prompt needed for proper LLM integration:

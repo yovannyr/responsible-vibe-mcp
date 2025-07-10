@@ -17,12 +17,13 @@ import { StateMachineLoader } from './state-machine-loader.js';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { startVisualizationTool } from './scripts/startVisualizationTool.js';
 
 const logger = createLogger('Main');
 
 // Get package.json for version info
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export const __dirname = dirname(__filename);
 
 /**
  * Parse command line arguments and handle special flags
@@ -48,6 +49,12 @@ function parseCliArgs(): { shouldStartServer: boolean } {
     return { shouldStartServer: false };
   }
   
+  // Handle visualization flag
+  if (args.includes('--visualize') || args.includes('--viz')) {
+    startVisualizationTool();
+    return { shouldStartServer: false };
+  }
+  
   // No special flags, start server normally
   return { shouldStartServer: true };
 }
@@ -66,6 +73,7 @@ OPTIONS:
   --help, -h           Show this help message
   --version, -v        Show version information
   --system-prompt      Show the system prompt for LLM integration
+  --visualize, --viz   Start the interactive workflow visualizer
 
 ENVIRONMENT VARIABLES:
   PROJECT_PATH    Set the project directory for custom workflow discovery
@@ -75,6 +83,11 @@ DESCRIPTION:
   state manager and development guide for LLMs. This server orchestrates 
   feature development conversations by maintaining state, determining 
   development phases, and providing contextual instructions.
+
+WORKFLOW VISUALIZER:
+  Use --visualize to start the interactive web-based workflow visualizer.
+  This opens a browser-based tool for exploring and understanding workflow
+  state machines with beautiful PlantUML diagrams.
 
 MCP CLIENT CONFIGURATION:
   Add to your MCP client configuration:
