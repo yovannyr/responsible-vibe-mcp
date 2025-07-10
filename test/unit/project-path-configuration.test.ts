@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
-import { VibeFeatureMCPServer } from '../../src/server.js';
+import { ResponsibleVibeMCPServer } from '../../src/server.js';
 
 // Mock the logger to prevent console noise during tests
 vi.mock('../../src/logger', () => ({
@@ -124,7 +124,7 @@ describe('Project Path Configuration', () => {
       process.env.PROJECT_PATH = testProjectPath;
       
       // Create server instance
-      const server = new VibeFeatureMCPServer();
+      const server = new ResponsibleVibeMCPServer();
       await server.initialize();
       
       // Verify the project path was used - check the effective project path
@@ -141,7 +141,7 @@ describe('Project Path Configuration', () => {
       
       // Create server with explicit config
       const configProjectPath = '/config/project/path';
-      const server = new VibeFeatureMCPServer({
+      const server = new ResponsibleVibeMCPServer({
         projectPath: configProjectPath
       });
       await server.initialize();
@@ -159,7 +159,7 @@ describe('Project Path Configuration', () => {
       delete process.env.PROJECT_PATH;
       
       // Create server without project path
-      const server = new VibeFeatureMCPServer();
+      const server = new ResponsibleVibeMCPServer();
       await server.initialize();
       
       // Verify fallback to process.cwd()
@@ -178,7 +178,7 @@ describe('Project Path Configuration', () => {
       process.env.PROJECT_PATH = testProjectPath;
       
       // Create and initialize server
-      const server = new VibeFeatureMCPServer();
+      const server = new ResponsibleVibeMCPServer();
       await server.initialize();
       
       // Verify server initialization succeeded with correct project path
@@ -251,7 +251,7 @@ phases:
         process.env.PROJECT_PATH = tempDir;
         
         // Create and initialize server (this should pick up the new env var)
-        const server = new VibeFeatureMCPServer();
+        const server = new ResponsibleVibeMCPServer();
         await server.initialize();
         
         // Verify the server uses the custom project path

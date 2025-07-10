@@ -3,16 +3,16 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { VibeFeatureMCPServer } from '../src/server.js';
+import { ResponsibleVibeMCPServer } from '../src/server.js';
 import { TempProject } from './utils/temp-files.js';
 
 describe('Reset Functionality', () => {
-  let server: VibeFeatureMCPServer;
+  let server: ResponsibleVibeMCPServer;
   let tempProject: TempProject;
 
   beforeEach(async () => {
     tempProject = new TempProject({ projectName: 'reset-test' });
-    server = new VibeFeatureMCPServer({ 
+    server = new ResponsibleVibeMCPServer({ 
       projectPath: tempProject.projectPath,
       enableLogging: false 
     });

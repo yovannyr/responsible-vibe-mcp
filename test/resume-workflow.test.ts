@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { VibeFeatureMCPServer } from '../src/server.js';
+import { ResponsibleVibeMCPServer } from '../src/server.js';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { mkdtemp, rm, writeFile, mkdir } from 'fs/promises';
 
 describe('resume_workflow tool', () => {
-  let server: VibeFeatureMCPServer;
+  let server: ResponsibleVibeMCPServer;
   let tempDir: string;
 
   beforeEach(async () => {
     // Create temporary directory for testing
     tempDir = await mkdtemp(join(tmpdir(), 'responsible-vibe-test-'));
     
-    server = new VibeFeatureMCPServer({
+    server = new ResponsibleVibeMCPServer({
       projectPath: tempDir,
       enableLogging: false
     });

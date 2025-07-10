@@ -10,7 +10,7 @@
  */
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { VibeFeatureMCPServer } from './server.js';
+import { ResponsibleVibeMCPServer } from './server.js';
 import { createLogger } from './logger.js';
 import { generateSystemPrompt } from './system-prompt-generator.js';
 import { StateMachineLoader } from './state-machine-loader.js';
@@ -186,7 +186,7 @@ async function main() {
     });
     
     // Create server instance with project path configuration
-    const server = new VibeFeatureMCPServer({
+    const server = new ResponsibleVibeMCPServer({
       projectPath: projectPath
     });
     

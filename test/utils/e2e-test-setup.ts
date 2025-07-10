@@ -7,7 +7,7 @@
  */
 
 import { vi } from 'vitest';
-import { VibeFeatureMCPServer, ServerConfig } from '../../src/server.js';
+import { ResponsibleVibeMCPServer, ServerConfig } from '../../src/server.js';
 import { TempProject } from './temp-files.js';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -97,7 +97,7 @@ export class TestSuiteIsolation {
  * E2E test context that provides direct access to MCP server
  */
 export interface E2ETestContext {
-  server: VibeFeatureMCPServer;
+  server: ResponsibleVibeMCPServer;
   tempProject: TempProject;
   cleanup: () => Promise<void>;
 }
@@ -108,7 +108,7 @@ export interface E2ETestContext {
  * without going through MCP transport layer
  */
 export class DirectServerInterface {
-  constructor(private server: VibeFeatureMCPServer) {}
+  constructor(private server: ResponsibleVibeMCPServer) { }
 
   /**
    * Call a tool on the server directly
@@ -281,7 +281,7 @@ export async function setupE2ETest(options: {
   const { tempProject, serverConfig = {} } = options;
 
   // Create server with test configuration
-  const server = new VibeFeatureMCPServer({
+  const server = new ResponsibleVibeMCPServer({
     projectPath: tempProject.projectPath,
     enableLogging: false, // Disable logging in tests
     ...serverConfig
@@ -302,7 +302,7 @@ export async function setupE2ETest(options: {
 /**
  * Create direct server interface for testing
  */
-export function createDirectServerInterface(server: VibeFeatureMCPServer): DirectServerInterface {
+export function createDirectServerInterface(server: ResponsibleVibeMCPServer): DirectServerInterface {
   return new DirectServerInterface(server);
 }
 
@@ -370,7 +370,7 @@ export async function createE2EScenario(options: {
   serverConfig?: Partial<ServerConfig>;
 }): Promise<{
   client: DirectServerInterface;
-  server: VibeFeatureMCPServer;
+  server: ResponsibleVibeMCPServer;
   tempProject: TempProject;
   cleanup: () => Promise<void>;
 }> {
@@ -395,7 +395,7 @@ export async function createSuiteIsolatedE2EScenario(options: {
   serverConfig?: Partial<ServerConfig>;
 }): Promise<{
   client: DirectServerInterface;
-  server: VibeFeatureMCPServer;
+  server: ResponsibleVibeMCPServer;
   tempProject: TempProject;
   cleanup: () => Promise<void>;
 }> {

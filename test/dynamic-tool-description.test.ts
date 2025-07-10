@@ -10,11 +10,11 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import { mkdirSync, rmSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
-import { VibeFeatureMCPServer } from '../src/server/index.js';
+import { ResponsibleVibeMCPServer } from '../src/server/index.js';
 
 describe('Dynamic Tool Description', () => {
   let tempDir: string;
-  let server: VibeFeatureMCPServer;
+  let server: ResponsibleVibeMCPServer;
 
   beforeEach(async () => {
     // Create temporary directory for testing
@@ -54,7 +54,7 @@ describe('Dynamic Tool Description', () => {
     execSync('git checkout -b feature/test', { cwd: tempDir });
 
     // Initialize server
-    server = new VibeFeatureMCPServer();
+    server = new ResponsibleVibeMCPServer();
     await server.initialize();
 
     // Call start_development with "end" behavior (recommended for git repos)
@@ -71,7 +71,7 @@ describe('Dynamic Tool Description', () => {
     // Don't initialize git - just use regular directory
     
     // Initialize server
-    server = new VibeFeatureMCPServer();
+    server = new ResponsibleVibeMCPServer();
     await server.initialize();
 
     // Call start_development with "none" behavior (required for non-git projects)
@@ -99,7 +99,7 @@ describe('Dynamic Tool Description', () => {
     execSync('git checkout -b feature/test', { cwd: tempDir });
 
     // Initialize server
-    server = new VibeFeatureMCPServer();
+    server = new ResponsibleVibeMCPServer();
     await server.initialize();
 
     // Test all commit behaviors work for git repos

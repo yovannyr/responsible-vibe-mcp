@@ -5,14 +5,14 @@
  * The actual implementation is now in src/server/ with proper separation of concerns.
  */
 
-import { VibeFeatureMCPServer as ModularVibeFeatureMCPServer } from './server/index.js';
+import { ResponsibleVibeMCPServer as ModularResponsibleVibeMCPServer } from './server/index.js';
 import { ServerConfig as ModularServerConfig } from './server/types.js';
 
 /**
  * Main server class that maintains backward compatibility
  * while using the new modular architecture internally
  */
-export class VibeFeatureMCPServer extends ModularVibeFeatureMCPServer {
+export class ResponsibleVibeMCPServer extends ModularResponsibleVibeMCPServer {
   constructor(config: ModularServerConfig = {}) {
     super(config);
   }

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { VibeFeatureMCPServer } from '../../src/server';
+import { ResponsibleVibeMCPServer } from '../../src/server';
 
 // Mock conversation manager
 const mockGetConversationContext = vi.fn();
@@ -163,7 +163,7 @@ const mockHandleStartDevelopment = vi.fn().mockImplementation(async (args) => {
 // Mock the server class
 vi.mock('../../src/server', () => {
   return {
-    VibeFeatureMCPServer: vi.fn().mockImplementation(() => ({
+    ResponsibleVibeMCPServer: vi.fn().mockImplementation(() => ({
       handleWhatsNext: mockHandleWhatsNext,
       handleProceedToPhase: mockHandleProceedToPhase,
       handleResumeWorkflow: mockHandleResumeWorkflow,

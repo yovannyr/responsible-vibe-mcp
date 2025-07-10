@@ -17,24 +17,24 @@ import { createToolRegistry } from './tool-handlers/index.js';
 import { createResourceRegistry } from './resource-handlers/index.js';
 import { createResponseRenderer } from './response-renderer.js';
 
-const logger = createLogger('VibeFeatureMCPServer');
+const logger = createLogger('ResponsibleVibeMCPServer');
 
 /**
  * Main server class that orchestrates all components
  * Can be used both as a standalone process and in-process for testing
  */
-export class VibeFeatureMCPServer {
+export class ResponsibleVibeMCPServer {
   private components: ServerComponents | null = null;
 
   constructor(private config: ServerConfig = {}) {
-    logger.debug('VibeFeatureMCPServer created', config);
+    logger.debug('ResponsibleVibeMCPServer created', config);
   }
 
   /**
    * Initialize the server and all its components
    */
   async initialize(): Promise<void> {
-    logger.debug('Initializing VibeFeatureMCPServer');
+    logger.debug('Initializing ResponsibleVibeMCPServer');
     
     try {
       // Initialize core components
@@ -68,10 +68,10 @@ export class VibeFeatureMCPServer {
         this.components.context
       );
       
-      logger.info('VibeFeatureMCPServer initialized successfully');
+      logger.info('ResponsibleVibeMCPServer initialized successfully');
       
     } catch (error) {
-      logger.error('Failed to initialize VibeFeatureMCPServer', error as Error);
+      logger.error('Failed to initialize ResponsibleVibeMCPServer', error as Error);
       throw error;
     }
   }
