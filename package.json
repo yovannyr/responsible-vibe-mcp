@@ -18,6 +18,7 @@
     "workflow-visualizer/dist/**/*",
     "workflow-visualizer/src/**/*",
     "workflow-visualizer/styles/**/*",
+    "workflow-visualizer/workflows/**/*",
     "workflow-visualizer/index.html",
     "workflow-visualizer/package.json",
     "workflow-visualizer/tsconfig.json",
@@ -36,7 +37,7 @@
   },
   "scripts": {
     "build": "tsc && npm run build:visualizer",
-    "build:visualizer": "cd workflow-visualizer && npm install && npm run build",
+    "build:visualizer": "cd workflow-visualizer && npm install && npm run sync-workflows && npm run build",
     "inspector": "npx @modelcontextprotocol/inspector",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",

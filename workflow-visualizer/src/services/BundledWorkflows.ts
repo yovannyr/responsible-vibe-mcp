@@ -4,11 +4,11 @@
  */
 
 // Import workflow files as raw text (Vite will handle this)
-import waterfallYaml from '../../public/workflows/waterfall.yaml?raw';
-import epccYaml from '../../public/workflows/epcc.yaml?raw';
-import bugfixYaml from '../../public/workflows/bugfix.yaml?raw';
-import minorYaml from '../../public/workflows/minor.yaml?raw';
-import greenfieldYaml from '../../public/workflows/greenfield.yaml?raw';
+import waterfallYaml from '../../workflows/waterfall.yaml?raw';
+import epccYaml from '../../workflows/epcc.yaml?raw';
+import bugfixYaml from '../../workflows/bugfix.yaml?raw';
+import minorYaml from '../../workflows/minor.yaml?raw';
+import greenfieldYaml from '../../workflows/greenfield.yaml?raw';
 
 export const BUNDLED_WORKFLOWS: Record<string, string> = {
   waterfall: waterfallYaml,
