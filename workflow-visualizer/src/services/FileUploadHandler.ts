@@ -51,9 +51,14 @@ export class FileUploadHandler {
    * Process an uploaded file and return the parsed workflow
    */
   public async processUploadedFile(file: File): Promise<YamlStateMachine> {
+    console.log(`Processing uploaded file: ${file.name} (${file.size} bytes)`);
+    
     try {
-      return await this.workflowLoader.loadUploadedWorkflow(file);
+      const workflow = await this.workflowLoader.loadUploadedWorkflow(file);
+      console.log(`Successfully processed uploaded workflow: ${workflow.name}`);
+      return workflow;
     } catch (error) {
+      console.error(`Error processing uploaded file:`, error);
       // Re-throw with additional context
       if (error instanceof Error) {
         throw this.createUploadError(`Upload failed: ${error.message}`);

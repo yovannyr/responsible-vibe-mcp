@@ -67,7 +67,7 @@ function startDevServer() {
   });
 }
 
-function startStaticServer() {
+async function startStaticServer() {
   console.log('🌐 Starting static file server...');
   
   // Use a simple static server
@@ -80,6 +80,8 @@ function startStaticServer() {
     '.js': 'application/javascript',
     '.css': 'text/css',
     '.json': 'application/json',
+    '.yaml': 'text/yaml',
+    '.yml': 'text/yaml',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.gif': 'image/gif',
@@ -98,13 +100,21 @@ function startStaticServer() {
         return;
       }
       
+      console.log(`Serving: ${req.url} -> ${filePath}`);
+      
       const content = await readFile(filePath);
       const ext = extname(filePath);
       const mimeType = mimeTypes[ext] || 'application/octet-stream';
       
-      res.writeHead(200, { 'Content-Type': mimeType });
+      res.writeHead(200, { 
+        'Content-Type': mimeType,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      });
       res.end(content);
     } catch (error) {
+      console.error(`Error serving ${req.url}:`, error.message);
       if (error.code === 'ENOENT') {
         res.writeHead(404);
         res.end('Not Found');

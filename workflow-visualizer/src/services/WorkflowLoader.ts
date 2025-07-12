@@ -71,7 +71,12 @@ export class WorkflowLoader {
     }
 
     try {
-      const response = await fetch(`/workflows/${workflowName}.yaml`);
+      const url = `/workflows/${workflowName}.yaml`;
+      console.log(`Loading workflow from: ${url}`);
+      
+      const response = await fetch(url);
+      
+      console.log(`Response status: ${response.status} ${response.statusText}`);
       
       if (!response.ok) {
         throw this.createNetworkError(
@@ -80,12 +85,16 @@ export class WorkflowLoader {
       }
 
       const yamlContent = await response.text();
+      console.log(`Loaded YAML content (${yamlContent.length} chars):`, yamlContent.substring(0, 100) + '...');
       
       if (!yamlContent.trim()) {
         throw this.createNetworkError(`Workflow file "${workflowName}" is empty`);
       }
 
-      return this.yamlParser.parseWorkflow(yamlContent);
+      const workflow = this.yamlParser.parseWorkflow(yamlContent);
+      console.log(`Parsed workflow:`, workflow.name, `with ${Object.keys(workflow.states).length} states`);
+      
+      return workflow;
     } catch (error) {
       if (error instanceof Error && error.message.includes('validation')) {
         throw error;
