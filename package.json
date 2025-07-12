@@ -18,7 +18,6 @@
     "workflow-visualizer/dist/**/*",
     "workflow-visualizer/src/**/*",
     "workflow-visualizer/styles/**/*",
-    "workflow-visualizer/public/**/*",
     "workflow-visualizer/index.html",
     "workflow-visualizer/package.json",
     "workflow-visualizer/tsconfig.json",

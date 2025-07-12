@@ -5,11 +5,12 @@
 
 import { YamlStateMachine, WorkflowMetadata, AppError } from '../types/ui-types';
 import { YamlParser } from './YamlParser';
+import { getBundledWorkflow } from './BundledWorkflows';
 
 export class WorkflowLoader {
   private readonly yamlParser: YamlParser;
   
-  // Built-in workflow names (matching the files in public/workflows/)
+  // Built-in workflow names (matching the bundled workflows)
   private readonly BUILTIN_WORKFLOWS: WorkflowMetadata[] = [
     {
       name: 'waterfall',
@@ -71,21 +72,15 @@ export class WorkflowLoader {
     }
 
     try {
-      const url = `/workflows/${workflowName}.yaml`;
-      console.log(`Loading workflow from: ${url}`);
+      console.log(`Loading bundled workflow: ${workflowName}`);
       
-      const response = await fetch(url);
+      const yamlContent = getBundledWorkflow(workflowName);
       
-      console.log(`Response status: ${response.status} ${response.statusText}`);
-      
-      if (!response.ok) {
-        throw this.createNetworkError(
-          `Failed to load workflow "${workflowName}": ${response.status} ${response.statusText}`
-        );
+      if (!yamlContent) {
+        throw this.createNetworkError(`Bundled workflow "${workflowName}" not found`);
       }
-
-      const yamlContent = await response.text();
-      console.log(`Loaded YAML content (${yamlContent.length} chars):`, yamlContent.substring(0, 100) + '...');
+      
+      console.log(`Loaded bundled YAML content (${yamlContent.length} chars):`, yamlContent.substring(0, 100) + '...');
       
       if (!yamlContent.trim()) {
         throw this.createNetworkError(`Workflow file "${workflowName}" is empty`);

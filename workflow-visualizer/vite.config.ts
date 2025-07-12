@@ -21,5 +21,7 @@ export default defineConfig({
     }
   },
   // Configure static file serving
-  publicDir: 'public'
+  publicDir: 'public',
+  // Enable raw imports for YAML files
+  assetsInclude: ['**/*.yaml', '**/*.yml']
 });

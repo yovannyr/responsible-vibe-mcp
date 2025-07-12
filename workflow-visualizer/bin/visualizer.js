@@ -80,8 +80,6 @@ async function startStaticServer() {
     '.js': 'application/javascript',
     '.css': 'text/css',
     '.json': 'application/json',
-    '.yaml': 'text/yaml',
-    '.yml': 'text/yaml',
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.gif': 'image/gif',
@@ -128,6 +126,7 @@ async function startStaticServer() {
   const port = process.env.PORT || 3000;
   server.listen(port, () => {
     console.log(`✅ Workflow Visualizer running at http://localhost:${port}`);
+    console.log('📦 Workflows are bundled in the JavaScript - no external files needed!');
     console.log('Press Ctrl+C to stop');
   });
   
