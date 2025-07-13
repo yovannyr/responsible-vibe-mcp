@@ -37,6 +37,7 @@
   },
   "scripts": {
     "build": "tsc && npm run build:visualizer",
+    "build:ci": "tsc",
     "build:visualizer": "cd workflow-visualizer && npm install && npm run build",
     "inspector": "npx @modelcontextprotocol/inspector",
     "dev": "tsc --watch",
