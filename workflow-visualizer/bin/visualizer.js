@@ -15,17 +15,26 @@ console.log('📁 Directory:', visualizerDir);
 // Check if we're in development (has package.json) or published (pre-built)
 const hasPackageJson = existsSync(join(visualizerDir, 'package.json'));
 const hasBuiltFiles = existsSync(join(visualizerDir, 'dist', 'index.html'));
+const hasNodeModules = existsSync(join(visualizerDir, 'node_modules'));
 
+console.log('🔍 Detection results:');
+console.log('  - hasPackageJson:', hasPackageJson);
+console.log('  - hasBuiltFiles:', hasBuiltFiles);
+console.log('  - hasNodeModules:', hasNodeModules);
+console.log('  - visualizerDir:', visualizerDir);
+
+// For npx usage, we should ALWAYS use built files if they exist
+// Only use development mode if we're in actual development (no built files)
 if (hasBuiltFiles) {
   // We're in a published package - serve the pre-built files
   console.log('📦 Using pre-built visualizer files...');
   startStaticServer();
-} else if (hasPackageJson) {
+} else if (hasPackageJson && !hasBuiltFiles) {
   // We're in development - build and serve
   console.log('🔧 Development mode - building and serving...');
   
   // Check if dependencies are installed
-  if (!existsSync(join(visualizerDir, 'node_modules'))) {
+  if (!hasNodeModules) {
     console.log('📦 Installing dependencies...');
     const install = spawn('npm', ['install'], { 
       cwd: visualizerDir, 
