@@ -1,5 +1,5 @@
 import { YamlStateMachine, YamlState } from '../types/ui-types';
-import { encodePlantUML } from '../utils/PlantUMLEncoder';
+import { encodePlantUML, encodePlantUMLFallback } from '../utils/PlantUMLEncoder';
 
 export class PlantUMLRenderer {
   private container: HTMLElement;
@@ -127,13 +127,21 @@ export class PlantUMLRenderer {
    */
   private createPlantUMLUrl(plantUMLCode: string): string {
     try {
+      // Try DEFLATE encoding first (proper PlantUML format)
       const encoded = encodePlantUML(plantUMLCode);
       return `https://www.plantuml.com/plantuml/svg/${encoded}`;
     } catch (error) {
-      console.error('Failed to encode PlantUML:', error);
-      // Fallback to simple encoding
-      const encoded = encodeURIComponent(plantUMLCode);
-      return `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+      console.warn('DEFLATE encoding failed, trying fallback:', error);
+      try {
+        // Fallback to base64 with ~1 header
+        const encoded = encodePlantUMLFallback(plantUMLCode);
+        return `https://www.plantuml.com/plantuml/svg/${encoded}`;
+      } catch (fallbackError) {
+        console.error('All PlantUML encoding methods failed:', fallbackError);
+        // Final fallback to simple URL encoding
+        const encoded = encodeURIComponent(plantUMLCode);
+        return `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+      }
     }
   }
 
