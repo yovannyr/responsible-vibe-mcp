@@ -17,12 +17,6 @@ const hasPackageJson = existsSync(join(visualizerDir, 'package.json'));
 const hasBuiltFiles = existsSync(join(visualizerDir, 'dist', 'index.html'));
 const hasNodeModules = existsSync(join(visualizerDir, 'node_modules'));
 
-console.log('🔍 Detection results:');
-console.log('  - hasPackageJson:', hasPackageJson);
-console.log('  - hasBuiltFiles:', hasBuiltFiles);
-console.log('  - hasNodeModules:', hasNodeModules);
-console.log('  - visualizerDir:', visualizerDir);
-
 // For npx usage, we should ALWAYS use built files if they exist
 // Only use development mode if we're in actual development (no built files)
 if (hasBuiltFiles) {
