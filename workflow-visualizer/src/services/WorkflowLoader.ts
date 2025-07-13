@@ -5,67 +5,85 @@
 
 import { YamlStateMachine, WorkflowMetadata, AppError } from '../types/ui-types';
 import { YamlParser } from './YamlParser';
-import { getBundledWorkflow } from './BundledWorkflows';
+import { getBundledWorkflow, getBundledWorkflowNames } from './BundledWorkflows';
 
 export class WorkflowLoader {
   private readonly yamlParser: YamlParser;
   
-  // Built-in workflow names (matching the bundled workflows)
-  private readonly BUILTIN_WORKFLOWS: WorkflowMetadata[] = [
-    {
-      name: 'waterfall',
+  // Workflow display names and descriptions (can be extended as needed)
+  private readonly WORKFLOW_METADATA: Record<string, { displayName: string; description: string }> = {
+    waterfall: {
       displayName: 'Waterfall',
-      description: 'Classical waterfall development process',
-      source: 'builtin'
+      description: 'Classical waterfall development process'
     },
-    {
-      name: 'epcc',
+    epcc: {
       displayName: 'EPCC',
-      description: 'Explore, Plan, Code, Commit workflow',
-      source: 'builtin'
+      description: 'Explore, Plan, Code, Commit workflow'
     },
-    {
-      name: 'bugfix',
+    bugfix: {
       displayName: 'Bug Fix',
-      description: 'Focused workflow for bug fixing',
-      source: 'builtin'
+      description: 'Focused workflow for bug fixing'
     },
-    {
-      name: 'minor',
+    minor: {
       displayName: 'Minor Enhancement',
-      description: 'Streamlined workflow for small changes',
-      source: 'builtin'
+      description: 'Streamlined workflow for small changes'
     },
-    {
-      name: 'greenfield',
+    greenfield: {
       displayName: 'Greenfield',
-      description: 'Comprehensive workflow for new projects',
-      source: 'builtin'
+      description: 'Comprehensive workflow for new projects'
     },
-    {
-      name: 'slides',
+    slides: {
       displayName: 'Slides',
-      description: 'Workflow for creating presentations',
-      source: 'builtin'
+      description: 'Workflow for creating presentations'
+    },
+    posts: {
+      displayName: 'Posts',
+      description: 'Workflow for writing blog posts and content'
+    },
+    // Add fallback for any other workflows
+    bugfix3: {
+      displayName: 'Bug Fix 3',
+      description: 'Test workflow - copy of bugfix for testing dynamic discovery'
     }
-  ];
+  };
 
   constructor() {
     this.yamlParser = new YamlParser();
   }
 
   /**
-   * Get list of available built-in workflows
+   * Get list of available built-in workflows (dynamically generated)
    */
   public getAvailableWorkflows(): WorkflowMetadata[] {
-    return [...this.BUILTIN_WORKFLOWS];
+    const workflowNames = getBundledWorkflowNames();
+    
+    return workflowNames.map(name => {
+      const metadata = this.WORKFLOW_METADATA[name];
+      return {
+        name,
+        displayName: metadata?.displayName || this.formatDisplayName(name),
+        description: metadata?.description || `${this.formatDisplayName(name)} workflow`,
+        source: 'builtin'
+      };
+    });
+  }
+
+  /**
+   * Format a workflow name into a display name
+   */
+  private formatDisplayName(name: string): string {
+    return name
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   /**
    * Load a built-in workflow by name
    */
   public async loadBuiltinWorkflow(workflowName: string): Promise<YamlStateMachine> {
-    const workflowMetadata = this.BUILTIN_WORKFLOWS.find(w => w.name === workflowName);
+    const availableWorkflows = this.getAvailableWorkflows();
+    const workflowMetadata = availableWorkflows.find(w => w.name === workflowName);
     
     if (!workflowMetadata) {
       throw this.createNetworkError(`Unknown workflow: ${workflowName}`);
