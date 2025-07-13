@@ -5,7 +5,7 @@
  * 
  * Found 8 workflow files:
  * - bugfix.yaml
- * - bugfix2.yaml
+ * - bugfix3.yaml
  * - epcc.yaml
  * - greenfield.yaml
  * - minor.yaml
@@ -15,7 +15,7 @@
  */
 
 import bugfixYaml from '../../../resources/workflows/bugfix.yaml?raw';
-import bugfix2Yaml from '../../../resources/workflows/bugfix2.yaml?raw';
+import bugfix3Yaml from '../../../resources/workflows/bugfix3.yaml?raw';
 import epccYaml from '../../../resources/workflows/epcc.yaml?raw';
 import greenfieldYaml from '../../../resources/workflows/greenfield.yaml?raw';
 import minorYaml from '../../../resources/workflows/minor.yaml?raw';
@@ -25,7 +25,7 @@ import waterfallYaml from '../../../resources/workflows/waterfall.yaml?raw';
 
 export const BUNDLED_WORKFLOWS: Record<string, string> = {
   'bugfix': bugfixYaml,
-  'bugfix2': bugfix2Yaml,
+  'bugfix3': bugfix3Yaml,
   'epcc': epccYaml,
   'greenfield': greenfieldYaml,
   'minor': minorYaml,

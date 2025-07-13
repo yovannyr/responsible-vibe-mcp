@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../state-machine-schema.json
 ---
-name: "bugfix2"
+name: "bugfix3"
 description: "Test workflow - copy of bugfix for testing dynamic discovery"
 initial_state: "reproduce"
 
@@ -10,6 +10,7 @@ states:
     description: "Reproduce and understand the bug"
     default_instructions: "Starting bug reproduction phase. Work to reliably reproduce the reported bug. Gather information about the conditions, environment, and steps that lead to the issue. Create test cases that demonstrate the problem. Document your findings in the plan file."
     transitions:
+    
       - trigger: "continue_reproduction"
         to: "reproduce"
         instructions: >
