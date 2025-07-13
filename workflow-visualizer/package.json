@@ -7,10 +7,12 @@
     "workflow-visualizer": "bin/visualizer.js"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "npm run dev:setup && vite",
+    "dev:setup": "cp src/services/BundledWorkflows.dev.ts src/services/BundledWorkflows.ts",
+    "build": "npm run build:workflows && tsc && vite build",
+    "build:workflows": "node scripts/build-workflows.js",
     "preview": "vite preview",
-    "sync-workflows": "node sync-workflows.js"
+    "clean": "rm -rf dist workflows src/services/BundledWorkflows.ts"
   },
   "dependencies": {
     "d3": "^7.8.5",

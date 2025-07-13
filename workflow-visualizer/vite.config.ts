@@ -7,7 +7,7 @@ export default defineConfig({
     port: 3000,
     open: true,
     fs: {
-      // Allow serving files from parent directory (for workflow files)
+      // Allow serving files from parent directory (for development workflow files)
       allow: ['..', '../..']
     }
   },
