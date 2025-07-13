@@ -23,10 +23,12 @@ jobs:
         cache: 'npm'
         
     - name: Install dependencies
-      run: npm ci
+      run: |
+        rm -rf node_modules package-lock.json
+        npm install
       
-    - name: Build project
-      run: npm run build
+    - name: Build project (CI - skip visualizer for tests)
+      run: npm run build:ci
       
     - name: Run tests
       run: npm run test:run
@@ -52,8 +54,14 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         
     - name: Install dependencies
-      run: npm ci
-      
+      run: |
+        rm -rf node_modules package-lock.json
+        npm install
+        
+    - name: Install Rollup platform dependencies
+      run: |
+        npm install @rollup/rollup-linux-x64-gnu --save-dev --no-optional || true
+        
     - name: Build project
       run: npm run build
       
