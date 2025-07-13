@@ -5,6 +5,7 @@ node_modules/
 # Generated files
 workflows/
 src/services/BundledWorkflows.ts
+src/services/BundledWorkflows.dev.ts
 
 # Development files
 .DS_Store
