@@ -1,5 +1,5 @@
 import { YamlStateMachine, YamlState } from '../types/ui-types';
-import * as plantumlEncoder from 'plantuml-encoder';
+import { encodePlantUML } from '../utils/PlantUMLEncoder';
 
 export class PlantUMLRenderer {
   private container: HTMLElement;
@@ -127,7 +127,7 @@ export class PlantUMLRenderer {
    */
   private createPlantUMLUrl(plantUMLCode: string): string {
     try {
-      const encoded = plantumlEncoder.encode(plantUMLCode);
+      const encoded = encodePlantUML(plantUMLCode);
       return `https://www.plantuml.com/plantuml/svg/${encoded}`;
     } catch (error) {
       console.error('Failed to encode PlantUML:', error);
