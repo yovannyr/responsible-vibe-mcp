@@ -79,7 +79,7 @@
     "file://AmazonQ.md",
     "file://README.md",
     "file://.amazonq/rules/**/*.md",
-    "file://~/projects/privat/mcp-server/responsible-vibe/SYSTEM_PROMPT.md"
+    "file://./SYSTEM_PROMPT.md"
   ],
   "hooks": {}
 }

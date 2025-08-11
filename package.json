@@ -1,6 +1,6 @@
 {
   "name": "responsible-vibe-mcp",
-  "version": "0.14.1",
+  "version": "0.15.3",
   "description": "A Model Context Protocol server that acts as an intelligent conversation state manager and development guide for LLMs",
   "main": "dist/index.js",
   "bin": {
@@ -54,13 +54,11 @@
     "@modelcontextprotocol/sdk": "1.13.0",
     "@types/js-yaml": "4.0.9",
     "js-yaml": "4.1.0",
-    "responsible-vibe-mcp": "0.1.10",
     "sqlite3": "^5.1.7",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "0.14.2",
-    "@rollup/rollup-linux-x64-gnu": "^4.46.1",
     "@types/node": "^20.0.0",
     "@types/sqlite3": "^3.1.11",
     "tsx": "4.20.3",
