@@ -1,7 +1,7 @@
 /**
  * Unit tests for StartDevelopment .gitignore management
  * 
- * Tests the automatic .gitignore entry management functionality
+ * Tests the automatic .vibe/.gitignore creation functionality
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -51,129 +51,116 @@ describe('StartDevelopment .gitignore management', () => {
       );
     });
 
-    it('should create .gitignore with entry when none exists in git repo', () => {
+    it('should create .vibe/.gitignore when none exists in git repo', () => {
       // Create .git directory to simulate git repo
       mkdirSync(resolve(tempDir, '.git'));
 
       // Call the method
       (handler as any).ensureGitignoreEntry(tempDir);
 
-      // Check that .gitignore was created with correct content
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      expect(existsSync(gitignorePath)).toBe(true);
+      // Check that .vibe/.gitignore was created with correct content
+      const vibeGitignorePath = resolve(tempDir, '.vibe', '.gitignore');
+      expect(existsSync(vibeGitignorePath)).toBe(true);
       
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe('.vibe/*.sqlite\n');
+      const content = readFileSync(vibeGitignorePath, 'utf-8');
+      expect(content).toContain('*.sqlite');
+      expect(content).toContain('conversation-state.sqlite');
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Added .vibe/*.sqlite entry to .gitignore',
-        { projectPath: tempDir, gitignorePath }
+        'Created .vibe/.gitignore to exclude SQLite files',
+        { projectPath: tempDir, gitignorePath: vibeGitignorePath }
       );
     });
 
-    it('should add entry to existing .gitignore when entry is missing', () => {
-      // Create .git directory
+    it('should create .vibe directory if it does not exist', () => {
+      // Create .git directory to simulate git repo
       mkdirSync(resolve(tempDir, '.git'));
-      
-      // Create existing .gitignore with other content
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      const existingContent = 'node_modules/\n*.log\n';
-      writeFileSync(gitignorePath, existingContent);
+
+      // Ensure .vibe directory doesn't exist
+      const vibeDir = resolve(tempDir, '.vibe');
+      expect(existsSync(vibeDir)).toBe(false);
 
       // Call the method
       (handler as any).ensureGitignoreEntry(tempDir);
 
-      // Check that entry was added
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe('node_modules/\n*.log\n.vibe/*.sqlite\n');
+      // Check that .vibe directory was created
+      expect(existsSync(vibeDir)).toBe(true);
+      
+      // Check that .vibe/.gitignore was created
+      const vibeGitignorePath = resolve(vibeDir, '.gitignore');
+      expect(existsSync(vibeGitignorePath)).toBe(true);
+    });
+
+    it('should skip when .vibe/.gitignore already exists with SQLite exclusions', () => {
+      // Create .git directory
+      mkdirSync(resolve(tempDir, '.git'));
+      
+      // Create .vibe directory and .gitignore with existing SQLite exclusions
+      const vibeDir = resolve(tempDir, '.vibe');
+      mkdirSync(vibeDir, { recursive: true });
+      const vibeGitignorePath = resolve(vibeDir, '.gitignore');
+      const existingContent = '*.sqlite\nconversation-state.sqlite*\n';
+      writeFileSync(vibeGitignorePath, existingContent);
+
+      // Call the method
+      (handler as any).ensureGitignoreEntry(tempDir);
+
+      // Check that content wasn't changed
+      const content = readFileSync(vibeGitignorePath, 'utf-8');
+      expect(content).toBe(existingContent);
+
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        '.vibe/.gitignore already exists with SQLite exclusions',
+        { gitignorePath: vibeGitignorePath }
+      );
+    });
+
+    it('should recreate .vibe/.gitignore if existing one is incomplete', () => {
+      // Create .git directory
+      mkdirSync(resolve(tempDir, '.git'));
+      
+      // Create .vibe directory and incomplete .gitignore
+      const vibeDir = resolve(tempDir, '.vibe');
+      mkdirSync(vibeDir, { recursive: true });
+      const vibeGitignorePath = resolve(vibeDir, '.gitignore');
+      const incompleteContent = 'some-other-file\n';
+      writeFileSync(vibeGitignorePath, incompleteContent);
+
+      // Call the method
+      (handler as any).ensureGitignoreEntry(tempDir);
+
+      // Check that content was updated to include SQLite exclusions
+      const content = readFileSync(vibeGitignorePath, 'utf-8');
+      expect(content).toContain('*.sqlite');
+      expect(content).toContain('conversation-state.sqlite');
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Added .vibe/*.sqlite entry to .gitignore',
-        { projectPath: tempDir, gitignorePath }
+        'Created .vibe/.gitignore to exclude SQLite files',
+        { projectPath: tempDir, gitignorePath: vibeGitignorePath }
       );
     });
 
-    it('should skip when entry already exists (exact match)', () => {
+    it('should not affect parent directory .gitignore', () => {
       // Create .git directory
       mkdirSync(resolve(tempDir, '.git'));
       
-      // Create .gitignore with existing entry
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      const existingContent = 'node_modules/\n.vibe/*.sqlite\n*.log\n';
-      writeFileSync(gitignorePath, existingContent);
+      // Create parent .gitignore with existing content
+      const parentGitignorePath = resolve(tempDir, '.gitignore');
+      const parentContent = 'node_modules/\n*.log\n';
+      writeFileSync(parentGitignorePath, parentContent);
 
       // Call the method
       (handler as any).ensureGitignoreEntry(tempDir);
 
-      // Check that content wasn't changed
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe(existingContent);
+      // Check that parent .gitignore was not modified
+      const parentContentAfter = readFileSync(parentGitignorePath, 'utf-8');
+      expect(parentContentAfter).toBe(parentContent);
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '.gitignore entry already exists, skipping',
-        { projectPath: tempDir, targetEntry: '.vibe/*.sqlite' }
-      );
-    });
-
-    it('should skip when entry already exists (case insensitive)', () => {
-      // Create .git directory
-      mkdirSync(resolve(tempDir, '.git'));
-      
-      // Create .gitignore with case-different entry
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      const existingContent = 'node_modules/\n.VIBE/*.SQLITE\n*.log\n';
-      writeFileSync(gitignorePath, existingContent);
-
-      // Call the method
-      (handler as any).ensureGitignoreEntry(tempDir);
-
-      // Check that content wasn't changed
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe(existingContent);
-
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '.gitignore entry already exists, skipping',
-        { projectPath: tempDir, targetEntry: '.vibe/*.sqlite' }
-      );
-    });
-
-    it('should skip when entry already exists (with whitespace)', () => {
-      // Create .git directory
-      mkdirSync(resolve(tempDir, '.git'));
-      
-      // Create .gitignore with whitespace-padded entry
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      const existingContent = 'node_modules/\n  .vibe/*.sqlite  \n*.log\n';
-      writeFileSync(gitignorePath, existingContent);
-
-      // Call the method
-      (handler as any).ensureGitignoreEntry(tempDir);
-
-      // Check that content wasn't changed
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe(existingContent);
-
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        '.gitignore entry already exists, skipping',
-        { projectPath: tempDir, targetEntry: '.vibe/*.sqlite' }
-      );
-    });
-
-    it('should handle .gitignore without trailing newline', () => {
-      // Create .git directory
-      mkdirSync(resolve(tempDir, '.git'));
-      
-      // Create .gitignore without trailing newline
-      const gitignorePath = resolve(tempDir, '.gitignore');
-      const existingContent = 'node_modules/\n*.log';
-      writeFileSync(gitignorePath, existingContent);
-
-      // Call the method
-      (handler as any).ensureGitignoreEntry(tempDir);
-
-      // Check that entry was added with proper newlines
-      const content = readFileSync(gitignorePath, 'utf-8');
-      expect(content).toBe('node_modules/\n*.log\n.vibe/*.sqlite\n');
+      // Check that .vibe/.gitignore was created
+      const vibeGitignorePath = resolve(tempDir, '.vibe', '.gitignore');
+      expect(existsSync(vibeGitignorePath)).toBe(true);
+      const vibeContent = readFileSync(vibeGitignorePath, 'utf-8');
+      expect(vibeContent).toContain('*.sqlite');
     });
   });
 });

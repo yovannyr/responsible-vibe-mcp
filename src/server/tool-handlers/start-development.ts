@@ -8,7 +8,7 @@
 import { BaseToolHandler } from './base-tool-handler.js';
 import { ServerContext } from '../types.js';
 import { validateRequiredArgs } from '../server-helpers.js';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { resolve } from 'path';
 import { GitCommitConfig } from '../../types.js';
 import { GitManager } from '../../git-manager.js';
@@ -162,7 +162,7 @@ export class StartDevelopmentHandler extends BaseToolHandler<StartDevelopmentArg
       conversationContext.gitBranch
     );
 
-    // Ensure .gitignore contains .vibe/*.sqlite entry for git repositories
+    // Ensure .vibe/.gitignore exists to exclude SQLite files for git repositories
     this.ensureGitignoreEntry(conversationContext.projectPath);
 
     // Generate workflow documentation URL
@@ -500,8 +500,8 @@ ${templateOptionsText}
   }
 
   /**
-   * Ensure .vibe/*.sqlite entry exists in .gitignore file for git repositories
-   * This function is idempotent and handles various edge cases gracefully
+   * Ensure .gitignore exists in .vibe folder to exclude SQLite files
+   * This function is idempotent and self-contained within the .vibe directory
    */
   private ensureGitignoreEntry(projectPath: string): void {
     try {
@@ -511,53 +511,48 @@ ${templateOptionsText}
         return;
       }
 
-      const gitignorePath = resolve(projectPath, '.gitignore');
-      const targetEntry = '.vibe/*.sqlite';
+      const vibeDir = resolve(projectPath, '.vibe');
+      const gitignorePath = resolve(vibeDir, '.gitignore');
+      
+      // Ensure .vibe directory exists
+      if (!existsSync(vibeDir)) {
+        mkdirSync(vibeDir, { recursive: true });
+      }
 
-      // Read existing .gitignore or create empty content
-      let gitignoreContent = '';
+      // Content for .vibe/.gitignore
+      const gitignoreContent = `# Exclude SQLite database files
+*.sqlite
+*.sqlite-*
+conversation-state.sqlite*
+`;
+
+      // Check if .gitignore already exists and has the right content
       if (existsSync(gitignorePath)) {
         try {
-          gitignoreContent = readFileSync(gitignorePath, 'utf-8');
+          const existingContent = readFileSync(gitignorePath, 'utf-8');
+          if (existingContent.includes('*.sqlite') && existingContent.includes('conversation-state.sqlite')) {
+            this.logger.debug('.vibe/.gitignore already exists with SQLite exclusions', { gitignorePath });
+            return;
+          }
         } catch (error) {
-          this.logger.warn('Failed to read .gitignore file, will create new one', {
+          this.logger.warn('Failed to read existing .vibe/.gitignore, will recreate', {
             gitignorePath,
             error: error instanceof Error ? error.message : String(error)
           });
-          gitignoreContent = '';
         }
       }
 
-      // Check if entry already exists (case-insensitive and whitespace-tolerant)
-      const lines = gitignoreContent.split('\n');
-      const entryExists = lines.some(line =>
-        line.trim().toLowerCase() === targetEntry.toLowerCase()
-      );
+      // Write the .gitignore file
+      writeFileSync(gitignorePath, gitignoreContent, 'utf-8');
 
-      if (entryExists) {
-        this.logger.debug('.gitignore entry already exists, skipping', {
-          projectPath,
-          targetEntry
-        });
-        return;
-      }
-
-      // Add the entry
-      const newContent = gitignoreContent.endsWith('\n') || gitignoreContent === ''
-        ? gitignoreContent + targetEntry + '\n'
-        : gitignoreContent + '\n' + targetEntry + '\n';
-
-      // Write the updated .gitignore
-      writeFileSync(gitignorePath, newContent, 'utf-8');
-
-      this.logger.info('Added .vibe/*.sqlite entry to .gitignore', {
+      this.logger.info('Created .vibe/.gitignore to exclude SQLite files', {
         projectPath,
         gitignorePath
       });
 
     } catch (error) {
       // Log warning but don't fail development start
-      this.logger.warn('Failed to manage .gitignore entry, continuing with development start', {
+      this.logger.warn('Failed to create .vibe/.gitignore, continuing with development start', {
         projectPath,
         error: error instanceof Error ? error.message : String(error)
       });
