@@ -27,14 +27,6 @@ states:
     description: "Gathering and analyzing requirements"
     default_instructions: "Make yourself familiar with the code base. Ask the user clarifying questions about WHAT they need. Focus on understanding their goals, scope, constraints, and success criteria. Break down their needs into specific requirements in $REQUIREMENTS_DOC. Plan actionable tasks referencing those requirements in the plan file."
     transitions:
-      - trigger: "refine_requirements"
-        to: "requirements"
-        instructions: >
-            Continue refining requirements. Ask more detailed questions to clarify scope, constraints, and user needs.
-            Add any new requirements to the plan file and mark completed tasks. Ensure you have a complete understanding
-            of WHAT needs to be built before moving to design.
-        transition_reason: "Requirements need further refinement and clarification"
-      
       - trigger: "requirements_complete"
         to: "design"
         instructions: >
@@ -52,15 +44,8 @@ states:
 
   design:
     description: "Technical design and architecture planning"
-    default_instructions: "Starting design phase. Re-analyze important interfaces of the application. Review requirements from $REQUIREMENTS_DOC and help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document architectural decisions in $ARCHITECTURE_DOC and detailed design in $DESIGN_DOC. Update the plan file and ensure the approach is solid before implementation."
+    default_instructions: "You are in the design phase. Re-analyze important interfaces of the application. Review requirements from $REQUIREMENTS_DOC and help the user design the technical solution by asking about architecture, technologies, data models, API design, and quality goals. Focus on HOW to implement what's needed. Document architectural decisions in $ARCHITECTURE_DOC and detailed design in $DESIGN_DOC. Update the plan file and ensure the approach is solid before implementation."
     transitions:
-      - trigger: "refine_design"
-        to: "design"
-        instructions: >
-            Continue refining the technical design. Add more architectural details, consider additional patterns,
-            evaluate technology choices, and ensure the design is comprehensive. Update design decisions in the plan file.
-        transition_reason: "Design needs further refinement and detail"
-      
       - trigger: "need_more_requirements"
         to: "requirements"
         additional_instructions: "Design work revealed gaps in requirements understanding. Focus on clarifying the specific requirements that are blocking design decisions."
@@ -82,15 +67,8 @@ states:
 
   implementation:
     description: "Building the solution according to design"
-    default_instructions: "Starting implementation phase. Follow the architecture from $ARCHITECTURE_DOC and detailed design from $DESIGN_DOC to guide the user through building the solution. Ensure requirements from $REQUIREMENTS_DOC are met. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress."
+    default_instructions: "You are in the implementation phase. Follow the architecture from $ARCHITECTURE_DOC and detailed design from $DESIGN_DOC to guide the user through building the solution. Ensure requirements from $REQUIREMENTS_DOC are met. Focus on code structure, error handling, security, and maintainability. Write clean, well-documented code and include basic testing. Update the plan file with implementation progress."
     transitions:
-      - trigger: "continue_implementation"
-        to: "implementation"
-        instructions: >
-            Continue implementation work. Follow the design, write clean code, handle edge cases, and maintain good
-            code structure. Update the plan file with progress and mark completed implementation tasks.
-        transition_reason: "Implementation work continues, building the solution"
-      
       - trigger: "need_design_changes"
         to: "design"
         additional_instructions: "Implementation revealed issues with the current design. Consider what you've learned during coding and adjust the design accordingly. Document the changes and reasons."
@@ -116,15 +94,8 @@ states:
 
   qa:
     description: "Quality assurance and code review"
-    default_instructions: "Starting quality assurance phase. Take the following specific actions: 1) Syntax Check: Run syntax checking tools or validate syntax manually, 2) Build Project: Build the project to verify it compiles without errors, 3) Run Linter: Execute linting tools to ensure code style consistency, 4) Execute Tests: Run existing tests to verify functionality. Then conduct a multi-perspective code review from security, performance, UX, maintainability, and requirement compliance perspectives. Verify implementation matches $DESIGN_DOC specifications and fulfills the targeted requirements from $REQUIREMENTS_DOC. Update the plan file with QA progress and mark completed tasks."
+    default_instructions: "You are in the quality assurance phase. Take the following specific actions: 1) Syntax Check: Run syntax checking tools or validate syntax manually, 2) Build Project: Build the project to verify it compiles without errors, 3) Run Linter: Execute linting tools to ensure code style consistency, 4) Execute Tests: Run existing tests to verify functionality. Then conduct a multi-perspective code review from security, performance, UX, maintainability, and requirement compliance perspectives. Verify implementation matches $DESIGN_DOC specifications and fulfills the targeted requirements from $REQUIREMENTS_DOC. Update the plan file with QA progress and mark completed tasks."
     transitions:
-      - trigger: "continue_qa"
-        to: "qa"
-        instructions: >
-            Continue quality assurance work. Perform additional code reviews, run more tests, check for security issues,
-            and validate compliance with requirements. Update the plan file with QA progress.
-        transition_reason: "Quality assurance work continues, ensuring code quality"
-      
       - trigger: "need_implementation_fixes"
         to: "implementation"
         additional_instructions: "Quality assurance revealed issues that require code changes. Focus on the specific problems identified during QA review."
@@ -146,15 +117,8 @@ states:
 
   testing:
     description: "Comprehensive testing and validation"
-    default_instructions: "Starting testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation."
+    default_instructions: "You are in the testing phase. Create comprehensive test plans, write and execute tests, validate feature completeness, and ensure everything works as expected. Focus on test coverage, edge cases, integration testing, and user acceptance validation."
     transitions:
-      - trigger: "continue_testing"
-        to: "testing"
-        instructions: >
-            Continue testing work. Execute more test cases, check edge cases, perform integration testing,
-            and validate user acceptance criteria. Update the plan file with testing progress.
-        transition_reason: "Testing work continues, validating the solution"
-      
       - trigger: "need_implementation_fixes"
         to: "implementation"
         additional_instructions: "Testing revealed bugs or issues that require code changes. Focus on the specific problems identified during testing."
@@ -166,10 +130,10 @@ states:
         transition_reason: "Testing found issues requiring additional QA review"
       
       - trigger: "testing_complete"
-        to: "complete"
+        to: "finalize"
         instructions: >
-            Testing is complete! ✅ All tests pass and the feature is validated. Transition to completion phase.
-            Summarize what was accomplished, ensure all documentation is finalized, and prepare for delivery.
+            Testing is complete! ✅ All tests pass and the feature is validated. Transition to finalization phase.
+            Clean up code and finalize documentation to ensure everything is ready for delivery.
             Mark all testing tasks as complete.
         transition_reason: "All testing is complete, feature is ready for delivery"
         review_perspectives:
@@ -178,16 +142,50 @@ states:
           - perspective: "ux_expert"
             prompt: "Confirm user experience goals are met and the solution is user-friendly and accessible. Validate that user workflows are intuitive and efficient."
 
-  complete:
-    description: "Feature completion and delivery"
-    default_instructions: "Feature development is complete! All phases have been finished successfully. The feature is implemented, tested, and ready for delivery. Summarize what was accomplished and ensure all documentation is finalized."
+  finalize:
+    description: "Code cleanup and documentation finalization"
+    default_instructions: >
+      You are in the finalize phase. This phase ensures code quality and documentation accuracy through systematic cleanup and review.
+      
+      **STEP 1: Code Cleanup**
+      Systematically clean up development artifacts:
+      
+      1. **Remove Debug Output**: Search for and remove all temporary debug output statements used during development.
+         Look for language-specific debug output methods (console logging, print statements, debug output functions).
+         Remove any debugging statements that were added for development purposes.
+      
+      2. **Review TODO/FIXME Comments**: 
+         - Address each TODO/FIXME comment by either implementing the solution or documenting why it's deferred
+         - Remove completed TODOs
+         - Convert remaining TODOs to proper issue tracking if needed
+      
+      3. **Remove Debugging Code Blocks**:
+         - Remove temporary debugging code, test code blocks, and commented-out code
+         - Clean up any experimental code that's no longer needed
+         - Ensure proper error handling replaces temporary debug logging
+      
+      **STEP 2: Documentation Review**
+      Review and update documentation to reflect final implementation:
+      
+      1. **Compare Against Implementation**: Review documentation against actual implemented functionality
+      2. **Update Changed Sections**: Only modify documentation sections that have functional changes
+      3. **Remove Development Progress**: Remove references to development iterations, progress notes, and temporary decisions
+      4. **Focus on Final State**: Ensure documentation describes the final implemented state, not the development process
+      5. **Verify Accuracy**: Ensure all examples, API descriptions, and usage instructions are accurate
+      
+      **STEP 3: Final Validation**
+      - Run existing tests to ensure cleanup didn't break functionality
+      - Verify documentation accuracy with a final review
+      - Ensure code is ready for production/delivery
+      
+      Update the plan file with finalization progress and mark completed tasks.
     transitions:
       - trigger: "need_final_changes"
         to: "implementation"
-        additional_instructions: "Final review revealed minor issues that need to be addressed. Focus on the specific final changes needed."
-        transition_reason: "Final review found issues requiring minor implementation changes"
+        additional_instructions: "Finalization revealed issues that require code changes. Focus on the specific problems identified during final review."
+        transition_reason: "Final review found issues requiring implementation changes"
       
-      - trigger: "restart_development"
+      - trigger: "finalization_complete"
         to: "requirements"
-        additional_instructions: "Starting new development cycle. Prepare to gather requirements for the next feature or iteration."
-        transition_reason: "Beginning new development cycle"
+        additional_instructions: "Feature is complete and finalized! All work is finished and ready for delivery. Prepare to gather requirements for the next feature or iteration."
+        transition_reason: "Feature delivery complete, beginning new development cycle"

@@ -25,15 +25,8 @@ metadata:
 states:
   explore:
     description: "Research and exploration phase - understanding the problem space"
-    default_instructions: "Starting exploration phase. Research the codebase, understand existing patterns, and gather context about the problem space. Read relevant files and documentation. Understand the requirements and document them in $REQUIREMENTS_DOC. Don't write code yet - focus on understanding. Document your findings in the plan file."
+    default_instructions: "You are in the exploration phase. Research the codebase, understand existing patterns, and gather context about the problem space. Read relevant files and documentation. Understand the requirements and document them in $REQUIREMENTS_DOC. Don't write code yet - focus on understanding. Document your findings in the plan file."
     transitions:
-      - trigger: "continue_exploration"
-        to: "explore"
-        instructions: >
-          Continue exploring. Ask the user for more information. Discuss alternatives.
-          Don't write any code yet - focus on understanding. Document knowledge in the plan file.
-        transition_reason: "More exploration needed to understand the problem space"
-      
       - trigger: "exploration_complete"
         to: "plan"
         instructions: >
@@ -53,15 +46,8 @@ states:
 
   plan:
     description: "Planning phase - creating a detailed implementation strategy"
-    default_instructions: "Starting planning phase. Create a detailed implementation strategy based on your exploration and requirements from $REQUIREMENTS_DOC. Break down the work into specific, actionable tasks. Consider edge cases, dependencies, and potential challenges. If it impacts the general architecture, document this in $ARCHITECTURE_DOC. Make sure to adhere to the design in $DESIGN_DOC. Document the plan thoroughly. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
+    default_instructions: "You are in the planning phase. Create a detailed implementation strategy based on your exploration and requirements from $REQUIREMENTS_DOC. Break down the work into specific, actionable tasks. Consider edge cases, dependencies, and potential challenges. If it impacts the general architecture, document this in $ARCHITECTURE_DOC. Make sure to adhere to the design in $DESIGN_DOC. Document the plan thoroughly. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
     transitions:
-      - trigger: "refine_plan"
-        to: "plan"
-        instructions: >
-          Continue refining the implementation plan. Add more detail to tasks, consider additional edge cases,
-          and ensure the approach is solid. Update the plan file with refined details and mark completed planning tasks.
-        transition_reason: "Plan needs more detail and refinement"
-      
       - trigger: "need_more_exploration"
         to: "explore"
         additional_instructions: "Planning revealed gaps in understanding. Focus on the specific areas that need clarification and ask the user about needs and preferences."
@@ -92,7 +78,7 @@ states:
 
   code:
     description: "Implementation phase - writing and building the solution"
-    default_instructions: "Starting implementation phase. Follow your plan and design from $DESIGN_DOC to build the solution according to the architecture in $ARCHITECTURE_DOC. Ensure requirements from $REQUIREMENTS_DOC are met. Write clean, well-structured code with proper error handling. Prevent regression by building, linting and executing existing tests. Stay flexible and adapt the plan as you learn more during implementation. Update progress in the plan file. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
+    default_instructions: "You are in the implementation phase. Follow your plan and design from $DESIGN_DOC to build the solution according to the architecture in $ARCHITECTURE_DOC. Ensure requirements from $REQUIREMENTS_DOC are met. Write clean, well-structured code with proper error handling. Prevent regression by building, linting and executing existing tests. Stay flexible and adapt the plan as you learn more during implementation. Update progress in the plan file. Important: Tasks that you identify for the actual coding shall be in the Code section in the plan."
     transitions:
       - trigger: "need_replanning"
         to: "plan"
@@ -128,16 +114,43 @@ states:
         transition_reason: "User decided to abandon feature during implementation"
 
   commit:
-    description: "Finalization phase - committing changes and documentation"
-    default_instructions: "Starting finalization phase. Review your work, ensure code quality, run tests, and prepare for delivery. Clean up temporary code, update documentation, and ensure everything is ready for production."
-    transitions:
-      - trigger: "refine_commit"
-        to: "commit"
-        instructions: >
-          Continue finalization work. Review code quality, run final tests, update documentation, and prepare
-          for delivery. Ensure everything is clean and ready for production. Update the plan file with final tasks.
-        transition_reason: "Finalization work continues, preparing for delivery"
+    description: "Code cleanup and documentation finalization"
+    default_instructions: >
+      You are in the commit phase. This phase ensures code quality and documentation accuracy through systematic cleanup and review.
       
+      **STEP 1: Code Cleanup**
+      Systematically clean up development artifacts:
+      
+      1. **Remove Debug Output**: Search for and remove all temporary debug output statements used during development.
+         Look for language-specific debug output methods (console logging, print statements, debug output functions).
+         Remove any debugging statements that were added for development purposes.
+      
+      2. **Review TODO/FIXME Comments**: 
+         - Address each TODO/FIXME comment by either implementing the solution or documenting why it's deferred
+         - Remove completed TODOs
+         - Convert remaining TODOs to proper issue tracking if needed
+      
+      3. **Remove Debugging Code Blocks**:
+         - Remove temporary debugging code, test code blocks, and commented-out code
+         - Clean up any experimental code that's no longer needed
+         - Ensure proper error handling replaces temporary debug logging
+      
+      **STEP 2: Documentation Review**
+      Review and update documentation to reflect final implementation:
+      
+      1. **Compare Against Implementation**: Review documentation against actual implemented functionality
+      2. **Update Changed Sections**: Only modify documentation sections that have functional changes
+      3. **Remove Development Progress**: Remove references to development iterations, progress notes, and temporary decisions
+      4. **Focus on Final State**: Ensure documentation describes the final implemented state, not the development process
+      5. **Verify Accuracy**: Ensure all examples, API descriptions, and usage instructions are accurate
+      
+      **STEP 3: Final Validation**
+      - Run existing tests to ensure cleanup didn't break functionality
+      - Verify documentation accuracy with a final review
+      - Ensure code is ready for production/delivery
+      
+      Update the plan file with commit progress and mark completed tasks.
+    transitions:
       - trigger: "need_code_changes"
         to: "code"
         additional_instructions: "Finalization revealed issues that require code changes. Focus on the problems identified during final review."
@@ -145,16 +158,10 @@ states:
       
       - trigger: "commit_complete"
         to: "explore"
-        instructions: >
-          Feature is complete and committed! ✅ All work is finished and ready for delivery.
-          Return to exploration state, ready for the next development task. Mark all commit tasks as complete.
         additional_instructions: "Feature is complete and committed! All work is finished and ready for delivery. Prepare for the next development task."
         transition_reason: "Feature delivery complete, ready for next task"
       
       - trigger: "abandon_feature"
         to: "explore"
-        instructions: >
-          Feature development abandoned during finalization. Clean up any finalization artifacts and return to exploration.
-          The completed work will remain for future reference.
         additional_instructions: "Feature development abandoned during finalization. Clean up any finalization artifacts and prepare for new tasks."
         transition_reason: "User decided to abandon feature during finalization"

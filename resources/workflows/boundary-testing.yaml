@@ -26,7 +26,7 @@ states:
   architecture_analysis:
     description: "Analyze existing system architecture and identify system boundaries"
     default_instructions: >
-      Starting architecture analysis phase for boundary testing workflow.
+      You are in the architecture analysis phase for boundary testing workflow.
       
       **Your Tasks:**
       1. **Reference Architecture Documentation**: Check if $ARCHITECTURE_DOC exists and reference it for system understanding
@@ -49,18 +49,15 @@ states:
       
       Update the plan file with your findings and mark completed tasks.
     transitions:
-      - trigger: "continue_analysis"
-        to: "architecture_analysis"
-        transition_reason: "Architecture analysis needs more investigation and refinement"
-      
       - trigger: "analysis_complete"
         to: "interface_discovery"
+        additional_instructions: "Architecture analysis complete! Now systematically identify all system interfaces, APIs, and external boundaries. Use your architecture understanding to guide the discovery process."
         transition_reason: "System architecture is understood, ready for interface discovery"
 
   interface_discovery:
     description: "Discover and catalog all system interfaces, APIs, and external boundaries"
     default_instructions: >
-      Starting interface discovery phase. Use your architecture analysis to systematically identify all system interfaces.
+      You are in the interface discovery phase. Use your architecture analysis to systematically identify all system interfaces.
       
       **Your Tasks:**
       1. **Catalog APIs**: Identify all REST APIs, SOAP services, GraphQL endpoints, or other web services
@@ -85,10 +82,6 @@ states:
       
       Update the plan file with discovered interfaces and mark completed tasks.
     transitions:
-      - trigger: "continue_discovery"
-        to: "interface_discovery"
-        transition_reason: "Interface discovery needs more investigation"
-      
       - trigger: "need_more_analysis"
         to: "architecture_analysis"
         additional_instructions: "Interface discovery revealed gaps in architecture understanding. Focus on the specific areas that need clarification."
@@ -96,12 +89,13 @@ states:
       
       - trigger: "discovery_complete"
         to: "business_domain_analysis"
+        additional_instructions: "Interface discovery complete! Now organize the cataloged interfaces by business domains using Domain-Driven Design principles. Focus on identifying logical boundaries and domain relationships."
         transition_reason: "System interfaces are cataloged, ready for business domain organization"
 
   business_domain_analysis:
     description: "Organize system interfaces by business domains and logical boundaries using DDD principles"
     default_instructions: >
-      Starting business domain analysis phase. Apply Domain-Driven Design principles to organize interfaces by business boundaries.
+      You are in the business domain analysis phase. Apply Domain-Driven Design principles to organize interfaces by business boundaries.
       
       **Your Tasks:**
       1. **Apply DDD Principles**: Use Domain-Driven Design concepts to identify bounded contexts and business domains
@@ -141,12 +135,13 @@ states:
       
       - trigger: "domains_complete"
         to: "test_strategy_design"
+        additional_instructions: "Business domain organization complete! Now design a comprehensive testing strategy based on the identified business boundaries. Focus on creating domain-specific test approaches."
         transition_reason: "Business domains are organized, ready for test strategy design"
 
   test_strategy_design:
     description: "Design comprehensive testing strategy organized by business boundaries"
     default_instructions: >
-      Starting test strategy design phase. Create a comprehensive testing approach based on business domain organization.
+      You are in the test strategy design phase. Create a comprehensive testing approach based on business domain organization.
       
       **Your Tasks:**
       1. **Design Domain-Based Testing**: Create test strategies for each business domain identified
@@ -189,12 +184,13 @@ states:
       
       - trigger: "strategy_complete"
         to: "test_suite_implementation"
+        additional_instructions: "Test strategy design complete! Now implement the comprehensive test suite based on your strategy. Focus on building domain-organized tests that validate system boundaries."
         transition_reason: "Test strategy is complete, ready for implementation"
 
   test_suite_implementation:
     description: "Implement comprehensive test suite organized by business domains"
     default_instructions: >
-      Starting test suite implementation phase. Build the comprehensive test suite based on your strategy.
+      You are in the test suite implementation phase. Build the comprehensive test suite based on your strategy.
       
       **Your Tasks:**
       1. **Implement Domain Tests**: Create test suites for each business domain
@@ -227,10 +223,6 @@ states:
       
       Update the plan file with implementation progress and mark completed tasks.
     transitions:
-      - trigger: "continue_implementation"
-        to: "test_suite_implementation"
-        transition_reason: "Test implementation continues with more scenarios to implement"
-      
       - trigger: "need_strategy_refinement"
         to: "test_strategy_design"
         additional_instructions: "Test implementation revealed issues with the strategy. Refine the test strategy based on implementation learnings."
@@ -238,12 +230,13 @@ states:
       
       - trigger: "implementation_complete"
         to: "validation"
+        additional_instructions: "Test suite implementation complete! Now validate the comprehensive test suite and establish system testing baseline. Focus on verifying test coverage and effectiveness."
         transition_reason: "Test suite implementation complete, ready for validation"
 
   validation:
     description: "Validate test coverage and establish comprehensive system testing baseline"
     default_instructions: >
-      Starting validation phase. Validate the comprehensive test suite and establish system testing baseline.
+      You are in the validation phase. Validate the comprehensive test suite and establish system testing baseline.
       
       **Your Tasks:**
       1. **Test Coverage Analysis**: Validate that all business domains and interfaces are covered
@@ -287,18 +280,54 @@ states:
         transition_reason: "Validation work revealed need for additional test implementation"
       
       - trigger: "validation_complete"
-        to: "validation"
-        instructions: >
-          Boundary testing workflow is complete! ✅ The comprehensive test suite is ready.
-          
-          **Final Deliverables:**
-          - Comprehensive test suite organized by business domains
-          - System behavior baseline established
-          - Test documentation and maintenance procedures
-          - Clear test organization and execution procedures
-          
-          The test suite is now ready for ongoing use, compliance validation, system monitoring, or as a foundation for system modernization efforts.
-          
-          Mark all validation tasks as complete in the plan file.
-        additional_instructions: "Boundary testing workflow complete! Test suite is ready for ongoing use and maintenance."
-        transition_reason: "Test suite validation complete, ready for production use"
+        to: "finalize"
+        additional_instructions: "Validation is complete! Clean up test development artifacts and finalize documentation to ensure everything is ready for delivery."
+        transition_reason: "Test suite validation complete, ready for finalization"
+
+  finalize:
+    description: "Code cleanup and documentation finalization"
+    default_instructions: >
+      You are in the finalize phase. This phase ensures code quality and documentation accuracy through systematic cleanup and review.
+      
+      **STEP 1: Code Cleanup**
+      Systematically clean up development artifacts:
+      
+      1. **Remove Debug Output**: Search for and remove all temporary debug output statements used during test development.
+         Look for language-specific debug output methods (console logging, print statements, debug output functions).
+         Remove any debugging statements that were added for development purposes.
+      
+      2. **Review TODO/FIXME Comments**: 
+         - Address each TODO/FIXME comment by either implementing the solution or documenting why it's deferred
+         - Remove completed TODOs
+         - Convert remaining TODOs to proper issue tracking if needed
+      
+      3. **Remove Debugging Code Blocks**:
+         - Remove temporary debugging code, test code blocks, and commented-out code
+         - Clean up any experimental code that's no longer needed
+         - Ensure proper error handling replaces temporary debug logging
+      
+      **STEP 2: Documentation Review**
+      Review and update documentation to reflect final test implementation:
+      
+      1. **Compare Against Implementation**: Review documentation against actual implemented test suite
+      2. **Update Changed Sections**: Only modify documentation sections that have functional changes
+      3. **Remove Development Progress**: Remove references to development iterations, progress notes, and temporary decisions
+      4. **Focus on Final State**: Ensure documentation describes the final test suite state, not the development process
+      5. **Verify Test Documentation**: Ensure test documentation and maintenance procedures are complete and accurate
+      
+      **STEP 3: Final Validation**
+      - Run existing tests to ensure cleanup didn't break functionality
+      - Verify test documentation accuracy with a final review
+      - Ensure test suite is ready for ongoing use and maintenance
+      
+      Update the plan file with finalization progress and mark completed tasks.
+    transitions:
+      - trigger: "need_test_changes"
+        to: "test_suite_implementation"
+        additional_instructions: "Finalization revealed issues with the test suite. Focus on addressing the specific problems identified during final review."
+        transition_reason: "Finalization revealed issues requiring test implementation changes"
+      
+      - trigger: "finalization_complete"
+        to: "architecture_analysis"
+        additional_instructions: "Boundary testing workflow complete! Test suite is ready for ongoing use and maintenance. Prepare for next boundary testing project."
+        transition_reason: "Test suite finalization complete, ready for production use"
