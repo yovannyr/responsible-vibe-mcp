@@ -38,13 +38,11 @@ jobs:
         run: npm ci
 
       - name: Build workflow visualizer
-        working-directory: workflow-visualizer
         run: |
-          rm -rf node_modules
-          npm cache clean --force
-          npm ci
-          echo "esbuild version in workflow-visualizer:"
-          npx esbuild --version
+          cd workflow-visualizer
+          # Ensure we start completely clean and regenerate package-lock.json
+          rm -rf node_modules package-lock.json
+          npm install
           npm run build
 
       - name: Build VitePress site
