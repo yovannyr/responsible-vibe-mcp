@@ -85,6 +85,8 @@ Fix CI deployment failure in docs build process caused by esbuild version mismat
 - [x] Implement improved fix using npm ci instead of npm install
 - [x] Commit the fix to version control
 - [x] Review and fix npm ci consistency across all CI workflows
+- [x] Separate build interactions to prevent automatic chaining
+- [ ] Implement more aggressive isolation to resolve persistent CI failure
 
 ### Completed
 - [x] **Fix Verification**: Confirmed workflow-visualizer builds successfully with esbuild 0.21.5 when run in isolation
@@ -97,9 +99,9 @@ Fix CI deployment failure in docs build process caused by esbuild version mismat
 - [x] **Fix Committed**: Changes committed to git with conventional commit message (commit 8f0c035)
 - [x] **CI Consistency Issue Identified**: Found release.yml uses `npm install` while other workflows use `npm ci`
 - [x] **CI Consistency Fixed**: Updated all workflows to use `npm ci` consistently (commit ab26601)
-  - Fixed release.yml test and release jobs
-  - Fixed docs build in deploy-pages.yml
-  - All workflows now use deterministic dependency resolution
+- [x] **Build Interactions Separated**: Removed build:visualizer from main build script to prevent chaining (commit 0dc1f90)
+- [x] **Persistent CI Failure**: Even with npm ci and separated builds, CI still shows esbuild version conflict
+- [x] **More Aggressive Isolation**: Added working-directory, force clean node_modules, npm cache clean, and debugging (commit 9a6fed7)
 
 ## Key Decisions
 - **Root Cause Identified**: The issue is a version conflict between:
