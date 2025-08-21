@@ -29,6 +29,7 @@ export interface ProceedToPhaseResult {
   transition_reason: string;
   is_modeled_transition: boolean;
   conversation_id: string;
+  commit_created?: boolean;
 }
 
 /**
@@ -116,20 +117,21 @@ export class ProceedToPhaseHandler extends ConversationRequiredToolHandler<Proce
       }
     );
 
-    // Handle git commits if configured (before phase transition)
+    // Handle git commits if configured (after phase transition)
+    let commitCreated = false;
     if (conversationContext.gitCommitConfig?.enabled && conversationContext.gitCommitConfig.commitOnPhase) {
-      const commitCreated = GitManager.createWipCommitIfNeeded(
+      commitCreated = GitManager.createWipCommitIfNeeded(
         conversationContext.projectPath,
         conversationContext.gitCommitConfig,
         `Phase transition: ${currentPhase} → ${target_phase}`,
-        currentPhase
+        transitionResult.newPhase
       );
       
       if (commitCreated) {
-        this.logger.info('Created WIP commit before phase transition', {
+        this.logger.info('Created WIP commit for phase transition', {
           conversationId,
           fromPhase: currentPhase,
-          toPhase: target_phase,
+          toPhase: transitionResult.newPhase,
           reason
         });
       }
@@ -142,7 +144,8 @@ export class ProceedToPhaseHandler extends ConversationRequiredToolHandler<Proce
       plan_file_path: conversationContext.planFilePath,
       transition_reason: transitionResult.transitionReason,
       is_modeled_transition: transitionResult.isModeled,
-      conversation_id: conversationContext.conversationId
+      conversation_id: conversationContext.conversationId,
+      commit_created: commitCreated
     };
 
     // Log interaction
