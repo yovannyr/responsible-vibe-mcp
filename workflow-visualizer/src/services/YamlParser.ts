@@ -44,13 +44,16 @@ export class YamlParser {
     this.validateRequiredField(parsed, 'initial_state', 'string');
     this.validateRequiredField(parsed, 'states', 'object');
 
+    // Cast parsed to unknown for property access
+    const parsedData = parsed as Record<string, unknown>;
+
     // Validate states structure
-    const states = this.validateStates(parsed.states);
+    const states = this.validateStates(parsedData.states);
 
     // Validate initial state exists
-    if (!states[parsed.initial_state]) {
+    if (!states[parsedData.initial_state as string]) {
       throw this.createValidationError(
-        `Initial state "${parsed.initial_state}" not found in states`
+        `Initial state "${parsedData.initial_state}" not found in states`
       );
     }
 
@@ -58,11 +61,18 @@ export class YamlParser {
     this.validateStateReferences(states);
 
     return {
-      name: parsed.name,
-      description: parsed.description,
-      initial_state: parsed.initial_state,
+      name: parsedData.name as string,
+      description: parsedData.description as string,
+      initial_state: parsedData.initial_state as string,
       states: states,
-      metadata: parsed.metadata,
+      metadata: parsedData.metadata as
+        | {
+            complexity?: 'low' | 'medium' | 'high';
+            bestFor?: string[];
+            useCases?: string[];
+            examples?: string[];
+          }
+        | undefined,
     };
   }
 
@@ -76,14 +86,14 @@ export class YamlParser {
 
     const validatedStates: Record<string, YamlState> = {};
 
-    for (const [stateName, stateData] of Object.entries(statesObj)) {
-      if (!stateData || typeof stateData !== 'object') {
+    for (const [stateName, stateValue] of Object.entries(statesObj)) {
+      if (!stateValue || typeof stateValue !== 'object') {
         throw this.createValidationError(
           `State "${stateName}" must be an object`
         );
       }
 
-      const state = stateData as unknown;
+      const state = stateValue as unknown;
 
       // Validate required state fields
       this.validateRequiredField(
@@ -98,8 +108,11 @@ export class YamlParser {
         'string',
         `State "${stateName}"`
       );
+      // Cast state to Record for property access
+      const stateData = state as Record<string, unknown>;
+
       this.validateRequiredField(
-        state,
+        stateData,
         'transitions',
         'object',
         `State "${stateName}"`
@@ -107,13 +120,13 @@ export class YamlParser {
 
       // Validate transitions
       const transitions = this.validateTransitions(
-        state.transitions,
+        stateData.transitions,
         stateName
       );
 
       validatedStates[stateName] = {
-        description: state.description,
-        default_instructions: state.default_instructions,
+        description: stateData.description as string,
+        default_instructions: stateData.default_instructions as string,
         transitions: transitions,
       };
     }
@@ -141,33 +154,40 @@ export class YamlParser {
         );
       }
 
+      // Cast transition to Record for property access
+      const transitionData = transition as Record<string, unknown>;
+
       // Validate required transition fields
       this.validateRequiredField(
-        transition,
+        transitionData,
         'trigger',
         'string',
         `Transition ${index} in state "${stateName}"`
       );
       this.validateRequiredField(
-        transition,
+        transitionData,
         'to',
         'string',
         `Transition ${index} in state "${stateName}"`
       );
       this.validateRequiredField(
-        transition,
+        transitionData,
         'transition_reason',
         'string',
         `Transition ${index} in state "${stateName}"`
       );
 
       return {
-        trigger: transition.trigger,
-        to: transition.to,
-        instructions: transition.instructions,
-        additional_instructions: transition.additional_instructions,
-        transition_reason: transition.transition_reason,
-        review_perspectives: transition.review_perspectives,
+        trigger: transitionData.trigger as string,
+        to: transitionData.to as string,
+        instructions: transitionData.instructions as string,
+        additional_instructions:
+          transitionData.additional_instructions as string,
+        transition_reason: transitionData.transition_reason as string,
+        review_perspectives: transitionData.review_perspectives as Array<{
+          perspective: string;
+          prompt: string;
+        }>,
       };
     });
   }
@@ -198,13 +218,14 @@ export class YamlParser {
     expectedType: string,
     context: string = 'Workflow'
   ): void {
-    if (!(fieldName in obj)) {
+    const objData = obj as Record<string, unknown>;
+    if (!(fieldName in objData)) {
       throw this.createValidationError(
         `${context}: Missing required field "${fieldName}"`
       );
     }
 
-    const actualType = typeof obj[fieldName];
+    const actualType = typeof objData[fieldName];
     if (actualType !== expectedType) {
       throw this.createValidationError(
         `${context}: Field "${fieldName}" must be ${expectedType}, got ${actualType}`

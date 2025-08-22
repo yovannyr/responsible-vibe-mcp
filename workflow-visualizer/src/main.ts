@@ -15,6 +15,7 @@ import {
   YamlTransition,
   AppState,
   TransitionData,
+  AppError,
 } from './types/ui-types';
 
 class WorkflowVisualizerApp {
@@ -55,13 +56,13 @@ class WorkflowVisualizerApp {
         this.handleElementClick({
           elementType: 'node',
           elementId: elementId,
-          data: data,
+          data: data as YamlState,
         });
       } else if (elementType === 'transition') {
         this.handleElementClick({
           elementType: 'transition',
           elementId: elementId,
-          data: data,
+          data: data as TransitionData,
         });
       } else if (elementType === 'clear-selection') {
         this.clearSelection();
@@ -200,7 +201,7 @@ class WorkflowVisualizerApp {
   /**
    * Handle file upload errors
    */
-  private handleUploadError(error: Error): void {
+  private handleUploadError(error: AppError): void {
     console.error('File upload error:', error);
     this.errorHandler.showError(error);
   }
@@ -247,16 +248,24 @@ class WorkflowVisualizerApp {
     const workflow = this.appState.currentWorkflow;
     if (!workflow) return;
 
+    // Cast linkData to TransitionData for type safety
+    const transitionInfo = linkData as TransitionData;
+
     // Use the linkData passed from the PlantUML renderer
-    if (linkData && linkData.from && linkData.to && linkData.trigger) {
+    if (
+      transitionInfo &&
+      transitionInfo.from &&
+      transitionInfo.to &&
+      transitionInfo.trigger
+    ) {
       const transitionData: TransitionData = {
-        trigger: linkData.trigger,
-        from: linkData.from,
-        to: linkData.to,
-        instructions: linkData.instructions || '',
-        additional_instructions: linkData.additional_instructions || '',
-        transition_reason: linkData.transition_reason || '',
-        review_perspectives: linkData.review_perspectives || [],
+        trigger: transitionInfo.trigger,
+        from: transitionInfo.from,
+        to: transitionInfo.to,
+        instructions: transitionInfo.instructions || '',
+        additional_instructions: transitionInfo.additional_instructions || '',
+        transition_reason: transitionInfo.transition_reason || '',
+        review_perspectives: transitionInfo.review_perspectives || [],
       };
 
       this.appState.selectedElement = {
@@ -377,8 +386,10 @@ class WorkflowVisualizerApp {
     const element = this.appState.selectedElement;
     if (!element) return;
 
-    if (element.type === 'state') {
-      this.renderStateDetailsWithHeader(element.id, element.data);
+    if (element.type === 'state' && element.data) {
+      // Type guard to ensure data is YamlState
+      const stateData = element.data as YamlState;
+      this.renderStateDetailsWithHeader(element.id, stateData);
     } else if (element.type === 'transition') {
       this.renderTransitionDetailsWithHeader(element.data as TransitionData);
     }
