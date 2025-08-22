@@ -27,8 +27,9 @@ jobs:
 
       - name: Install platform-specific dependencies
         run: |
-          # Install oxlint platform dependency for Linux (temporary, not saved to package.json)
+          # Install platform dependencies for Linux (temporary, not saved to package.json)
           npm install @oxlint/linux-x64-gnu --no-save || echo "Failed to install oxlint platform dependency, continuing..."
+          npm install @rollup/rollup-linux-x64-gnu --no-save || echo "Failed to install Rollup platform dependency, continuing..."
 
       - name: Check formatting
         run: npm run format:check
@@ -87,6 +88,8 @@ jobs:
           # Clean install for visualizer to avoid dependency conflicts
           rm -rf node_modules package-lock.json || true
           npm install
+          # Install Rollup platform dependency needed for Vite build
+          npm install @rollup/rollup-linux-x64-gnu --no-save || echo "Failed to install Rollup platform dependency for visualizer"
           npm run build
 
       - name: Bump version and create tag
