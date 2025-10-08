@@ -93,12 +93,6 @@ jobs:
       - name: Build project
         run: pnpm run build
 
-      - name: Build workflow visualizer
-        run: |
-          cd packages/visualizer
-          pnpm install
-          pnpm run build
-
       - name: Bump version and create tag
         id: version
         uses: mathieudutour/github-tag-action@v6.2
@@ -116,7 +110,7 @@ jobs:
           pnpm version $NEW_VERSION --no-git-tag-version
 
           # Update all workspace package versions
-          pnpm -r exec npm version $NEW_VERSION --no-git-tag-version
+          pnpm -r exec pnpm version $NEW_VERSION --no-git-tag-version
 
           # Ensure no platform-specific dependencies were accidentally saved
           pnpm remove @rollup/rollup-linux-x64-gnu @oxlint/linux-x64-gnu 2>/dev/null || true
