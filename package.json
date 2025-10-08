@@ -5,7 +5,8 @@
   "type": "module",
   "main": "packages/cli/dist/index.js",
   "bin": {
-    "responsible-vibe-mcp": "packages/cli/dist/index.js"
+    "responsible-vibe-mcp": "packages/cli/dist/index.js",
+    "rv-codex": "extra/codex-cli.mjs"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -88,7 +89,9 @@
     "model-context-protocol",
     "development",
     "state-management",
-    "llm"
+    "llm",
+    "codex",
+    "openai-codex"
   ],
   "author": "Oliver Jägle",
   "license": "MIT"

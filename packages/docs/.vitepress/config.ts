@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress';
+import path from 'node:path';
 
 export default defineConfig({
   title: 'Responsible Vibe MCP',
@@ -32,4 +33,13 @@ export default defineConfig({
   },
 
   head: [['link', { rel: 'icon', href: '/responsible-vibe-mcp/favicon.ico' }]],
+
+  resolve: {
+    alias: {
+      '@codemcp/workflows-visualizer': path.resolve(
+        __dirname,
+        '../../visualizer/src'
+      ),
+    },
+  },
 });
