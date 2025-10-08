@@ -6,9 +6,9 @@
 
 import { describe, it, expect, beforeEach, Mocked, vi } from 'vitest';
 import { TestAccess } from '../utils/test-access.js';
-import { InstructionGenerator } from '@responsible-vibe/core';
-import { PlanManager } from '@responsible-vibe/core';
-import { ProjectDocsManager } from '@responsible-vibe/core';
+import { InstructionGenerator } from '@codemcp/workflows-core';
+import { PlanManager } from '@codemcp/workflows-core';
+import { ProjectDocsManager } from '@codemcp/workflows-core';
 import type { ConversationContext } from '../../src/types.js';
 import type { InstructionContext } from '../../src/instruction-generator.js';
 import { join } from 'node:path';

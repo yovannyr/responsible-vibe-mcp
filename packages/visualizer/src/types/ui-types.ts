@@ -7,7 +7,7 @@ import type {
   YamlStateMachine,
   YamlState,
   YamlTransition,
-} from '@responsible-vibe/core';
+} from '@codemcp/workflows-core';
 
 // Re-export for convenience
 export type { YamlStateMachine, YamlState, YamlTransition };

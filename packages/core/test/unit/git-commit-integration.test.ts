@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { GitManager } from '@responsible-vibe/core';
+import { GitManager } from '@codemcp/workflows-core';
 
 describe('Git Commit Integration', () => {
   describe('GitManager Repository Detection', () => {

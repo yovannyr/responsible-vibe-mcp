@@ -6,7 +6,7 @@
  * current development phase, and plan file location.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import {
   ResourceHandler,
   ServerContext,

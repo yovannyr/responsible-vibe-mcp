@@ -24,12 +24,12 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
+      '@codemcp/workflows-core':
+        specifier: workspace:*
+        version: link:packages/core
       '@modelcontextprotocol/inspector':
         specifier: 0.16.8
         version: 0.16.8(@types/node@20.19.17)(typescript@5.9.2)
-      '@responsible-vibe/core':
-        specifier: workspace:*
-        version: link:packages/core
       '@tsconfig/node22':
         specifier: 22.0.2
         version: 22.0.2
@@ -81,10 +81,10 @@ importers:
 
   packages/cli:
     dependencies:
-      '@responsible-vibe/core':
+      '@codemcp/workflows-core':
         specifier: workspace:*
         version: link:../core
-      '@responsible-vibe/mcp-server':
+      '@codemcp/workflows':
         specifier: workspace:*
         version: link:../mcp-server
     devDependencies:
@@ -122,7 +122,7 @@ importers:
 
   packages/docs:
     dependencies:
-      '@responsible-vibe/visualizer':
+      '@codemcp/workflows-visualizer':
         specifier: workspace:*
         version: link:../visualizer
       d3:
@@ -162,12 +162,12 @@ importers:
 
   packages/mcp-server:
     dependencies:
+      '@codemcp/workflows-core':
+        specifier: workspace:*
+        version: link:../core
       '@modelcontextprotocol/sdk':
         specifier: 1.17.5
         version: 1.17.5
-      '@responsible-vibe/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.0.0

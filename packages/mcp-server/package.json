@@ -1,5 +1,5 @@
 {
-  "name": "@responsible-vibe/mcp-server",
+  "name": "@codemcp/workflows",
   "version": "3.1.13",
   "description": "MCP server implementation for responsible-vibe",
   "type": "module",
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.17.5",
-    "@responsible-vibe/core": "workspace:*"
+    "@codemcp/workflows-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

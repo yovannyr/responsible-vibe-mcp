@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mkdirSync, rmSync } from 'node:fs';
-import { ResponsibleVibeMCPServer } from '@responsible-vibe/mcp-server';
+import { ResponsibleVibeMCPServer } from '@codemcp/workflows';
 import {
   GitTestHelper,
   ServerTestHelper,
@@ -104,7 +104,7 @@ describe('Dynamic Tool Description', () => {
 
   it('should verify GitManager correctly detects repository status', async () => {
     // Test non-git directory
-    const { GitManager } = await import('@responsible-vibe/core');
+    const { GitManager } = await import('@codemcp/workflows-core');
 
     expect(GitManager.isGitRepository(tempDir)).toBe(false);
 

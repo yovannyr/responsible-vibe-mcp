@@ -137,6 +137,13 @@ jobs:
 
       - name: Publish to npm
         if: steps.version.outputs.new_tag
-        run: git status && pnpm publish --access public --no-git-checks
+        run: |
+          # Publish core package first
+          cd packages/core
+          pnpm publish --access public --no-git-checks
+          cd ../..
+
+          # Publish main package
+          git status && pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

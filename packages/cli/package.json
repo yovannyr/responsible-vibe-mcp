@@ -1,5 +1,5 @@
 {
-  "name": "@responsible-vibe/cli",
+  "name": "@codemcp/workflows-cli",
   "version": "3.1.13",
   "description": "CLI tools for responsible-vibe development workflows",
   "type": "module",
@@ -12,8 +12,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@responsible-vibe/core": "workspace:*",
-    "@responsible-vibe/mcp-server": "workspace:*"
+    "@codemcp/workflows-core": "workspace:*",
+    "@codemcp/workflows": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

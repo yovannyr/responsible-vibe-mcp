@@ -148,7 +148,7 @@ function fixImportsInFile(filePath, fileToPackageMap) {
         ];
 
         if (patterns.some(pattern => pattern.test(importPath))) {
-          const newImportPath = `@responsible-vibe/core`;
+          const newImportPath = `@codemcp/workflows-core`;
           const oldImport = match[0];
           const newImport = oldImport.replace(importPath, newImportPath);
 
@@ -158,7 +158,7 @@ function fixImportsInFile(filePath, fileToPackageMap) {
             new: newImportPath,
             fullOld: oldImport,
             fullNew: newImport,
-            targetPackage: '@responsible-vibe/core',
+            targetPackage: '@codemcp/workflows-core',
           });
           break;
         }

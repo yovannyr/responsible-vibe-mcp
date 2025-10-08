@@ -22,7 +22,7 @@ if (args.length === 0) {
     import('../../mcp-server/dist/index.js');
   } else {
     // Use string literal to avoid TypeScript resolution issues
-    const mcpServerModule = '@responsible-vibe/mcp-server';
+    const mcpServerModule = '@codemcp/workflows';
     import(mcpServerModule);
   }
 } else {

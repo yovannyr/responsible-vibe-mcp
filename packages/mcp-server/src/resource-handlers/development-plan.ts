@@ -5,7 +5,7 @@
  * development plan document (markdown) that tracks project progress, tasks, and decisions.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import {
   ResourceHandler,
   ServerContext,

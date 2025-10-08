@@ -8,8 +8,8 @@
 
 import { ConversationRequiredToolHandler } from './base-tool-handler.js';
 import { validateRequiredArgs } from '../server-helpers.js';
-import type { ConversationContext } from '@responsible-vibe/core';
-import type { YamlTransition } from '@responsible-vibe/core';
+import type { ConversationContext } from '@codemcp/workflows-core';
+import type { YamlTransition } from '@codemcp/workflows-core';
 import { ServerContext } from '../types.js';
 
 /**

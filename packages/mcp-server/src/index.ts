@@ -15,7 +15,7 @@ export {
   ResponsibleVibeMCPServer,
   createResponsibleVibeMCPServer,
 } from './server.js';
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 
 const logger = createLogger('Main');
 

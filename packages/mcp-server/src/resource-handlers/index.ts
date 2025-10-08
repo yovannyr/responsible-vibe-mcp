@@ -5,7 +5,7 @@
  * functionality for resource handlers used by the MCP server.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import { DevelopmentPlanResourceHandler } from './development-plan.js';
 import { ConversationStateResourceHandler } from './conversation-state.js';
 import { WorkflowResourceHandler } from './workflow-resource.js';

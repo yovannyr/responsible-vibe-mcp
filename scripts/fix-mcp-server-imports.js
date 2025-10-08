@@ -53,14 +53,14 @@ function fixImportsInFile(filePath) {
   // Fix relative path imports for types.js
   newContent = newContent.replace(
     /from ['"]\.\.\/\.\.\/types\.js['"]/g,
-    "from '@responsible-vibe/core'"
+    "from '@codemcp/workflows-core'"
   );
   newContent = newContent.replace(
     /from ['"]\.\.\/\.\.\/state-machine-types\.js['"]/g,
-    "from '@responsible-vibe/core'"
+    "from '@codemcp/workflows-core'"
   );
 
-  // Fix server type imports - replace lines that import server types from @responsible-vibe/core
+  // Fix server type imports - replace lines that import server types from @codemcp/workflows-core
   const lines = newContent.split('\n');
   const newLines = [];
   let serverTypesToImport = new Set();
@@ -68,9 +68,9 @@ function fixImportsInFile(filePath) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    // Check if this line imports from @responsible-vibe/core and contains server types
+    // Check if this line imports from @codemcp/workflows-core and contains server types
     if (
-      line.includes("from '@responsible-vibe/core'") &&
+      line.includes("from '@codemcp/workflows-core'") &&
       line.includes('import')
     ) {
       const importMatch = line.match(
@@ -92,7 +92,7 @@ function fixImportsInFile(filePath) {
         // Keep core imports if any remain
         if (coreImports.length > 0) {
           newLines.push(
-            `import { ${coreImports.join(', ')} } from '@responsible-vibe/core';`
+            `import { ${coreImports.join(', ')} } from '@codemcp/workflows-core';`
           );
         }
         // Skip the line if all imports were server types

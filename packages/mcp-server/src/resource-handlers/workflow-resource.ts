@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import {
   ResourceHandler,
   ServerContext,

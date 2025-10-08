@@ -230,6 +230,7 @@ Migrate the responsible-vibe-mcp project to a proper monorepo structure with inc
   - [x] Validate MCP server functionality with published package
   - [x] Fix release.yml workflow to use pnpm consistently instead of npm
   - [x] Fix module resolution for @responsible-vibe/core in published package structure
+  - [x] Implement dual package publishing: @responsible-vibe/core as separate npm package
 
 **PR Review Summary: ✅ APPROVED**
 - 289/290 tests passing (99.7% success rate)

@@ -2,12 +2,12 @@
  * Core types and interfaces for the refactored server architecture
  */
 
-import { ConversationManager } from '@responsible-vibe/core';
-import { TransitionEngine } from '@responsible-vibe/core';
-import { PlanManager } from '@responsible-vibe/core';
-import { InstructionGenerator } from '@responsible-vibe/core';
-import { WorkflowManager } from '@responsible-vibe/core';
-import { InteractionLogger } from '@responsible-vibe/core';
+import { ConversationManager } from '@codemcp/workflows-core';
+import { TransitionEngine } from '@codemcp/workflows-core';
+import { PlanManager } from '@codemcp/workflows-core';
+import { InstructionGenerator } from '@codemcp/workflows-core';
+import { WorkflowManager } from '@codemcp/workflows-core';
+import { InteractionLogger } from '@codemcp/workflows-core';
 
 /**
  * Server context shared across all handlers

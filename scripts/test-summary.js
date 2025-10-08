@@ -130,7 +130,7 @@ try {
       console.log(`✅ Root Tests: ${result.passed}/${result.total} passed`);
     } else {
       console.log(
-        `✅ @responsible-vibe/${result.package}: ${result.passed}/${result.total} passed`
+        `✅ @codemcp/workflows${result.package}: ${result.passed}/${result.total} passed`
       );
     }
   }

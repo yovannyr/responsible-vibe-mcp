@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { InstallWorkflowHandler } from '../../packages/mcp-server/src/tool-handlers/install-workflow.js';
-import { WorkflowManager } from '@responsible-vibe/core';
+import { WorkflowManager } from '@codemcp/workflows-core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';

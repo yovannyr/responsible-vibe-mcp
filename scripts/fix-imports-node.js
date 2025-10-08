@@ -23,7 +23,7 @@ function fixImports(filePath, typesPath) {
 
   for (const line of lines) {
     if (
-      line.includes("from '@responsible-vibe/core'") &&
+      line.includes("from '@codemcp/workflows-core'") &&
       line.includes('import {')
     ) {
       // Extract imports
@@ -46,7 +46,7 @@ function fixImports(filePath, typesPath) {
         // Add separate import lines
         if (coreImports.length > 0) {
           newLines.push(
-            `import { ${coreImports.join(', ')} } from '@responsible-vibe/core';`
+            `import { ${coreImports.join(', ')} } from '@codemcp/workflows-core';`
           );
         }
         if (localImports.length > 0) {

@@ -8,9 +8,9 @@
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { generateSystemPrompt } from '@responsible-vibe/core';
-import { StateMachineLoader } from '@responsible-vibe/core';
-import {} from '@responsible-vibe/core';
+import { generateSystemPrompt } from '@codemcp/workflows-core';
+import { StateMachineLoader } from '@codemcp/workflows-core';
+import {} from '@codemcp/workflows-core';
 
 /**
  * Abstract base class for configuration generators

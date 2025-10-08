@@ -5,9 +5,9 @@
  * error handling, logging, and conversation state management.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import { ToolHandler, ServerContext, HandlerResult } from '../types.js';
-import type { ConversationContext } from '@responsible-vibe/core';
+import type { ConversationContext } from '@codemcp/workflows-core';
 import {
   safeExecute,
   logHandlerExecution,

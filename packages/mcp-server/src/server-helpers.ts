@@ -6,7 +6,7 @@
  */
 
 import { homedir } from 'node:os';
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import { HandlerResult } from './types.js';
 
 const logger = createLogger('ServerHelpers');

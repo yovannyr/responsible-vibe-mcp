@@ -1,5 +1,5 @@
 {
-  "name": "@responsible-vibe/visualizer",
+  "name": "@codemcp/workflows-visualizer",
   "version": "3.1.13",
   "type": "module",
   "main": "dist/index.ts",

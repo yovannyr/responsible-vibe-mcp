@@ -10,16 +10,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { SetLevelRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
-import { Database } from '@responsible-vibe/core';
-import { ConversationManager } from '@responsible-vibe/core';
-import { TransitionEngine } from '@responsible-vibe/core';
-import { InstructionGenerator } from '@responsible-vibe/core';
-import { PlanManager } from '@responsible-vibe/core';
-import { InteractionLogger } from '@responsible-vibe/core';
-import { WorkflowManager } from '@responsible-vibe/core';
-import { GitManager } from '@responsible-vibe/core';
-import { TemplateManager } from '@responsible-vibe/core';
-import { createLogger, setMcpLoggingLevel } from '@responsible-vibe/core';
+import { Database } from '@codemcp/workflows-core';
+import { ConversationManager } from '@codemcp/workflows-core';
+import { TransitionEngine } from '@codemcp/workflows-core';
+import { InstructionGenerator } from '@codemcp/workflows-core';
+import { PlanManager } from '@codemcp/workflows-core';
+import { InteractionLogger } from '@codemcp/workflows-core';
+import { WorkflowManager } from '@codemcp/workflows-core';
+import { GitManager } from '@codemcp/workflows-core';
+import { TemplateManager } from '@codemcp/workflows-core';
+import { createLogger, setMcpLoggingLevel } from '@codemcp/workflows-core';
 
 import {
   ServerConfig,

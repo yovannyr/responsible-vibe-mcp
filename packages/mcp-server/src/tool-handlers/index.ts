@@ -5,7 +5,7 @@
  * functionality for tool handlers used by the MCP server.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import { WhatsNextHandler } from './whats-next.js';
 import { ProceedToPhaseHandler } from './proceed-to-phase.js';
 import { ConductReviewHandler } from './conduct-review.js';

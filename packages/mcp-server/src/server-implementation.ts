@@ -5,7 +5,7 @@
  * This replaces the monolithic server.ts with a clean, modular architecture.
  */
 
-import { setMcpServerForLogging, createLogger } from '@responsible-vibe/core';
+import { setMcpServerForLogging, createLogger } from '@codemcp/workflows-core';
 import { ServerConfig } from './types.js';
 import {
   initializeServerComponents,

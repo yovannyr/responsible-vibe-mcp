@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { WorkflowManager } from '@responsible-vibe/core';
+import { WorkflowManager } from '@codemcp/workflows-core';
 import fs from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';

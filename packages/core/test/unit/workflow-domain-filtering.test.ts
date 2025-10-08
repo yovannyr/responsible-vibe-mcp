@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { WorkflowManager } from '@responsible-vibe/core';
+import { WorkflowManager } from '@codemcp/workflows-core';
 
 describe('Workflow Domain Filtering', () => {
   let originalEnv: string | undefined;

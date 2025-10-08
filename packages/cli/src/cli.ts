@@ -19,16 +19,16 @@ let StateMachineLoader: new () => unknown;
 
 if (isLocal) {
   // Local development - use workspace imports
-  // Node.js can resolve @responsible-vibe/core via pnpm workspace configuration
-  const coreModule = await import('@responsible-vibe/core');
+  // Node.js can resolve @codemcp/workflows-core via pnpm workspace configuration
+  const coreModule = await import('@codemcp/workflows-core');
   generateSystemPrompt = coreModule.generateSystemPrompt as (
     stateMachine: unknown
   ) => string;
   StateMachineLoader = coreModule.StateMachineLoader as new () => unknown;
 } else {
   // Published package - use relative imports
-  // Node.js cannot resolve @responsible-vibe/core from subdirectories in published packages
-  // because it expects packages in node_modules/@responsible-vibe/core/, not
+  // Node.js cannot resolve @codemcp/workflows-core from subdirectories in published packages
+  // because it expects packages in node_modules/@codemcp/workflows-core/, not
   // node_modules/responsible-vibe-mcp/packages/core/
   const coreModule = await import('../../core/dist/index.js');
   generateSystemPrompt = coreModule.generateSystemPrompt as (

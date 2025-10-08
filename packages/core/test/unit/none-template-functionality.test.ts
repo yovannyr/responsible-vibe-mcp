@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ProjectDocsManager } from '@responsible-vibe/core';
+import { ProjectDocsManager } from '@codemcp/workflows-core';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { mkdir, rmdir, readFile } from 'node:fs/promises';

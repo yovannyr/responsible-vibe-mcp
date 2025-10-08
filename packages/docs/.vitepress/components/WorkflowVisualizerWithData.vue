@@ -11,7 +11,7 @@
 import { ref, onMounted } from 'vue';
 import WorkflowVisualizer, {
   type WorkflowDefinition,
-} from '@responsible-vibe/visualizer';
+} from '@codemcp/workflows-visualizer';
 import { AVAILABLE_WORKFLOWS } from '../workflow-manifest.js';
 
 interface Props {

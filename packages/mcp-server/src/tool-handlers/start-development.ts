@@ -10,10 +10,10 @@ import { validateRequiredArgs } from '../server-helpers.js';
 import { basename } from 'node:path';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { GitCommitConfig } from '@responsible-vibe/core';
-import { GitManager } from '@responsible-vibe/core';
-import type { YamlStateMachine } from '@responsible-vibe/core';
-import { ProjectDocsManager, ProjectDocsInfo } from '@responsible-vibe/core';
+import { GitCommitConfig } from '@codemcp/workflows-core';
+import { GitManager } from '@codemcp/workflows-core';
+import type { YamlStateMachine } from '@codemcp/workflows-core';
+import { ProjectDocsManager, ProjectDocsInfo } from '@codemcp/workflows-core';
 import { ServerContext } from '../types.js';
 
 /**

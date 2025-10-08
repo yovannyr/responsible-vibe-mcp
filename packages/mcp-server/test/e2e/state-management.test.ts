@@ -230,8 +230,8 @@ states:
       });
 
       // Mock the module
-      vi.doMock('@responsible-vibe/core', async () => {
-        const actual = await vi.importActual('@responsible-vibe/core');
+      vi.doMock('@codemcp/workflows-core', async () => {
+        const actual = await vi.importActual('@codemcp/workflows-core');
         return {
           ...actual,
           createLogger: mockCreateLogger,

@@ -14,7 +14,7 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { WorkflowManager } from '@responsible-vibe/core';
+import { WorkflowManager } from '@codemcp/workflows-core';
 import { ListWorkflowsHandler } from '../../packages/mcp-server/src/tool-handlers/list-workflows.js';
 import { ServerContext } from '../../packages/mcp-server/src/types.js';
 

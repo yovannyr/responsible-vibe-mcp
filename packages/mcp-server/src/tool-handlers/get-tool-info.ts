@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { BaseToolHandler } from './base-tool-handler.js';
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import { ServerContext } from '../types.js';
 
 const logger = createLogger('GetToolInfoHandler');

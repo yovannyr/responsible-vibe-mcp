@@ -11,7 +11,7 @@ const mockGetConversationContext = vi.fn();
 const mockCreateConversationContext = vi.fn();
 
 // Mock database
-vi.mock('@responsible-vibe/core', () => {
+vi.mock('@codemcp/workflows-core', () => {
   return {
     Database: vi.fn().mockImplementation(() => ({
       initialize: vi.fn().mockResolvedValue(undefined),

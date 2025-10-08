@@ -6,7 +6,7 @@
  */
 
 import { ConversationRequiredToolHandler } from './base-tool-handler.js';
-import type { ConversationContext } from '@responsible-vibe/core';
+import type { ConversationContext } from '@codemcp/workflows-core';
 import { ServerContext } from '../types.js';
 
 /**

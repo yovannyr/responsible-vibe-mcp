@@ -12,8 +12,8 @@
 
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { generateSystemPrompt } from '@responsible-vibe/core';
-import { createLogger } from '@responsible-vibe/core';
+import { generateSystemPrompt } from '@codemcp/workflows-core';
+import { createLogger } from '@codemcp/workflows-core';
 
 const logger = createLogger('GenerateSystemPrompt');
 
@@ -46,7 +46,7 @@ async function main() {
     logger.info('Starting system prompt generation', options);
 
     // Load the default state machine for prompt generation
-    const { StateMachineLoader } = await import('@responsible-vibe/core');
+    const { StateMachineLoader } = await import('@codemcp/workflows-core');
     const loader = new StateMachineLoader();
     const stateMachine = loader.loadStateMachine(process.cwd()); // Use current directory
 

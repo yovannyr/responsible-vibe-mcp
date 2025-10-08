@@ -1,5 +1,5 @@
 {
-  "name": "@responsible-vibe/docs",
+  "name": "@codemcp/workflows-docs",
   "version": "3.1.13",
   "description": "Documentation site for Responsible Vibe MCP",
   "type": "module",
@@ -14,7 +14,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@responsible-vibe/visualizer": "workspace:*",
+    "@codemcp/workflows-visualizer": "workspace:*",
     "d3": "^7.8.5",
     "js-yaml": "^4.1.0",
     "pako": "2.1.0",

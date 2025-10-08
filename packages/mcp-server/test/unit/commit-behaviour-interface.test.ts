@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StartDevelopmentHandler } from '../../packages/mcp-server/src/tool-handlers/start-development.js';
-import * as GitManagerModule from '@responsible-vibe/core';
+import * as GitManagerModule from '@codemcp/workflows-core';
 import type { ServerContext } from '../../packages/mcp-server/src/types.js';
 
 // Spy on GitManager methods

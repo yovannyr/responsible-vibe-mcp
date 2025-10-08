@@ -5,7 +5,7 @@
  * This provides clean separation between business logic and protocol concerns.
  */
 
-import { createLogger } from '@responsible-vibe/core';
+import { createLogger } from '@codemcp/workflows-core';
 import {
   ResponseRenderer,
   HandlerResult,

@@ -7,9 +7,9 @@
  */
 
 import { BaseToolHandler } from './base-tool-handler.js';
-import { ProjectDocsManager } from '@responsible-vibe/core';
-import { TemplateOptions } from '@responsible-vibe/core';
-import { PathValidationUtils } from '@responsible-vibe/core';
+import { ProjectDocsManager } from '@codemcp/workflows-core';
+import { TemplateOptions } from '@codemcp/workflows-core';
+import { PathValidationUtils } from '@codemcp/workflows-core';
 import { ServerContext } from '../types.js';
 
 export interface SetupProjectDocsArgs {

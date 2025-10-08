@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { StateMachineLoader } from '@responsible-vibe/core';
+import { StateMachineLoader } from '@codemcp/workflows-core';
 
 // Mock global URL constructor
 global.URL = vi.fn().mockImplementation(() => ({

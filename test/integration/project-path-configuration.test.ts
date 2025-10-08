@@ -9,8 +9,8 @@ import { promises as fs } from 'node:fs';
 import { createResponsibleVibeMCPServer } from '../../packages/mcp-server/src/server.js';
 
 // Mock the logger to prevent console noise during tests
-vi.mock('@responsible-vibe/core', async () => {
-  const actual = await vi.importActual('@responsible-vibe/core');
+vi.mock('@codemcp/workflows-core', async () => {
+  const actual = await vi.importActual('@codemcp/workflows-core');
   return {
     ...actual,
     createLogger: () => ({
