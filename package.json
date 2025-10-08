@@ -20,7 +20,8 @@
     "README.md",
     "LOGGING.md",
     "CUSTOM_STATE_MACHINE.md",
-    "package.json"
+    "package.json",
+    ".npmrc"
   ],
   "repository": {
     "type": "git",
