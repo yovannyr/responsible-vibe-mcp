@@ -1,6 +1,6 @@
 {
   "name": "@responsible-vibe/core",
-  "version": "3.1.12",
+  "version": "3.1.13",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",

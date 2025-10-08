@@ -1,6 +1,6 @@
 {
   "name": "@responsible-vibe/cli",
-  "version": "3.1.12",
+  "version": "3.1.13",
   "description": "CLI tools for responsible-vibe development workflows",
   "type": "module",
   "scripts": {
