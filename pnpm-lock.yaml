@@ -25,8 +25,8 @@ importers:
         version: 3.25.76
     devDependencies:
       '@codemcp/workflows-core':
-        specifier: workspace:*
-        version: link:packages/core
+        specifier: ^3.1.14
+        version: 3.1.16
       '@modelcontextprotocol/inspector':
         specifier: 0.16.8
         version: 0.16.8(@types/node@20.19.17)(typescript@5.9.2)
@@ -81,12 +81,12 @@ importers:
 
   packages/cli:
     dependencies:
-      '@codemcp/workflows-core':
-        specifier: workspace:*
-        version: link:../core
       '@codemcp/workflows':
         specifier: workspace:*
         version: link:../mcp-server
+      '@codemcp/workflows-core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -305,6 +305,9 @@ packages:
   '@babel/types@7.28.4':
     resolution: {integrity: sha512-bkFqkLhh3pMBUQQkpVgWDWq/lqzc2678eUyDlTBhRqhCHFguYYGM0Efga7tYk4TogG/3x0EEl66/OQ+WGbWB/Q==}
     engines: {node: '>=6.9.0'}
+
+  '@codemcp/workflows-core@3.1.16':
+    resolution: {integrity: sha512-H1WPWiZWl8vzDxb4eBhWGgDLhjh3/Jo6OUp/MnUcu1Hs4pduEebfAwX+zlvsLs68sa/rMz16+PiEl5LpB4jQnA==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -3860,6 +3863,16 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
+
+  '@codemcp/workflows-core@3.1.16':
+    dependencies:
+      '@types/js-yaml': 4.0.9
+      js-yaml: 4.1.0
+      sqlite3: 5.1.7
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
