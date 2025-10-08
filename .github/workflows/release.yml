@@ -143,6 +143,10 @@ jobs:
           pnpm publish --access public --no-git-checks
           cd ../..
 
+          # Convert workspace dependencies to actual versions for publishing
+          NEW_VERSION=${{ steps.version.outputs.new_version }}
+          find packages -name "package.json" -exec sed -i '' "s/\"workspace:\*\"/\"^$NEW_VERSION\"/g" {} \;
+
           # Publish main package
           git status && pnpm publish --access public --no-git-checks
         env:
