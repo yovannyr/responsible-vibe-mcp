@@ -135,6 +135,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup module resolution for published package
+        if: steps.version.outputs.new_tag
+        run: |
+          # Create @responsible-vibe directory structure in the package root
+          # This allows @responsible-vibe/core imports to resolve correctly
+          mkdir -p @responsible-vibe
+
+          # Copy core package to @responsible-vibe/core location
+          cp -r packages/core @responsible-vibe/core
+
+          # Update package.json files array to include the new structure
+          node -e "
+            const pkg = require('./package.json');
+            pkg.files.push('@responsible-vibe/**/*');
+            require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+
       - name: Publish to npm
         if: steps.version.outputs.new_tag
         run: git status && pnpm publish --access public --no-git-checks
